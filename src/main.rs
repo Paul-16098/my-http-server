@@ -2,16 +2,6 @@
 use std::os::windows::fs::{ symlink_dir, symlink_file };
 #[cfg(not(windows))]
 use std::os::unix::fs::symlink;
-#[cfg(not(windows))]
-const symlink_dir: dyn Fn(
-  dyn AsRef<std::path::Path>,
-  dyn AsRef<std::path::Path>
-) -> std::io::Result<()> = symlink;
-#[cfg(not(windows))]
-const symlink_file: dyn Fn(
-  dyn AsRef<std::path::Path>,
-  dyn AsRef<std::path::Path>
-) -> std::io::Result<()> = symlink;
 
 use std::path::PathBuf;
 use std::{ rc::Rc, cell::RefCell };
@@ -241,6 +231,10 @@ fn parser_md(input: String, c: config::MarkdownParserConfig) -> markdown_ppp::as
   parse_markdown(markdown_ppp::parser::MarkdownParserState::with_config(c), &input).unwrap()
 }
 fn copy_to_public() {
+  #[cfg(not(windows))]
+  let symlink_dir = symlink;
+  #[cfg(not(windows))]
+  let symlink_file = symlink;
   for entry in Glob::new("*").unwrap().walk("./_public") {
     let entry = entry.unwrap();
     let path = entry.path().to_path_buf();
