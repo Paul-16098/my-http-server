@@ -3,7 +3,7 @@ name: Build&release
 on:
   push:
     paths:
-      - "*.rs"
+      - "**/*.rs"
       - ".github/workflows/cli.yml"
   pull_request:
   workflow_dispatch:

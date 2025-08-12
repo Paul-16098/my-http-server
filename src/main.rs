@@ -3,9 +3,15 @@ use std::os::windows::fs::{ symlink_dir, symlink_file };
 #[cfg(not(windows))]
 use std::os::unix::fs::symlink;
 #[cfg(not(windows))]
-const symlink_dir: dyn Fn(AsRef<Path>, AsRef<Path>) -> io::Result<()> = symlink;
+const symlink_dir: dyn Fn(
+  dyn AsRef<std::path::Path>,
+  dyn AsRef<std::path::Path>
+) -> std::io::Result<()> = symlink;
 #[cfg(not(windows))]
-const symlink_file: dyn Fn(AsRef<Path>, AsRef<Path>) -> io::Result<()> = symlink;
+const symlink_file: dyn Fn(
+  dyn AsRef<std::path::Path>,
+  dyn AsRef<std::path::Path>
+) -> std::io::Result<()> = symlink;
 
 use std::path::PathBuf;
 use std::{ rc::Rc, cell::RefCell };
