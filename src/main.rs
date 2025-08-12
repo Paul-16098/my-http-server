@@ -1,4 +1,8 @@
+#[cfg(windows)]
 use std::os::windows::fs::{ symlink_dir, symlink_file };
+#[cfg(not(windows))]
+use std::os::unix::fs::{ symlink_dir, symlink_file };
+
 use std::path::PathBuf;
 use std::{ rc::Rc, cell::RefCell };
 use markdown_ppp::parser::{ parse_markdown, config };
@@ -254,6 +258,8 @@ async fn main() -> std::io::Result<()> {
   HttpServer::new(|| {
     App::new()
       .wrap(middleware::Logger::default())
+      .wrap(middleware::Compress::default())
+      .wrap(middleware::NormalizePath::default())
       .service(
         actix_files::Files
           ::new("/", "./public/")
