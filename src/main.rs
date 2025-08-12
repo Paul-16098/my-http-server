@@ -1,7 +1,11 @@
 #[cfg(windows)]
 use std::os::windows::fs::{ symlink_dir, symlink_file };
 #[cfg(not(windows))]
-use std::os::unix::fs::{ symlink_dir, symlink_file };
+use std::os::unix::fs::symlink;
+#[cfg(not(windows))]
+const symlink_dir: Fn = symlink;
+#[cfg(not(windows))]
+const symlink_file: Fn = symlink;
 
 use std::path::PathBuf;
 use std::{ rc::Rc, cell::RefCell };
@@ -261,11 +265,7 @@ async fn main() -> std::io::Result<()> {
       .wrap(middleware::Compress::default())
       .wrap(middleware::NormalizePath::default())
       .service(
-        actix_files::Files
-          ::new("/", "./public/")
-          .show_files_listing()
-          .use_hidden_files()
-          .index_file("index.html")
+        actix_files::Files::new("/", "./public/").show_files_listing().index_file("index.html")
       )
   })
     .keep_alive(KeepAlive::Os)
