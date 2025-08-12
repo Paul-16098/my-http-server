@@ -3,9 +3,9 @@ use std::os::windows::fs::{ symlink_dir, symlink_file };
 #[cfg(not(windows))]
 use std::os::unix::fs::symlink;
 #[cfg(not(windows))]
-const symlink_dir: Fn = symlink;
+const symlink_dir: dyn Fn = symlink;
 #[cfg(not(windows))]
-const symlink_file: Fn = symlink;
+const symlink_file: dyn Fn = symlink;
 
 use std::path::PathBuf;
 use std::{ rc::Rc, cell::RefCell };
