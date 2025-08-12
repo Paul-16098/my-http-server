@@ -15,7 +15,7 @@ permissions: write-all
 
 jobs:
   release:
-    name: Release - ${{ matrix.platform.os-name }}
+    name: Release - ${{ matrix.platform.target }}
     strategy:
       fail-fast: false
       matrix:
