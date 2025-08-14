@@ -1,14 +1,9 @@
-#[cfg(windows)]
-use std::os::windows::fs::{ symlink_dir, symlink_file };
-#[cfg(not(windows))]
-use std::os::unix::fs::symlink;
-
 use std::path::PathBuf;
 use std::{ rc::Rc, cell::RefCell };
 use markdown_ppp::parser::{ parse_markdown, config };
 use markdown_ppp::html_printer::{ render_html };
 use markdown_ppp::ast::{ Block, Inline };
-use std::fs::{ create_dir_all, read_to_string, remove_dir, remove_file, write };
+use std::fs::{ copy, create_dir_all, read_to_string, remove_dir_all, remove_file, write };
 use wax::Glob;
 use actix_web::{ http::KeepAlive, middleware, App, HttpServer };
 
@@ -35,24 +30,20 @@ impl std::fmt::Display for GhBlockquoteType {
 }
 
 fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
-  create_dir_all("./public/")?;
-  for entry in Glob::new("*").unwrap().walk("./public") {
+  create_dir_all(".\\public\\")?;
+  for entry in Glob::new("{*,**/*}").unwrap().walk(".\\public") {
     let entry = entry.unwrap();
     let path = entry.path().to_path_buf();
-    if path.is_symlink() {
-      if path.is_file() {
+    let ext = path.extension();
+    if ext.is_none() {
+      continue;
+    }
+    if ext.unwrap() != "md" {
+      // println!("init:r={}", path.display());
+      if path.is_dir() {
+        remove_dir_all(path).unwrap();
+      } else if path.is_file() {
         remove_file(path).unwrap();
-      } else if path.is_dir() {
-        remove_dir(path).unwrap();
-      } else {
-        match path.extension() {
-          None => {
-            remove_dir(path).unwrap();
-          }
-          Some(_) => {
-            remove_file(path).unwrap();
-          }
-        }
       }
     }
   }
@@ -231,22 +222,26 @@ fn parser_md(input: String, c: config::MarkdownParserConfig) -> markdown_ppp::as
   parse_markdown(markdown_ppp::parser::MarkdownParserState::with_config(c), &input).unwrap()
 }
 fn copy_to_public() {
-  #[cfg(not(windows))]
-  let symlink_dir = symlink;
-  #[cfg(not(windows))]
-  let symlink_file = symlink;
-  for entry in Glob::new("*").unwrap().walk("./_public") {
+  for entry in Glob::new("{*,**/*}").unwrap().walk(".\\_public") {
     let entry = entry.unwrap();
     let path = entry.path().to_path_buf();
     let new_path = PathBuf::from(".\\public").join(path.strip_prefix("./_public").unwrap());
-    if new_path.exists() {
+    // println!("copy_to_public: {} -> {}", path.display(), new_path.display());
+    if !path.exists() {
+      panic!("{}: not exists", path.display());
+    }
+    if new_path.exists() && new_path.is_file() {
       println!("exists:{}", new_path.display());
       continue;
     }
     if path.is_file() {
-      symlink_file(path, new_path).unwrap();
+      // println!("{}: is file", new_path.display());
+      copy(&path, &new_path).unwrap();
     } else if path.is_dir() {
-      symlink_dir(path, new_path).unwrap();
+      // println!("{}: is dir && not exists", new_path.display());
+      create_dir_all(new_path).unwrap();
+    } else {
+      println!("{}: ?", new_path.display());
     }
   }
 }
