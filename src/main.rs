@@ -1,3 +1,4 @@
+use log::{ debug, info, trace, warn };
 use std::path::PathBuf;
 use std::{ rc::Rc, cell::RefCell };
 use markdown_ppp::parser::{ parse_markdown, config };
@@ -30,6 +31,13 @@ impl std::fmt::Display for GhBlockquoteType {
 }
 
 fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
+  env_logger
+    ::builder()
+    .default_format()
+    .filter_level(log::LevelFilter::Info)
+    .parse_default_env()
+    .init();
+
   create_dir_all(".\\public\\")?;
   for entry in Glob::new("{*,**/*}").unwrap().walk(".\\public") {
     let entry = entry.unwrap();
@@ -39,7 +47,7 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
       continue;
     }
     if ext.unwrap() != "md" {
-      // println!("init:r={}", path.display());
+      trace!("init:r={}", path.display());
       if path.is_dir() {
         remove_dir_all(path).unwrap();
       } else if path.is_file() {
@@ -52,13 +60,13 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
       Rc::new(
         RefCell::new(
           Box::new(|input| {
-            // println!("i=[{input:#?}]");
+            trace!("i=[{input:#?}]");
             let mut mt: Option<(GhBlockquoteType, &[markdown_ppp::ast::Inline])> = None;
 
             if let Block::BlockQuote(ref blocks) = input {
-              // println!("m:1=t");
+              trace!("m:1=t");
               if let Block::Paragraph(inlines) = blocks.first().unwrap() {
-                // println!("m:2=t");
+                trace!("m:2=t");
                 type Gbt = GhBlockquoteType;
                 for t in [Gbt::CAUTION, Gbt::IMPORTANT, Gbt::NOTE, Gbt::TIP, Gbt::WARNING] {
                   let m = vec![Inline::Text("!".to_owned() + &t.to_string().to_uppercase())];
@@ -75,7 +83,7 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
                       text: m2,
                     }),
                   ];
-                  // println!("m:3:l={t}[m={m:#?}]");
+                  trace!("m:3:l={t}");
                   if inlines.starts_with(mo) || inlines.starts_with(m2o) {
                     // println!("m:3=t({t})");
                     if *inlines.get(1).unwrap() == Inline::LineBreak {
@@ -89,7 +97,7 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
             }
             if let Some(mt) = mt {
               let d = mt.1.to_vec();
-              // println!("match[{}]", mt.0);
+              debug!("match[{}]", mt.0);
               let mut t1 = vec![];
               match mt.0 {
                 GhBlockquoteType::NOTE => {
@@ -149,7 +157,7 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
 
               Block::Paragraph(t1)
             } else {
-              // println!("nm:{input:#?}");
+              trace!("nm:{input:#?}");
               input
             }
           })
@@ -173,7 +181,7 @@ fn md2html(c: config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Er
     let opath = opatho.to_str().unwrap();
 
     let input = read_to_string(&path)?;
-    // println!("i={input}");
+
     if input.starts_with("<!-- TOC -->") {
       index_file = Some(path);
       continue;
@@ -181,7 +189,7 @@ fn md2html(c: config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Er
       path_lists.insert(0, path.clone());
     }
     let ast = parser_md(input, c.clone());
-    // println!("ast={ast:#?}");
+    trace!("ast={ast:#?}");
     write(
       opath,
       html_t.replace(
@@ -226,22 +234,22 @@ fn copy_to_public() {
     let entry = entry.unwrap();
     let path = entry.path().to_path_buf();
     let new_path = PathBuf::from(".\\public").join(path.strip_prefix("./_public").unwrap());
-    // println!("copy_to_public: {} -> {}", path.display(), new_path.display());
+    debug!("copy_to_public: {} -> {}", path.display(), new_path.display());
     if !path.exists() {
       panic!("{}: not exists", path.display());
     }
     if new_path.exists() && new_path.is_file() {
-      println!("exists:{}", new_path.display());
+      debug!("exists:{}", new_path.display());
       continue;
     }
     if path.is_file() {
-      // println!("{}: is file", new_path.display());
+      trace!("{}: is file", new_path.display());
       copy(&path, &new_path).unwrap();
     } else if path.is_dir() {
-      // println!("{}: is dir && not exists", new_path.display());
+      trace!("{}: is dir && not exists", new_path.display());
       create_dir_all(new_path).unwrap();
     } else {
-      println!("{}: ?", new_path.display());
+      warn!("{}: ?", new_path.display());
     }
   }
 }
@@ -253,12 +261,12 @@ async fn main() -> std::io::Result<()> {
   copy_to_public();
   md2html(c).unwrap();
 
-  println!("run in http://{}:{}/", IP_PORT.0, IP_PORT.1);
+  info!("run in http://{}:{}/", IP_PORT.0, IP_PORT.1);
   HttpServer::new(|| {
     App::new()
-      .wrap(middleware::Logger::default())
+      .wrap(middleware::NormalizePath::new(middleware::TrailingSlash::Trim))
       .wrap(middleware::Compress::default())
-      .wrap(middleware::NormalizePath::default())
+      .wrap(middleware::Logger::default())
       .service(
         actix_files::Files::new("/", "./public/").show_files_listing().index_file("index.html")
       )
