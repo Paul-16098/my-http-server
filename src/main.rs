@@ -149,7 +149,18 @@ async fn main() -> std::io::Result<()> {
           })
       )
       .service(
-        actix_files::Files::new("/", "./public/").show_files_listing().index_file("index.html")
+        actix_files::Files
+          ::new("/", "./public/")
+          .show_files_listing()
+          .index_file("index.html")
+          .default_handler(
+            actix_web::dev::fn_service(|req: actix_web::dev::ServiceRequest| async {
+              let (req, _) = req.into_parts();
+              let file = actix_files::NamedFile::open_async("./public/404.html").await?;
+              let res = file.into_response(&req);
+              Ok(actix_web::dev::ServiceResponse::new(req, res))
+            })
+          )
       )
   })
     .keep_alive(KeepAlive::Os)

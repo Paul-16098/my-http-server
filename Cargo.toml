@@ -12,7 +12,7 @@
         "ast-serde",
     ] }
     nom = "8.0.0"
-percent-encoding = "2.3.1"
+    percent-encoding = "2.3.1"
     wax = { version = "0.6.0", features = [
         "miette",
         "walk",
