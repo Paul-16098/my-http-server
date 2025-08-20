@@ -137,7 +137,7 @@ async fn main() -> std::io::Result<()> {
           ::new(
             &std::env
               ::var("REQUEST_LOGGER")
-              .unwrap_or(r#"%{url}xi "%r" %s "%{Referer}i" "%{User-Agent}i""#.to_string())
+              .unwrap_or(r#"%{url}xi %s "%{Referer}i" "%{User-Agent}i""#.to_string())
           )
           .custom_request_replace("url", |req| {
             let u = &req.uri().to_string();
