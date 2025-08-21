@@ -1,4 +1,5 @@
 use log::{ debug, info, trace, warn };
+use notify::Watcher;
 use std::path::PathBuf;
 use markdown_ppp::parser::{ parse_markdown, config };
 use markdown_ppp::html_printer::{ render_html };
@@ -10,41 +11,49 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
   env_logger
     ::builder()
     .default_format()
+    .format_module_path(true)
+    .format_line_number(true)
+    .format_timestamp(None)
     .filter_level(log::LevelFilter::Info)
     .parse_default_env()
     .init();
 
   create_dir_all(".\\public\\")?;
-  for entry in Glob::new("{*,**/*}").unwrap().walk(".\\public") {
-    let entry = entry.unwrap();
-    let path = entry.path().to_path_buf();
-    let ext = path.extension();
-    if ext.is_none() {
-      continue;
-    }
-    if ext.unwrap() != "md" {
-      trace!("init:r={}", path.display());
-      if path.is_dir() {
-        remove_dir_all(path).unwrap();
-      } else if path.is_file() {
-        remove_file(path).unwrap();
-      }
-    }
-  }
+  create_dir_all(".\\_public\\")?;
+  remove_public()?;
   Ok(config::MarkdownParserConfig::default())
 }
-
-fn md2html(c: config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Error>> {
-  let md_files = Glob::new("**/*.md").unwrap();
+fn remove_public() -> Result<(), Box<dyn std::error::Error>> {
+  for entry in Glob::new("{*,**/*}")?.walk(".\\public") {
+    let entry = entry?;
+    let path = entry.path().to_path_buf();
+    let ext = path.extension();
+    if let Some(e) = ext {
+      if e != "md" {
+        trace!("init:r={}", path.display());
+        if path.is_dir() {
+          remove_dir_all(path)?;
+        } else if path.is_file() {
+          remove_file(path)?;
+        }
+      }
+    } else {
+      continue;
+    }
+  }
+  Ok(())
+}
+fn md2html(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Error>> {
+  let md_files = Glob::new("**/*.md")?;
   let html_t = read_to_string("html-t.html")?;
   let mut index_file: Option<PathBuf> = None;
   let mut path_lists: Vec<PathBuf> = vec![];
 
   for entry in md_files.walk("./public/") {
-    let entry = entry.unwrap();
+    let entry = entry?;
     let path = entry.path().to_path_buf();
-    let opatho = path.with_extension("html");
-    let opath = opatho.to_str().unwrap();
+    let out_path_obj = path.with_extension("html");
+    let out_path = out_path_obj.to_str().unwrap();
 
     let input = read_to_string(&path)?;
 
@@ -57,7 +66,7 @@ fn md2html(c: config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Er
     let ast = parser_md(input, c.clone());
     trace!("ast={ast:#?}");
     write(
-      opath,
+      out_path,
       html_t.replace(
         "{}",
         &render_html(&ast, markdown_ppp::html_printer::config::Config::default())
@@ -92,14 +101,19 @@ fn make_toc(
   }
   write(index_file, toc_str_list.join("\n") + "\n")
 }
+#[inline]
 fn parser_md(input: String, c: config::MarkdownParserConfig) -> markdown_ppp::ast::Document {
   parse_markdown(markdown_ppp::parser::MarkdownParserState::with_config(c), &input).unwrap()
 }
-fn copy_to_public() {
-  for entry in Glob::new("{*,**/*}").unwrap().walk(".\\_public") {
-    let entry = entry.unwrap();
+fn copy_to_public() -> Result<(), Box<dyn std::error::Error>> {
+  for entry in Glob::new("{*,**/*}")?.walk(".\\_public") {
+    let entry = entry?;
     let path = entry.path().to_path_buf();
-    let new_path = PathBuf::from(".\\public").join(path.strip_prefix("./_public").unwrap());
+    let new_path = PathBuf::from(".\\public").join(path.strip_prefix("./_public")?);
+
+    if let Some(t) = path.to_str() && t.contains(".git") {
+      continue;
+    }
     debug!("copy_to_public: {} -> {}", path.display(), new_path.display());
     if !path.exists() {
       panic!("{}: not exists", path.display());
@@ -110,23 +124,18 @@ fn copy_to_public() {
     }
     if path.is_file() {
       trace!("{}: is file", new_path.display());
-      copy(&path, &new_path).unwrap();
+      copy(&path, &new_path)?;
     } else if path.is_dir() {
       trace!("{}: is dir && not exists", new_path.display());
-      create_dir_all(new_path).unwrap();
+      create_dir_all(new_path)?;
     } else {
       warn!("{}: ?", new_path.display());
     }
   }
+  Ok(())
 }
 
-const IP_PORT: (&str, u16) = ("127.0.0.1", 8080);
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-  let c = init().unwrap();
-  copy_to_public();
-  md2html(c).unwrap();
-
+async fn run_server() -> std::io::Result<()> {
   info!("run in http://{}:{}/", IP_PORT.0, IP_PORT.1);
   HttpServer::new(|| {
     App::new()
@@ -166,4 +175,108 @@ async fn main() -> std::io::Result<()> {
     .keep_alive(KeepAlive::Os)
     .bind(IP_PORT)?
     .run().await
+}
+
+/// ("ip", port)
+const IP_PORT: (&str, u16) = ("127.0.0.1", 8080);
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+  let c = init()?;
+  copy_to_public()?;
+  md2html(&c)?;
+
+  // spawn the http server in a background thread so the watcher loop can run in main
+  let _server_thread = std::thread::spawn(|| {
+    actix_web::rt::System::new().block_on(async {
+      if let Err(e) = run_server().await {
+        eprintln!("server error: {:?}", e);
+      }
+    });
+  });
+
+  let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
+  let mut w = notify::recommended_watcher(tx)?;
+  w.watch(std::path::Path::new(".\\public\\"), notify::RecursiveMode::Recursive)?;
+  w.watch(std::path::Path::new(".\\_public\\"), notify::RecursiveMode::Recursive)?;
+
+  // debounce loop: collect events for a short interval and process unique paths once
+  for res in &rx {
+    match res {
+      Ok(first_event) => {
+        if
+          matches!(
+            first_event.kind,
+            notify::EventKind::Modify(_) |
+              notify::EventKind::Create(_) |
+              notify::EventKind::Remove(_)
+          )
+        {
+          // 忽略 git 路徑
+          if
+            first_event.paths
+              .first()
+              .map(|p| p.to_string_lossy().contains(".git\\"))
+              .unwrap_or(false)
+          {
+            continue;
+          }
+
+          // start debounce: collect events for a short time window
+          debug!("debounce start: {first_event:#?}");
+          let mut events: Vec<notify::Event> = vec![first_event];
+          std::thread::sleep(std::time::Duration::from_millis(1000));
+
+          // drain any pending events into the buffer
+          loop {
+            match rx.try_recv() {
+              Ok(next) =>
+                match next {
+                  Ok(ev) => events.push(ev),
+                  Err(e) => {
+                    warn!("watch error during drain: {:?}", e);
+                  }
+                }
+              Err(std::sync::mpsc::TryRecvError::Empty) => {
+                break;
+              }
+              Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                break;
+              }
+            }
+          }
+
+          // deduplicate by path and decide actions
+          let mut paths_seen = std::collections::HashSet::new();
+          let mut need_copy_public = false;
+          for ev in events {
+            if let Some(p) = ev.paths.first() {
+              let pstr = p.to_string_lossy().to_string();
+              if pstr.contains(".git\\") {
+                continue;
+              }
+              if pstr.contains("_public\\") {
+                need_copy_public = true;
+              }
+              paths_seen.insert(pstr);
+            }
+          }
+
+          debug!("processing {} unique paths", paths_seen.len());
+
+          if need_copy_public {
+            debug!("ev: is _public");
+            remove_public()?;
+            copy_to_public()?;
+          }
+
+          // regenerate HTML once
+          md2html(&c)?;
+        }
+      }
+      Err(e) => println!("watch error: {:?}", e),
+    }
+  }
+  // server runs in background thread; no synchronous run_server() call here
+
+  Ok(())
 }
