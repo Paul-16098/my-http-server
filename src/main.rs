@@ -7,7 +7,7 @@ use std::path::{ Path, PathBuf };
 use markdown_ppp::parser::{ parse_markdown };
 use markdown_ppp::parser::config;
 use markdown_ppp::html_printer::{ render_html };
-use std::fs::{ copy, create_dir_all, read_to_string, remove_dir_all, remove_file, write };
+use std::fs::{ create_dir_all, read_to_string, remove_file, write };
 use wax::Glob;
 use actix_web::{ http::KeepAlive, middleware, App, HttpServer };
 
@@ -23,7 +23,6 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
     .init();
 
   create_dir_all(".\\public\\")?;
-  create_dir_all(".\\_public\\")?;
   remove_public()?;
   Ok(config::MarkdownParserConfig::default())
 }
@@ -43,27 +42,19 @@ fn init_cofg() -> Cofg {
     .unwrap_or_default()
 }
 fn remove_public() -> Result<(), Box<dyn std::error::Error>> {
-  for entry in Glob::new("{*,**/*}")?.walk(".\\public") {
+  for entry in Glob::new("**/*.{md,markdown}")?.walk(".\\public") {
     let entry = entry?;
     let path = entry.path().to_path_buf();
-    let ext = path.extension();
-    if let Some(e) = ext {
-      if e != "md" {
-        trace!("init:r={}", path.display());
-        if path.is_dir() {
-          remove_dir_all(path)?;
-        } else if path.is_file() {
-          remove_file(path)?;
-        }
-      }
-    } else {
-      continue;
+
+    let out = path.with_extension("html");
+    if out.exists() {
+      remove_file(out).unwrap();
     }
   }
   Ok(())
 }
 fn md2html(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Error>> {
-  let md_files = Glob::new("**/*.md")?;
+  let md_files = Glob::new("**/*.{md,markdown}")?;
   let html_t = read_to_string("./meta/html-t.html")?;
   let mut index_file: Option<PathBuf> = None;
   let mut path_lists: Vec<PathBuf> = vec![];
@@ -127,37 +118,6 @@ fn parser_md(input: String, c: &config::MarkdownParserConfig) -> markdown_ppp::a
   // 內部需要 clone config 給 parser，但外部呼叫時可傳參考，避免重複 clone
   parse_markdown(markdown_ppp::parser::MarkdownParserState::with_config(c.clone()), &input).unwrap()
 }
-fn copy_to_public() -> Result<(), Box<dyn std::error::Error>> {
-  for entry in Glob::new("{*,**/*}")?.walk("./_public") {
-    let entry = entry?;
-    let path = entry.path().to_path_buf();
-    let new_path = PathBuf::from("./public").join(path.strip_prefix("./_public")?);
-
-    // 修正原本錯誤的 if let 語法，使用 to_string_lossy 判斷是否為 .git 路徑
-    if path.to_string_lossy().contains(".git") {
-      continue;
-    }
-    debug!("copy_to_public: {} -> {}", path.display(), new_path.display());
-    if !path.exists() {
-      panic!("{}: not exists", path.display());
-    }
-    if new_path.ancestors().any(|p| { p.is_symlink() }) {
-      debug!("is_symlink");
-      continue;
-    }
-    if path.is_file() {
-      trace!("{}: is file", new_path.display());
-      copy(&path, &new_path)?;
-    } else if path.is_dir() {
-      trace!("{}: is dir && not exists", new_path.display());
-      create_dir_all(new_path)?;
-    } else {
-      warn!("{}: ?", new_path.display());
-    }
-  }
-  Ok(())
-}
-
 async fn run_server(s: &Cofg) -> std::io::Result<()> {
   info!("run in http://{}:{}/", s.ip, s.port);
   HttpServer::new(|| {
@@ -273,7 +233,6 @@ fn watcher_loop(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::err
           if need_copy_public {
             debug!("ev: is _public");
             remove_public()?;
-            copy_to_public()?;
           }
 
           // regenerate HTML once
@@ -291,7 +250,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let s = init_cofg();
   let c = init()?;
   debug!("cofg: {s:#?}");
-  copy_to_public()?;
   md2html(&c)?;
 
   // spawn the http server in a background thread so the watcher loop can run in main
