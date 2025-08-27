@@ -1,7 +1,11 @@
-use log::{ debug, info, trace, warn };
+mod cofg;
+use crate::cofg::Cofg;
+
+use log::{ debug, error, info, trace, warn };
 use notify::Watcher;
-use std::path::PathBuf;
-use markdown_ppp::parser::{ parse_markdown, config };
+use std::path::{ Path, PathBuf };
+use markdown_ppp::parser::{ parse_markdown };
+use markdown_ppp::parser::config;
 use markdown_ppp::html_printer::{ render_html };
 use std::fs::{ copy, create_dir_all, read_to_string, remove_dir_all, remove_file, write };
 use wax::Glob;
@@ -22,6 +26,21 @@ fn init() -> Result<config::MarkdownParserConfig, Box<dyn std::error::Error>> {
   create_dir_all(".\\_public\\")?;
   remove_public()?;
   Ok(config::MarkdownParserConfig::default())
+}
+fn init_cofg() -> Cofg {
+  use ::config;
+
+  if !Path::new("./cofg.yaml").exists() {
+    println!("write default cofg");
+    write("./cofg.yaml", include_str!("cofg.yaml")).unwrap();
+  }
+  config::Config
+    ::builder()
+    .add_source(config::File::with_name("./cofg.yaml").required(false))
+    .build()
+    .unwrap()
+    .try_deserialize::<Cofg>()
+    .unwrap_or_default()
 }
 fn remove_public() -> Result<(), Box<dyn std::error::Error>> {
   for entry in Glob::new("{*,**/*}")?.walk(".\\public") {
@@ -45,7 +64,7 @@ fn remove_public() -> Result<(), Box<dyn std::error::Error>> {
 }
 fn md2html(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Error>> {
   let md_files = Glob::new("**/*.md")?;
-  let html_t = read_to_string("html-t.html")?;
+  let html_t = read_to_string("./meta/html-t.html")?;
   let mut index_file: Option<PathBuf> = None;
   let mut path_lists: Vec<PathBuf> = vec![];
 
@@ -63,7 +82,8 @@ fn md2html(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::E
     } else {
       path_lists.insert(0, path.clone());
     }
-    let ast = parser_md(input, c.clone());
+    // 使用傳入的參考而非 clone
+    let ast = parser_md(input, c);
     trace!("ast={ast:#?}");
     write(
       out_path,
@@ -76,7 +96,8 @@ fn md2html(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::E
   if let Some(index_file) = index_file {
     make_toc(index_file.clone(), path_lists)?;
     let input = read_to_string(index_file.clone())?;
-    let ast = parser_md(input, c.clone());
+    // 使用傳入的參考而非 clone
+    let ast = parser_md(input, c);
     write(
       index_file.with_extension("html"),
       html_t.replace(
@@ -102,24 +123,26 @@ fn make_toc(
   write(index_file, toc_str_list.join("\n") + "\n")
 }
 #[inline]
-fn parser_md(input: String, c: config::MarkdownParserConfig) -> markdown_ppp::ast::Document {
-  parse_markdown(markdown_ppp::parser::MarkdownParserState::with_config(c), &input).unwrap()
+fn parser_md(input: String, c: &config::MarkdownParserConfig) -> markdown_ppp::ast::Document {
+  // 內部需要 clone config 給 parser，但外部呼叫時可傳參考，避免重複 clone
+  parse_markdown(markdown_ppp::parser::MarkdownParserState::with_config(c.clone()), &input).unwrap()
 }
 fn copy_to_public() -> Result<(), Box<dyn std::error::Error>> {
-  for entry in Glob::new("{*,**/*}")?.walk(".\\_public") {
+  for entry in Glob::new("{*,**/*}")?.walk("./_public") {
     let entry = entry?;
     let path = entry.path().to_path_buf();
-    let new_path = PathBuf::from(".\\public").join(path.strip_prefix("./_public")?);
+    let new_path = PathBuf::from("./public").join(path.strip_prefix("./_public")?);
 
-    if let Some(t) = path.to_str() && t.contains(".git") {
+    // 修正原本錯誤的 if let 語法，使用 to_string_lossy 判斷是否為 .git 路徑
+    if path.to_string_lossy().contains(".git") {
       continue;
     }
     debug!("copy_to_public: {} -> {}", path.display(), new_path.display());
     if !path.exists() {
       panic!("{}: not exists", path.display());
     }
-    if new_path.exists() && new_path.is_file() {
-      debug!("exists:{}", new_path.display());
+    if new_path.ancestors().any(|p| { p.is_symlink() }) {
+      debug!("is_symlink");
       continue;
     }
     if path.is_file() {
@@ -135,8 +158,8 @@ fn copy_to_public() -> Result<(), Box<dyn std::error::Error>> {
   Ok(())
 }
 
-async fn run_server() -> std::io::Result<()> {
-  info!("run in http://{}:{}/", IP_PORT.0, IP_PORT.1);
+async fn run_server(s: &Cofg) -> std::io::Result<()> {
+  info!("run in http://{}:{}/", s.ip, s.port);
   HttpServer::new(|| {
     App::new()
       .wrap(middleware::NormalizePath::new(middleware::TrailingSlash::Trim))
@@ -165,7 +188,7 @@ async fn run_server() -> std::io::Result<()> {
           .default_handler(
             actix_web::dev::fn_service(|req: actix_web::dev::ServiceRequest| async {
               let (req, _) = req.into_parts();
-              let file = actix_files::NamedFile::open_async("./public/404.html").await?;
+              let file = actix_files::NamedFile::open_async("./meta/404.html").await?;
               let res = file.into_response(&req);
               Ok(actix_web::dev::ServiceResponse::new(req, res))
             })
@@ -173,31 +196,15 @@ async fn run_server() -> std::io::Result<()> {
       )
   })
     .keep_alive(KeepAlive::Os)
-    .bind(IP_PORT)?
+    .bind((s.ip.as_str(), s.port))?
     .run().await
 }
 
-/// ("ip", port)
-const IP_PORT: (&str, u16) = ("127.0.0.1", 8080);
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let c = init()?;
-  copy_to_public()?;
-  md2html(&c)?;
-
-  // spawn the http server in a background thread so the watcher loop can run in main
-  let _server_thread = std::thread::spawn(|| {
-    actix_web::rt::System::new().block_on(async {
-      if let Err(e) = run_server().await {
-        eprintln!("server error: {:?}", e);
-      }
-    });
-  });
-
+fn watcher_loop(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Error>> {
   let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
   let mut w = notify::recommended_watcher(tx)?;
-  w.watch(std::path::Path::new(".\\public\\"), notify::RecursiveMode::Recursive)?;
-  w.watch(std::path::Path::new(".\\_public\\"), notify::RecursiveMode::Recursive)?;
+  w.watch(std::path::Path::new("./public"), notify::RecursiveMode::Recursive)?;
+  w.watch(std::path::Path::new("./_public"), notify::RecursiveMode::Recursive)?;
 
   // debounce loop: collect events for a short interval and process unique paths once
   for res in &rx {
@@ -215,7 +222,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           if
             first_event.paths
               .first()
-              .map(|p| p.to_string_lossy().contains(".git\\"))
+              .map(|p| p.to_string_lossy().contains(".git"))
               .unwrap_or(false)
           {
             continue;
@@ -251,10 +258,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           for ev in events {
             if let Some(p) = ev.paths.first() {
               let pstr = p.to_string_lossy().to_string();
-              if pstr.contains(".git\\") {
+              if pstr.contains(".git") {
                 continue;
               }
-              if pstr.contains("_public\\") {
+              if pstr.contains("_public") {
                 need_copy_public = true;
               }
               paths_seen.insert(pstr);
@@ -270,13 +277,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           }
 
           // regenerate HTML once
-          md2html(&c)?;
+          md2html(c)?;
         }
       }
       Err(e) => println!("watch error: {:?}", e),
     }
   }
-  // server runs in background thread; no synchronous run_server() call here
+
+  Ok(())
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+  let s = init_cofg();
+  let c = init()?;
+  debug!("cofg: {s:#?}");
+  copy_to_public()?;
+  md2html(&c)?;
+
+  // spawn the http server in a background thread so the watcher loop can run in main
+  let _server_thread = std::thread::spawn(move || {
+    actix_web::rt::System::new().block_on(async {
+      if let Err(e) = run_server(&s).await {
+        error!("server error: {:?}", e);
+      }
+    });
+  });
+
+  // start watcher loop
+  watcher_loop(&c)?;
 
   Ok(())
 }
