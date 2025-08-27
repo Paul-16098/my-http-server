@@ -164,7 +164,6 @@ fn watcher_loop(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::err
   let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
   let mut w = notify::recommended_watcher(tx)?;
   w.watch(std::path::Path::new("./public"), notify::RecursiveMode::Recursive)?;
-  w.watch(std::path::Path::new("./_public"), notify::RecursiveMode::Recursive)?;
 
   // debounce loop: collect events for a short interval and process unique paths once
   for res in &rx {
