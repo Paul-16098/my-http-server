@@ -110,7 +110,8 @@ async fn run_server(s: &Cofg) -> std::io::Result<()> {
 }
 
 fn watcher_loop(
-  c: &markdown_ppp::parser::config::MarkdownParserConfig
+  c: &markdown_ppp::parser::config::MarkdownParserConfig,
+  s: &Cofg
 ) -> Result<(), Box<dyn std::error::Error>> {
   let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
   let mut w = notify::recommended_watcher(tx)?;
@@ -184,7 +185,7 @@ fn watcher_loop(
           }
 
           // regenerate HTML once
-          md2html(c)?;
+          md2html(c, s)?;
         }
       }
       Err(e) => println!("watch error: {e:?}"),
@@ -198,19 +199,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let s = init_cofg();
   let c = init()?;
   debug!("cofg: {s:#?}");
-  md2html(&c)?;
+  md2html(&c, &s)?;
 
   if s.watch {
+    let s_c = s.clone();
     // spawn the http server in a background thread so the watcher loop can run in main
     let _server_thread = std::thread::spawn(move || {
       actix_web::rt::System::new().block_on(async {
-        if let Err(e) = run_server(&s).await {
+        if let Err(e) = run_server(&s_c).await {
           error!("server error: {e:?}");
         }
       });
     });
     // start watcher loop
-    watcher_loop(&c)?;
+    watcher_loop(&c, &s)?;
   } else {
     actix_web::rt::System::new().block_on(async {
       if let Err(e) = run_server(&s).await {

@@ -11,10 +11,13 @@ use markdown_ppp::parser::{ parse_markdown };
 use markdown_ppp::parser::config;
 use markdown_ppp::html_printer::{ render_html };
 
-pub(crate) fn md2html(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn md2html(
+  c: &config::MarkdownParserConfig,
+  s: &crate::cofg::Cofg
+) -> Result<(), Box<dyn std::error::Error>> {
   let md_files = Glob::new("**/*.{md,markdown}")?;
   let mut engine = get_engine();
-  let context = get_context();
+  let context = get_context(s);
   let html_t = engine.compile_to_bytecode("html-t.templating")?;
   let mut index_file: Option<PathBuf> = None;
   let mut path_lists: Vec<PathBuf> = vec![];

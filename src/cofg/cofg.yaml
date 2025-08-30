@@ -14,3 +14,4 @@ middleware:
     # logger format
     format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
 watch: true
+templating_value:

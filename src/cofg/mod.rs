@@ -1,4 +1,6 @@
 //! cofg main
+use std::collections::HashMap;
+
 use nest_struct::nest_struct;
 
 pub(crate) const BULID_COFG: &str = include_str!("cofg.yaml");
@@ -26,6 +28,7 @@ pub(crate) struct Cofg {
   },
   /// watch file changes
   pub(crate) watch: bool,
+  pub(crate) templating_value: HashMap<String, String>,
 }
 impl std::fmt::Display for CofgAddrs {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
