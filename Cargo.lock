@@ -1265,6 +1265,7 @@ dependencies = [
  "env_logger",
  "log",
  "markdown-ppp",
+ "mystical-runic",
  "nest_struct",
  "nom 8.0.0",
  "notify",
@@ -1272,6 +1273,12 @@ dependencies = [
  "serde",
  "wax",
 ]
+
+[[package]]
+name = "mystical-runic"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99a74fcea3ea94df1d815445ea505c49570fed7887541294fc65274aa49aa10e"
 
 [[package]]
 name = "nest_struct"

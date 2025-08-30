@@ -1,4 +1,9 @@
+//! cofg main
+use std::collections::HashMap;
+
 use nest_struct::nest_struct;
+
+pub(crate) const BULID_COFG: &str = include_str!("cofg.yaml");
 
 #[nest_struct]
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -23,6 +28,10 @@ pub(crate) struct Cofg {
   },
   /// watch file changes
   pub(crate) watch: bool,
+  pub(crate) templating: nest! {
+    pub(crate) value: Option<HashMap<String, String>>,
+    pub(crate) hot_reload: bool
+  },
 }
 impl std::fmt::Display for CofgAddrs {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -34,7 +43,7 @@ impl Default for Cofg {
   fn default() -> Self {
     config::Config
       ::builder()
-      .add_source(config::File::from_str(include_str!("cofg.yaml"), config::FileFormat::Yaml))
+      .add_source(config::File::from_str(BULID_COFG, config::FileFormat::Yaml))
       .build()
       .unwrap()
       .try_deserialize::<Self>()
