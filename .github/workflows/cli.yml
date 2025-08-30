@@ -74,3 +74,5 @@ jobs:
           extra-files: |
             LICENSE.txt
             README.md
+            meta/404.html
+            meta/html-t.templating

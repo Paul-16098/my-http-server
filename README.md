@@ -18,7 +18,9 @@
 
 2. 建置：
 
+   ```sh
    cargo build --release
+   ```
 
 ## 執行
 
