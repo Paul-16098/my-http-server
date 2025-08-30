@@ -6,9 +6,12 @@ use mystical_runic::{ TemplateEngine, TemplateContext };
 pub(crate) fn get_context(c: &crate::cofg::Cofg) -> TemplateContext {
   let mut context = TemplateContext::new();
   context.set_string("server-version", env!("CARGO_PKG_VERSION"));
-  c.templating_value.iter().for_each(|(k, v)| {
-    context.set_string(k, v);
-  });
+  if let Some(templating_value) = &c.templating_value {
+    templating_value.iter().for_each(|(k, v)| {
+      context.set_string(k, v);
+    });
+  }
+
   context
 }
 #[inline]
