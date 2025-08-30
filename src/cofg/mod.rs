@@ -28,7 +28,10 @@ pub(crate) struct Cofg {
   },
   /// watch file changes
   pub(crate) watch: bool,
-  pub(crate) templating_value: Option<HashMap<String, String>>,
+  pub(crate) templating: nest! {
+    pub(crate) value: Option<HashMap<String, String>>,
+    pub(crate) hot_reload: bool
+  },
 }
 impl std::fmt::Display for CofgAddrs {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -16,7 +16,7 @@ pub(crate) fn md2html(
   s: &crate::cofg::Cofg
 ) -> Result<(), Box<dyn std::error::Error>> {
   let md_files = Glob::new("**/*.{md,markdown}")?;
-  let mut engine = get_engine();
+  let mut engine = get_engine(s);
   let context = get_context(s);
   let html_t = engine.compile_to_bytecode("html-t.templating")?;
   let mut index_file: Option<PathBuf> = None;
