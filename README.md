@@ -31,23 +31,25 @@
 
 - 把 README.md 放進 `public/`，然後在瀏覽器開啟 `http://127.0.0.1:8080/README.html`（或依照程式路由）即可看到轉換後的 HTML。
 
-## 環境變數
-
-- REQUEST_LOGGER：`actix_web::middleware::logger::Logger` 使用的格式字串。預設為
-  `%{url}xi %s "%{Referer}i" "%{User-Agent}i"`
-
 ## 設定檔
 
-cofg.yaml:
-
-```yaml
-ip: 127.0.0.1
-port: 8080
-```
+./cofg.yaml: [src/cofg.yaml](https://github.com/Paul-16098/my-http-server/blob/main/src/cofg.yaml)
 
 ./meta/html-t.html: a html for base
 
 ./meta/404.html: 404 page
+
+## tree
+
+```tree
+src
+ ┣ test -- test
+ ┃ ┣ cofg.rs -- test for cofg.rs
+ ┃ ┗ mod.rs -- test main
+ ┣ cofg.rs -- cofg
+ ┣ cofg.yaml -- cofg Default
+ ┗ main.rs -- main
+```
 
 ## 授權與貢獻
 

@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod test;
+
 mod cofg;
 use crate::cofg::Cofg;
 
@@ -119,26 +122,33 @@ fn parser_md(input: String, c: &config::MarkdownParserConfig) -> markdown_ppp::a
   parse_markdown(markdown_ppp::parser::MarkdownParserState::with_config(c.clone()), &input).unwrap()
 }
 async fn run_server(s: &Cofg) -> std::io::Result<()> {
-  info!("run in http://{}:{}/", s.ip, s.port);
-  HttpServer::new(|| {
+  let middleware_cofg = s.middleware.clone();
+  let addrs = &s.addrs;
+  info!("run in http://{}:{}/", addrs.ip, addrs.port);
+
+  HttpServer::new(move || {
     App::new()
-      .wrap(middleware::NormalizePath::new(middleware::TrailingSlash::Trim))
-      .wrap(middleware::Compress::default())
       .wrap(
-        middleware::Logger
-          ::new(
-            &std::env
-              ::var("REQUEST_LOGGER")
-              .unwrap_or(r#"%{url}xi %s "%{Referer}i" "%{User-Agent}i""#.to_string())
-          )
-          .custom_request_replace("url", |req| {
-            let u = &req.uri().to_string();
-            percent_encoding
-              ::percent_decode(u.as_bytes())
-              .decode_utf8()
-              .unwrap_or(std::borrow::Cow::Borrowed(u))
-              .to_string()
-          })
+        middleware::Condition::new(
+          middleware_cofg.normalize_path,
+          middleware::NormalizePath::new(middleware::TrailingSlash::Trim)
+        )
+      )
+      .wrap(middleware::Condition::new(middleware_cofg.compress, middleware::Compress::default()))
+      .wrap(
+        middleware::Condition::new(
+          middleware_cofg.logger.enabling,
+          middleware::Logger
+            ::new(&middleware_cofg.logger.format)
+            .custom_request_replace("url", |req| {
+              let u = &req.uri().to_string();
+              percent_encoding
+                ::percent_decode(u.as_bytes())
+                .decode_utf8()
+                .unwrap_or(std::borrow::Cow::Borrowed(u))
+                .to_string()
+            })
+        )
       )
       .service(
         actix_files::Files
@@ -156,7 +166,7 @@ async fn run_server(s: &Cofg) -> std::io::Result<()> {
       )
   })
     .keep_alive(KeepAlive::Os)
-    .bind((s.ip.as_str(), s.port))?
+    .bind(addrs.to_string())?
     .run().await
 }
 
@@ -198,9 +208,7 @@ fn watcher_loop(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::err
               Ok(next) =>
                 match next {
                   Ok(ev) => events.push(ev),
-                  Err(e) => {
-                    warn!("watch error during drain: {:?}", e);
-                  }
+                  Err(e) => warn!("watch error during drain: {e:?}"),
                 }
               Err(std::sync::mpsc::TryRecvError::Empty) => {
                 break;
@@ -238,7 +246,7 @@ fn watcher_loop(c: &config::MarkdownParserConfig) -> Result<(), Box<dyn std::err
           md2html(c)?;
         }
       }
-      Err(e) => println!("watch error: {:?}", e),
+      Err(e) => println!("watch error: {e:?}"),
     }
   }
 
@@ -251,17 +259,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   debug!("cofg: {s:#?}");
   md2html(&c)?;
 
-  // spawn the http server in a background thread so the watcher loop can run in main
-  let _server_thread = std::thread::spawn(move || {
+  if s.watch {
+    // spawn the http server in a background thread so the watcher loop can run in main
+    let _server_thread = std::thread::spawn(move || {
+      actix_web::rt::System::new().block_on(async {
+        if let Err(e) = run_server(&s).await {
+          error!("server error: {e:?}");
+        }
+      });
+    });
+    // start watcher loop
+    watcher_loop(&c)?;
+  } else {
     actix_web::rt::System::new().block_on(async {
       if let Err(e) = run_server(&s).await {
-        error!("server error: {:?}", e);
+        error!("server error: {e:?}");
       }
     });
-  });
-
-  // start watcher loop
-  watcher_loop(&c)?;
+  }
 
   Ok(())
 }

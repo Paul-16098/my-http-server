@@ -1,2 +1,16 @@
-ip: 127.0.0.1
-port: 8080
+addrs:
+  # like: 127.0.0.1
+  ip: 127.0.0.1
+  # like: 80, 8080
+  port: 8080
+middleware:
+  # enabling NormalizePath
+  normalize_path: true
+  # enabling Compress
+  compress: true
+  logger:
+    # enabling logger
+    enabling: true
+    # logger format
+    format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
+watch: true
