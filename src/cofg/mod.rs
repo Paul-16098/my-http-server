@@ -1,4 +1,7 @@
+//! cofg main
 use nest_struct::nest_struct;
+
+pub(crate) const BULID_COFG: &str = include_str!("cofg.yaml");
 
 #[nest_struct]
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -34,7 +37,7 @@ impl Default for Cofg {
   fn default() -> Self {
     config::Config
       ::builder()
-      .add_source(config::File::from_str(include_str!("cofg.yaml"), config::FileFormat::Yaml))
+      .add_source(config::File::from_str(BULID_COFG, config::FileFormat::Yaml))
       .build()
       .unwrap()
       .try_deserialize::<Self>()

@@ -33,21 +33,26 @@
 
 ## 設定檔
 
-./cofg.yaml: [src/cofg.yaml](https://github.com/Paul-16098/my-http-server/blob/main/src/cofg.yaml)
+./cofg.yaml: [src/cofg.yaml](https://github.com/Paul-16098/my-http-server/blob/main/src/cofg/cofg.yaml)
 
-./meta/html-t.html: a html for base
+./meta/html-t.templating: a templating for base
 
 ./meta/404.html: 404 page
 
 ## tree
 
 ```tree
-src
+ src
+ ┣ cofg -- cofg
+ ┃ ┣ cofg.yaml -- cofg Default
+ ┃ ┗ mod.rs -- cofg main
+ ┣ parser -- parser
+ ┃ ┣ markdown.rs -- parser md
+ ┃ ┣ mod.rs -- parser main
+ ┃ ┗ templating.rs -- parser main
  ┣ test -- test
- ┃ ┣ cofg.rs -- test for cofg.rs
- ┃ ┗ mod.rs -- test main
- ┣ cofg.rs -- cofg
- ┣ cofg.yaml -- cofg Default
+ ┃ ┣ cofg.rs -- test for cofg
+ ┃ ┗ mod.rs-- test main
  ┗ main.rs -- main
 ```
 

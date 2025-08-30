@@ -1,4 +1,6 @@
+//! test for cofg.rs
 #[test]
+/// test for CofgAddrs Display
 fn cofg_addrs_to_string() {
   assert_eq!(
     (crate::cofg::CofgAddrs {
