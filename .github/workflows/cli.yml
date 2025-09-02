@@ -74,4 +74,3 @@ jobs:
           extra-files: |
             LICENSE.txt
             README.md
-            meta/
