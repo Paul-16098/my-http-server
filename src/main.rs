@@ -18,8 +18,6 @@ fn init() -> Result<(), Box<dyn std::error::Error>> {
   env_logger
     ::builder()
     .default_format()
-    .format_module_path(true)
-    .format_line_number(true)
     .format_timestamp(None)
     .filter_level(log::LevelFilter::Info)
     .parse_default_env()

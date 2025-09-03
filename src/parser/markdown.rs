@@ -20,13 +20,11 @@ pub(crate) fn md2html_all() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub(crate) fn make_toc() -> Result<(), Box<dyn std::error::Error>> {
-  let binding = "./public/".to_string() + &crate::cofg::Cofg::new().toc.path;
-  let out_path = &Path::new(&binding).canonicalize().unwrap();
+  let out_path = &Path::new(&format!("{}{}", "./public/", &crate::cofg::Cofg::new().toc.path))
+    .canonicalize()
+    .unwrap();
 
-  let binding = out_path.clone();
-  let mut out_dir1 = binding.ancestors();
-  out_dir1.next();
-  let out_dir = out_dir1.next().unwrap();
+  let out_dir = out_path.parent().unwrap();
 
   if out_path.exists() {
     remove_file(out_path)?;
