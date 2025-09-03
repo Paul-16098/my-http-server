@@ -17,6 +17,7 @@ watch: true
 templating:
   hot_reload: true
   value:
-toc: 
+    # - "name:value"
+toc:
   make_toc: true
   path: index.html

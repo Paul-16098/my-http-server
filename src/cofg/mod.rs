@@ -1,5 +1,4 @@
 //! cofg main
-use std::collections::HashMap;
 
 use nest_struct::nest_struct;
 
@@ -29,7 +28,7 @@ pub(crate) struct Cofg {
   /// watch file changes
   pub(crate) watch: bool,
   pub(crate) templating: nest! {
-    pub(crate) value: Option<HashMap<String, String>>,
+    pub(crate) value: Option<Vec<String>>,
     pub(crate) hot_reload: bool
   },
   pub(crate) toc: nest! {
