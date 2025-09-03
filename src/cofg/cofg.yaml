@@ -17,3 +17,6 @@ watch: true
 templating:
   hot_reload: true
   value:
+toc: 
+  make_toc: true
+  path: index.html

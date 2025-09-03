@@ -32,6 +32,10 @@ pub(crate) struct Cofg {
     pub(crate) value: Option<HashMap<String, String>>,
     pub(crate) hot_reload: bool
   },
+  pub(crate) toc: nest! {
+    pub(crate) make_toc: bool,
+    pub(crate) path: String
+  },
 }
 
 impl Cofg {

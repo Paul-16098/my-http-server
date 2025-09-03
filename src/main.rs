@@ -4,7 +4,7 @@
 mod test;
 
 mod parser;
-use crate::parser::markdown::md2html_all;
+use crate::parser::markdown::{ make_toc, md2html_all };
 mod cofg;
 use crate::cofg::Cofg;
 
@@ -178,6 +178,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   init()?;
   debug!("cofg: {s:#?}");
   md2html_all()?;
+  if s.toc.make_toc {
+    make_toc()?;
+  }
 
   let s_c = s.clone();
   // spawn the http server in a background thread so the watcher loop can run in main
