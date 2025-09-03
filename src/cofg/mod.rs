@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use nest_struct::nest_struct;
 
-pub(crate) const BULID_COFG: &str = include_str!("cofg.yaml");
+pub(crate) const BUILD_COFG: &str = include_str!("cofg.yaml");
 
 #[nest_struct]
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -33,6 +33,22 @@ pub(crate) struct Cofg {
     pub(crate) hot_reload: bool
   },
 }
+
+impl Cofg {
+  pub(crate) fn new() -> Self {
+    if !std::path::Path::new("./cofg.yaml").exists() {
+      println!("write default cofg");
+      std::fs::write("./cofg.yaml", BUILD_COFG).unwrap();
+    }
+    config::Config
+      ::builder()
+      .add_source(config::File::with_name("./cofg.yaml").required(false))
+      .build()
+      .unwrap()
+      .try_deserialize::<Cofg>()
+      .unwrap_or_default()
+  }
+}
 impl std::fmt::Display for CofgAddrs {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}:{}", self.ip, self.port)
@@ -43,7 +59,7 @@ impl Default for Cofg {
   fn default() -> Self {
     config::Config
       ::builder()
-      .add_source(config::File::from_str(BULID_COFG, config::FileFormat::Yaml))
+      .add_source(config::File::from_str(BUILD_COFG, config::FileFormat::Yaml))
       .build()
       .unwrap()
       .try_deserialize::<Self>()

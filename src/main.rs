@@ -4,21 +4,17 @@
 mod test;
 
 mod parser;
-use crate::parser::markdown::md2html;
+use crate::parser::markdown::md2html_all;
 mod cofg;
-use crate::cofg::{ Cofg, BULID_COFG };
+use crate::cofg::Cofg;
 
 use log::{ debug, error, info, warn };
 use notify::Watcher;
-use std::path::Path;
-use std::fs::{ create_dir_all, remove_file, write };
+use std::fs::{ create_dir_all, remove_file };
 use wax::Glob;
 use actix_web::{ http::KeepAlive, middleware, App, HttpServer };
 
-fn init() -> Result<
-  markdown_ppp::parser::config::MarkdownParserConfig,
-  Box<dyn std::error::Error>
-> {
+fn init() -> Result<(), Box<dyn std::error::Error>> {
   env_logger
     ::builder()
     .default_format()
@@ -31,22 +27,7 @@ fn init() -> Result<
 
   create_dir_all(".\\public\\")?;
   remove_public()?;
-  Ok(markdown_ppp::parser::config::MarkdownParserConfig::default())
-}
-fn init_cofg() -> Cofg {
-  use ::config;
-
-  if !Path::new("./cofg.yaml").exists() {
-    println!("write default cofg");
-    write("./cofg.yaml", BULID_COFG).unwrap();
-  }
-  config::Config
-    ::builder()
-    .add_source(config::File::with_name("./cofg.yaml").required(false))
-    .build()
-    .unwrap()
-    .try_deserialize::<Cofg>()
-    .unwrap_or_default()
+  Ok(())
 }
 fn remove_public() -> Result<(), Box<dyn std::error::Error>> {
   for entry in Glob::new("**/*.{md,markdown}")?.walk(".\\public") {
@@ -109,10 +90,7 @@ async fn run_server(s: &Cofg) -> std::io::Result<()> {
     .run().await
 }
 
-fn watcher_loop(
-  c: &markdown_ppp::parser::config::MarkdownParserConfig,
-  s: &Cofg
-) -> Result<(), Box<dyn std::error::Error>> {
+fn watcher_loop() -> Result<(), Box<dyn std::error::Error>> {
   let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
   let mut w = notify::recommended_watcher(tx)?;
   w.watch(std::path::Path::new("./public"), notify::RecursiveMode::Recursive)?;
@@ -185,7 +163,7 @@ fn watcher_loop(
           }
 
           // regenerate HTML once
-          md2html(c, s)?;
+          md2html_all()?;
         }
       }
       Err(e) => println!("watch error: {e:?}"),
@@ -196,29 +174,23 @@ fn watcher_loop(
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let s = init_cofg();
-  let c = init()?;
+  let s = cofg::Cofg::new();
+  init()?;
   debug!("cofg: {s:#?}");
-  md2html(&c, &s)?;
+  md2html_all()?;
 
-  if s.watch {
-    let s_c = s.clone();
-    // spawn the http server in a background thread so the watcher loop can run in main
-    let _server_thread = std::thread::spawn(move || {
-      actix_web::rt::System::new().block_on(async {
-        if let Err(e) = run_server(&s_c).await {
-          error!("server error: {e:?}");
-        }
-      });
-    });
-    // start watcher loop
-    watcher_loop(&c, &s)?;
-  } else {
+  let s_c = s.clone();
+  // spawn the http server in a background thread so the watcher loop can run in main
+  std::thread::spawn(move || {
     actix_web::rt::System::new().block_on(async {
-      if let Err(e) = run_server(&s).await {
+      if let Err(e) = run_server(&s_c).await {
         error!("server error: {e:?}");
       }
     });
+  });
+  if s.watch {
+    // start watcher loop
+    watcher_loop()?;
   }
 
   Ok(())
