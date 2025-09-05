@@ -33,7 +33,8 @@ pub(crate) struct Cofg {
   },
   pub(crate) toc: nest! {
     pub(crate) make_toc: bool,
-    pub(crate) path: String
+    pub(crate) path: String,
+    pub(crate) ext: Vec<String>
   },
 }
 

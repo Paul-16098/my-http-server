@@ -21,3 +21,6 @@ templating:
 toc:
   make_toc: true
   path: index.html
+  ext:
+    - html
+    - pdf

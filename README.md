@@ -1,5 +1,7 @@
 # my-http-server
 
+[![Build&release](https://github.com/Paul-16098/my-http-server/actions/workflows/cli.yml/badge.svg?branch=main)](https://github.com/Paul-16098/my-http-server/actions/workflows/cli.yml) [![Security audit](https://github.com/Paul-16098/my-http-server/actions/workflows/Security-audit.yml/badge.svg)](https://github.com/Paul-16098/my-http-server/actions/workflows/Security-audit.yml)
+
 輕量級靜態 Markdown 轉 HTML 的 HTTP 伺服器，使用 Rust 與 actix-web。
 
 主要功能：

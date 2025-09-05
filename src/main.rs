@@ -139,15 +139,11 @@ fn watcher_loop() -> Result<(), Box<dyn std::error::Error>> {
 
           // deduplicate by path and decide actions
           let mut paths_seen = std::collections::HashSet::new();
-          let mut need_copy_public = false;
           for ev in events {
             if let Some(p) = ev.paths.first() {
               let pstr = p.to_string_lossy().to_string();
               if pstr.contains(".git") {
                 continue;
-              }
-              if pstr.contains("_public") {
-                need_copy_public = true;
               }
               paths_seen.insert(pstr);
             }
@@ -155,13 +151,11 @@ fn watcher_loop() -> Result<(), Box<dyn std::error::Error>> {
 
           debug!("processing {} unique paths", paths_seen.len());
 
-          if need_copy_public {
-            debug!("ev: is _public");
-            remove_public()?;
-          }
-
           // regenerate HTML once
           md2html_all()?;
+          if cofg::Cofg::new().toc.make_toc {
+            make_toc()?;
+          }
         }
       }
       Err(e) => println!("watch error: {e:?}"),
