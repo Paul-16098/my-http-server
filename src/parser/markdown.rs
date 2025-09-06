@@ -4,34 +4,45 @@ use std::{ fs::{ read_to_string, remove_file, write }, path::Path };
 
 use wax::Glob;
 
-use crate::parser::md2html;
+use crate::{ error, parser::md2html };
+use crate::error::{ AppResult, AppError };
 
-pub(crate) fn md2html_all() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn md2html_all() -> AppResult<()> {
   let md_files = Glob::new("**/*.{md,markdown}")?;
-
-  for entry in md_files.walk("./public/") {
-    let entry = entry?;
+  let cfg = crate::cofg::Cofg::get(false); // cached
+  let public_path = cfg.public_path.clone();
+  for entry in md_files.walk(public_path) {
+    let entry = entry?; // WalkError already converted by ? via AppError
     let path = entry.path().to_path_buf();
     let out_path_obj = path.with_extension("html");
-
-    write(&out_path_obj, md2html(read_to_string(&path)?)?)?;
+    write(&out_path_obj, md2html(read_to_string(&path)?, &cfg)?)?;
   }
   Ok(())
 }
 
-pub(crate) fn make_toc() -> Result<(), Box<dyn std::error::Error>> {
-  let c = &crate::cofg::Cofg::new();
+pub(crate) fn make_toc() -> AppResult<()> {
+  let c = crate::cofg::Cofg::get(false);
+  let pp = &c.public_path;
 
-  let out_path = &Path::new("./public/").join(std::ops::Deref::deref(&c.toc.path));
-  let out_dir = &out_path.parent().unwrap().canonicalize().unwrap();
+  let out_path = &Path::new(pp).join(std::ops::Deref::deref(&c.toc.path));
+  let out_dir = &out_path
+    .parent()
+    .ok_or_else(|| AppError::Other("toc path has no parent".into()))?
+    .canonicalize()?;
 
   if out_path.exists() {
     remove_file(out_path)?;
   }
   let mut toc_str = String::from("# toc\n\n");
-  for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(".\\public\\") {
+  for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(pp) {
     let entry = entry?;
-    let path = entry.path().canonicalize().unwrap().strip_prefix(out_dir).unwrap().to_path_buf();
+    let path = entry
+      .path()
+      .canonicalize()
+      ? // io error -> AppError::Io
+      .strip_prefix(out_dir)
+      .map_err(|e| AppError::Other(format!("strip_prefix: {e}")))?
+      .to_path_buf();
 
     toc_str += format!(
       "- [{}]({})\n",
@@ -42,19 +53,20 @@ pub(crate) fn make_toc() -> Result<(), Box<dyn std::error::Error>> {
       )
     ).as_str();
   }
-  write(out_path, md2html(toc_str)?)?;
+  write(out_path, md2html(toc_str, &c)?)?;
 
   Ok(())
 }
 
-#[inline]
-pub(crate) fn parser_md(input: String) -> markdown_ppp::ast::Document {
+pub(crate) fn parser_md(input: String) -> error::AppResult<markdown_ppp::ast::Document> {
   use markdown_ppp::parser::parse_markdown;
   // 內部需要 clone config 給 parser，但外部呼叫時可傳參考，避免重複 clone
-  parse_markdown(
-    markdown_ppp::parser::MarkdownParserState::with_config(
-      markdown_ppp::parser::config::MarkdownParserConfig::default()
-    ),
-    &input
-  ).unwrap()
+  Ok(
+    parse_markdown(
+      markdown_ppp::parser::MarkdownParserState::with_config(
+        markdown_ppp::parser::config::MarkdownParserConfig::default()
+      ),
+      &input
+    )?
+  )
 }

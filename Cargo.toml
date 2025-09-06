@@ -4,11 +4,11 @@
     edition = "2024"
 
 [dependencies]
-    actix-files = "0.6.6"
+    actix-files = "0.6.7"
     actix-web = "4.11.0"
-    config = "0.15.14"
+    config = "0.15.15"
     env_logger = "0.11.8"
-    log = "0.4.27"
+    log = "0.4.28"
     markdown-ppp = { version = "2.1.0", features = [
         "ast-serde",
     ] }
@@ -22,3 +22,5 @@
         "miette",
         "walk",
     ] }
+    once_cell = "1.21.3"
+    thiserror = "2.0.16"

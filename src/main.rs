@@ -7,6 +7,8 @@ mod parser;
 use crate::parser::markdown::{ make_toc, md2html_all };
 mod cofg;
 use crate::cofg::Cofg;
+mod error;
+use crate::error::{ AppResult, AppError };
 
 use log::{ debug, error, info, warn };
 use notify::Watcher;
@@ -14,7 +16,7 @@ use std::fs::{ create_dir_all, remove_file };
 use wax::Glob;
 use actix_web::{ http::KeepAlive, middleware, App, HttpServer };
 
-fn init() -> Result<(), Box<dyn std::error::Error>> {
+fn init() -> AppResult<()> {
   env_logger
     ::builder()
     .default_format()
@@ -23,18 +25,21 @@ fn init() -> Result<(), Box<dyn std::error::Error>> {
     .parse_default_env()
     .init();
 
-  create_dir_all(".\\public\\")?;
+  create_dir_all(cofg::Cofg::get(false).public_path)?;
   remove_public()?;
   Ok(())
 }
-fn remove_public() -> Result<(), Box<dyn std::error::Error>> {
-  for entry in Glob::new("**/*.{md,markdown}")?.walk(".\\public") {
+fn remove_public() -> AppResult<()> {
+  let public_path = cofg::Cofg::get(false).public_path;
+  // Map glob build error into our AppError
+  let glob = Glob::new("**/*.{md,markdown}")?;
+  for entry in glob.walk(public_path) {
     let entry = entry?;
     let path = entry.path().to_path_buf();
 
     let out = path.with_extension("html");
-    if out.exists() {
-      remove_file(out).unwrap();
+    if out.exists() && let Err(e) = remove_file(out) {
+      warn!("remove_public remove_file error: {e}");
     }
   }
   Ok(())
@@ -70,7 +75,7 @@ async fn run_server(s: &Cofg) -> std::io::Result<()> {
       )
       .service(
         actix_files::Files
-          ::new("/", "./public/")
+          ::new("/", cofg::Cofg::new().public_path)
           .show_files_listing()
           .index_file("index.html")
           .default_handler(
@@ -88,10 +93,11 @@ async fn run_server(s: &Cofg) -> std::io::Result<()> {
     .run().await
 }
 
-fn watcher_loop() -> Result<(), Box<dyn std::error::Error>> {
+fn watcher_loop() -> AppResult<()> {
   let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
   let mut w = notify::recommended_watcher(tx)?;
-  w.watch(std::path::Path::new("./public"), notify::RecursiveMode::Recursive)?;
+  let public_path = cofg::Cofg::get(false).public_path;
+  w.watch(std::path::Path::new(&public_path), notify::RecursiveMode::Recursive)?;
 
   // debounce loop: collect events for a short interval and process unique paths once
   for res in &rx {
@@ -152,8 +158,10 @@ fn watcher_loop() -> Result<(), Box<dyn std::error::Error>> {
           debug!("processing {} unique paths", paths_seen.len());
 
           // regenerate HTML once
+          // reload config if hot_reload enabled
+          let cfg = cofg::Cofg::get(true);
           md2html_all()?;
-          if cofg::Cofg::new().toc.make_toc {
+          if cfg.toc.make_toc {
             make_toc()?;
           }
         }
@@ -165,8 +173,8 @@ fn watcher_loop() -> Result<(), Box<dyn std::error::Error>> {
   Ok(())
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let s = cofg::Cofg::new();
+fn main() -> Result<(), AppError> {
+  let s = cofg::Cofg::get(false);
   init()?;
   debug!("cofg: {s:#?}");
   md2html_all()?;

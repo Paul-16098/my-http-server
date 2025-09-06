@@ -1,6 +1,8 @@
 //! templating
 
 use mystical_runic::{ TemplateEngine, TemplateContext };
+use once_cell::sync::OnceCell;
+use std::sync::RwLock;
 
 pub(crate) fn get_context(c: &crate::cofg::Cofg) -> TemplateContext {
   let mut context = TemplateContext::new();
@@ -24,11 +26,36 @@ pub(crate) fn get_context(c: &crate::cofg::Cofg) -> TemplateContext {
 
   context
 }
+static ENGINE: OnceCell<RwLock<TemplateEngine>> = OnceCell::new();
+
 pub(crate) fn get_engine(c: &crate::cofg::Cofg) -> TemplateEngine {
-  let mut engine = TemplateEngine::new("./meta");
-  engine.enable_bytecode_cache(true);
-  if c.templating.hot_reload {
-    engine.enable_hot_reload();
+  let cell = ENGINE.get_or_init(|| {
+    let mut e = TemplateEngine::new("./meta");
+    e.enable_bytecode_cache(true);
+    if c.templating.hot_reload {
+      e.enable_hot_reload();
+    }
+    RwLock::new(e)
+  });
+
+  // if hot_reload enabled always recreate fresh engine (template file may change)
+  if c.templating.hot_reload && let Ok(mut w) = cell.write() {
+    let mut e = TemplateEngine::new("./meta");
+    e.enable_bytecode_cache(true);
+    e.enable_hot_reload();
+    *w = e;
+    return w.clone();
   }
-  engine
+
+  cell
+    .read()
+    .map(|e| e.clone())
+    .unwrap_or_else(|_| {
+      let mut e = TemplateEngine::new("./meta");
+      e.enable_bytecode_cache(true);
+      if c.templating.hot_reload {
+        e.enable_hot_reload();
+      }
+      e
+    })
 }
