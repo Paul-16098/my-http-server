@@ -20,6 +20,10 @@ pub(crate) fn md2html_all() -> AppResult<()> {
   Ok(())
 }
 
+const NON_ALPHANUMERIC: &percent_encoding::AsciiSet = &percent_encoding::NON_ALPHANUMERIC.remove(
+  b'/'
+);
+
 pub(crate) fn make_toc() -> AppResult<()> {
   let c = crate::cofg::Cofg::get(false);
   let pp = &c.public_path;
@@ -48,8 +52,8 @@ pub(crate) fn make_toc() -> AppResult<()> {
       "- [{}]({})\n",
       path.with_extension("").display(),
       percent_encoding::utf8_percent_encode(
-        &path.display().to_string(),
-        percent_encoding::NON_ALPHANUMERIC
+        &path.display().to_string().replace("\\", "/"),
+        NON_ALPHANUMERIC
       )
     ).as_str();
   }
