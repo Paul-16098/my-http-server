@@ -9,6 +9,7 @@
     config = "0.15.15"
     env_logger = "0.11.8"
     log = "0.4.28"
+    ctrlc = "3.4.5"
     markdown-ppp = { version = "2.1.0", features = [
         "ast-serde",
     ] }

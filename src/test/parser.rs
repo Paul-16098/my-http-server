@@ -3,6 +3,7 @@
 #[test]
 fn md2html_minimal_h1() {
   use crate::{ cofg, parser };
+  let _g = super::common::meta_mutex().lock().unwrap();
 
   // ensure a minimal template exists under ./meta for this test
   std::fs::create_dir_all("./meta").expect("mkdir meta");
@@ -20,5 +21,5 @@ fn md2html_minimal_h1() {
   assert!(html.contains("&lt;h1&gt;h1&lt;/h1&gt;"), "should contain escaped rendered h1: {html}");
   assert!(html.contains(&format!("v{}", env!("CARGO_PKG_VERSION"))), "has version");
 
-  std::fs::remove_dir_all("./meta").unwrap();
+  let _ = std::fs::remove_dir_all("./meta");
 }

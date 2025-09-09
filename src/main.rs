@@ -13,8 +13,9 @@ use crate::error::{ AppResult, AppError };
 use log::{ debug, error, info, warn };
 use notify::Watcher;
 use std::fs::{ create_dir_all, remove_file };
+use std::sync::{ atomic::{ AtomicBool, Ordering }, Arc };
 use wax::Glob;
-use actix_web::{ http::KeepAlive, middleware, App, HttpServer };
+use actix_web::{ dev::{ Server, ServerHandle }, http::KeepAlive, middleware, App, HttpServer };
 
 fn init() -> AppResult<()> {
   env_logger
@@ -44,12 +45,12 @@ fn remove_public() -> AppResult<()> {
   }
   Ok(())
 }
-async fn run_server(s: &Cofg) -> std::io::Result<()> {
+fn build_server(s: &Cofg) -> std::io::Result<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
   info!("run in http://{}/", addrs);
 
-  HttpServer::new(move || {
+  let server = HttpServer::new(move || {
     App::new()
       .wrap(
         middleware::Condition::new(
@@ -90,19 +91,29 @@ async fn run_server(s: &Cofg) -> std::io::Result<()> {
   })
     .keep_alive(KeepAlive::Os)
     .bind(addrs.to_string())?
-    .run().await
+    .run();
+
+  Ok(server)
 }
 
-fn watcher_loop() -> AppResult<()> {
+const DEBOUNCE_DURATION_MS: u64 = 1000;
+const DEBOUNCE_CHECK_INTERVAL_MS: u64 = 100;
+
+fn watcher_loop(stop: Arc<AtomicBool>) -> AppResult<()> {
   let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
   let mut w = notify::recommended_watcher(tx)?;
   let public_path = cofg::Cofg::get(false).public_path;
   w.watch(std::path::Path::new(&public_path), notify::RecursiveMode::Recursive)?;
 
   // debounce loop: collect events for a short interval and process unique paths once
-  for res in &rx {
-    match res {
-      Ok(first_event) => {
+  loop {
+    if stop.load(Ordering::Relaxed) {
+      debug!("watcher_loop stop requested");
+      break;
+    }
+    // use timeout to periodically check stop flag
+    match rx.recv_timeout(std::time::Duration::from_millis(250)) {
+      Ok(Ok(first_event)) => {
         if
           matches!(
             first_event.kind,
@@ -124,10 +135,21 @@ fn watcher_loop() -> AppResult<()> {
           // start debounce: collect events for a short time window
           debug!("debounce start: {first_event:#?}");
           let mut events: Vec<notify::Event> = vec![first_event];
-          std::thread::sleep(std::time::Duration::from_millis(1000));
+          // sleep but still allow early stop checks
+          let mut slept = 0u64;
+          while slept < DEBOUNCE_DURATION_MS {
+            if stop.load(Ordering::Relaxed) {
+              break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(DEBOUNCE_CHECK_INTERVAL_MS));
+            slept += DEBOUNCE_CHECK_INTERVAL_MS;
+          }
 
           // drain any pending events into the buffer
           loop {
+            if stop.load(Ordering::Relaxed) {
+              break;
+            }
             match rx.try_recv() {
               Ok(next) =>
                 match next {
@@ -159,14 +181,26 @@ fn watcher_loop() -> AppResult<()> {
 
           // regenerate HTML once
           // reload config if hot_reload enabled
-          let cfg = cofg::Cofg::get(true);
-          md2html_all()?;
-          if cfg.toc.make_toc {
-            make_toc()?;
+          if !stop.load(Ordering::Relaxed) {
+            let cfg = cofg::Cofg::get(true);
+            md2html_all()?;
+            if cfg.toc.make_toc {
+              make_toc()?;
+            }
           }
         }
       }
-      Err(e) => println!("watch error: {e:?}"),
+      Ok(Err(e)) => {
+        warn!("watch error: {e:?}");
+      }
+      Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+        // periodic check, just continue
+        continue;
+      }
+      Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+        info!("watch channel disconnected, exiting watcher_loop");
+        break;
+      }
     }
   }
 
@@ -182,18 +216,69 @@ fn main() -> Result<(), AppError> {
     make_toc()?;
   }
 
+  // graceful shutdown flag
+  let stop = Arc::new(AtomicBool::new(false));
+
   let s_c = s.clone();
+  // channel to receive ServerHandle and a done signal when the server exits
+  let (handle_tx, handle_rx) = std::sync::mpsc::channel::<ServerHandle>();
+  let (done_tx, done_rx) = std::sync::mpsc::channel::<()>();
   // spawn the http server in a background thread so the watcher loop can run in main
-  std::thread::spawn(move || {
-    actix_web::rt::System::new().block_on(async {
-      if let Err(e) = run_server(&s_c).await {
-        error!("server error: {e:?}");
+  let server_thread = std::thread::spawn(move || {
+    match build_server(&s_c) {
+      Ok(server) => {
+        let handle = server.handle();
+        let _ = handle_tx.send(handle);
+        actix_web::rt::System::new().block_on(async move {
+          if let Err(e) = server.await {
+            error!("server error: {e:?}");
+          }
+          // notify main that server has fully exited
+          let _ = done_tx.send(());
+        });
       }
-    });
+      Err(e) => {
+        error!("failed to build server: {e:?}");
+      }
+    }
   });
+  // wait for server handle to be ready
+  let server_handle = handle_rx
+    .recv()
+    .expect("server thread failed to send handle or thread panicked during server initialization");
+
+  // set Ctrl+C handler once we have the server handle
+  let stop_for_sig = stop.clone();
+  ctrlc
+    ::set_handler(move || {
+      info!("SIGINT received; shutting down...");
+      // only set stop flag; Actix handles its own shutdown on SIGINT
+      stop_for_sig.store(true, Ordering::SeqCst);
+    })
+    .expect("Error setting Ctrl-C handler");
+
+  // also stop watcher when server thread finishes (in case SIGINT wasn't caught here)
+  {
+    let stop_on_done = stop.clone();
+    std::thread::spawn(move || {
+      let _ = done_rx.recv();
+      stop_on_done.store(true, Ordering::SeqCst);
+    });
+  }
   if s.watch {
-    // start watcher loop
-    watcher_loop()?;
+    // start watcher loop (will exit on Ctrl+C)
+    watcher_loop(stop.clone())?;
+  } else {
+    // block until Ctrl+C
+    while !stop.load(Ordering::SeqCst) {
+      std::thread::sleep(std::time::Duration::from_millis(200));
+    }
+  }
+
+  // ensure server is stopping (idempotent hint to Actix)
+  std::mem::drop(server_handle.stop(true));
+  if let Err(e) = server_thread.join() {
+    error!("server thread join error: {:?}", e);
   }
 
   Ok(())
