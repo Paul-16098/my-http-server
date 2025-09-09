@@ -3,6 +3,7 @@
 #[test]
 fn templating_context_parses_basic_types() {
   use crate::{ cofg, parser::templating };
+  let _g = super::common::meta_mutex().lock().unwrap();
 
   // ensure meta folder and a small test template exist
   std::fs::create_dir_all("./meta").expect("create meta");
@@ -25,5 +26,40 @@ fn templating_context_parses_basic_types() {
   assert!(out.contains("txt"), "string should render: {out}");
   assert!(out.contains(env!("CARGO_PKG_VERSION")), "server-version injected");
 
-  std::fs::remove_dir_all("./meta").unwrap();
+  // best-effort cleanup; ignore errors in parallel runs
+  let _ = std::fs::remove_dir_all("./meta");
+}
+
+#[test]
+fn templating_context_handles_quotes_colon_bool_synonyms() {
+  use crate::{ cofg, parser::templating };
+  let _g = super::common::meta_mutex().lock().unwrap();
+
+  // prepare template dir
+  std::fs::create_dir_all("./meta").expect("create meta");
+  std::fs
+    ::write(
+      "./meta/inline2.test.templating",
+      "{{ title }} :: {{ mode }} :: {{ app }} :: v{{ server-version }}"
+    )
+    .expect("write inline template2");
+
+  let mut cfg = cofg::Cofg::default();
+  cfg.templating.hot_reload = true;
+  cfg.templating.value = Some(
+    vec!["title:\"Hello: World\"".into(), "mode:on".into(), "app:My App".into()]
+  );
+
+  let ctx = templating::get_context(&cfg);
+  let mut engine = templating::get_engine(&cfg);
+  let t = engine.compile_to_bytecode("inline2.test.templating").expect("compile");
+  let out = engine.render_compiled(&t, &ctx).expect("render ok");
+
+  assert!(out.contains("Hello: World"), "quoted value with colon kept: {out}");
+  assert!(out.contains("true"), "on => true: {out}");
+  assert!(out.contains("My App"), "string value rendered: {out}");
+  assert!(out.contains(env!("CARGO_PKG_VERSION")), "server-version injected");
+
+  // best-effort cleanup
+  let _ = std::fs::remove_dir_all("./meta");
 }

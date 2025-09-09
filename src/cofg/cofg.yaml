@@ -18,6 +18,8 @@ templating:
   hot_reload: true
   value:
     # - "name:value"
+    # value: bool(true/false),num(i64)
+    # - "name:env:ENV_VALUE"
 toc:
   make_toc: true
   path: index.html

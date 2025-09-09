@@ -9,18 +9,34 @@ pub(crate) fn get_context(c: &crate::cofg::Cofg) -> TemplateContext {
   context.set_string("server-version", env!("CARGO_PKG_VERSION"));
   if let Some(raw_str) = &c.templating.value {
     for data in raw_str {
-      let d: Vec<String> = data
-        .split(":")
-        .map(|s| s.trim().to_string())
-        .collect();
-      let (name, value) = (&d[0], &d[1]);
-      if let Ok(tf) = value.parse() {
-        context.set_bool(name, tf);
-      } else if let Ok(num) = value.parse() {
-        context.set_number(name, num);
-      } else {
-        context.set_string(name, value);
-      }
+      // Split only at the first ':'; skip malformed entries
+      if let Some((name_raw, value_raw)) = data.split_once(':') {
+        let name = name_raw.trim();
+        let mut value = value_raw.trim().to_string();
+        if name.is_empty() {
+          continue;
+        }
+
+        if
+          value.starts_with("env:") &&
+          let Some((_, env)) = value.split_once(":") &&
+          let Ok(v) = std::env::var(env)
+        {
+          value = v;
+        }
+
+        if let Ok(tf) = value.parse::<bool>() {
+          context.set_bool(name, tf);
+          continue;
+        }
+
+        // Parse numbers (i64 only)
+        if let Ok(num) = value.parse::<i64>() {
+          context.set_number(name, num);
+        } else {
+          context.set_string(name, &value);
+        }
+      } // else: no ':', ignore entry safely
     }
   }
 
