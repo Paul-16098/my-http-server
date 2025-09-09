@@ -47,7 +47,7 @@ fn templating_context_handles_quotes_colon_bool_synonyms() {
   let mut cfg = cofg::Cofg::default();
   cfg.templating.hot_reload = true;
   cfg.templating.value = Some(
-    vec!["title:\"Hello: World\"".into(), "mode:on".into(), "app:My App".into()]
+    vec!["title:\"Hello: World\"".into(), "mode:true".into(), "app:My App".into()]
   );
 
   let ctx = templating::get_context(&cfg);
