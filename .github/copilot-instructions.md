@@ -1,51 +1,59 @@
 # AI 專案快速指南 (my-http-server)
 
-> 目的：讓 AI 代理 / Copilot 進入此倉庫後，能在極短時間內正確修改 / 擴充功能，而不做出不合專案慣例的變更。聚焦本 repo 特有的架構、流程與慣例；非通用建議。
+> 目的：讓 AI 代理能立刻在此 Rust/actix-web 專案中安全地擴充功能或修正問題；聚焦本 repo 的實作與慣例。
 
-## 架構總覽
+## 架構速覽（大圖）
 
-- 角色：輕量級「Markdown (md/markdown) → HTML」靜態檔案伺服器，基於 `actix-web`。
-- 主要模組：
-  - `cofg/`：設定載入。`Cofg::new()` 會讀取 (或建立) `./cofg.yaml`，多處呼叫時會重新反序列化；密集迴圈請優先保存一份實例避免重複 IO。
-  - `parser/markdown.rs`：批次轉檔與 TOC 生成 (`md2html_all`, `make_toc`)；使用 `wax::Glob` 走訪 `public_path`。
-  - `parser/mod.rs`：`md2html`：Markdown AST (markdown-ppp) → HTML，再套用模板引擎 (`mystical-runic`) 的 `html-t.templating`。
-  - `parser/templating.rs`：模板引擎/上下文建構：將 `templating.value` 內 `name:value` 字串解析成字串 / 數值 / bool。
-  - `main.rs`：流程啟動 → 初始化 logger & 目錄 → 先清除舊 HTML (`remove_public`) → 轉檔 → （可選）產生 TOC → 啟動 HTTP 伺服器（背景 thread）→ 檔案監看 (debounce)。
-- 靜態檔案服務：`actix_files::Files::new("/", public_path)`，帶 `index.html` 與自訂 404 (`./meta/404.html`)。
-- 模板與靜態資源：預期位於 `./meta` (如 `html-t.templating`)；若新增模板請維持此目錄結構。
+- 角色：輕量級「Markdown → HTML」靜態伺服器，轉檔後由 `actix-files` 提供靜態服務。
+- 關鍵模組與檔案：
+  - `src/cofg/`：設定讀取與全域快取。`Cofg::get(force_reload)` 以 `OnceCell<RwLock<_>>` 快取；`force_reload=true` 且 `templating.hot_reload=true` 時會重讀 `./cofg.yaml`。預設值來自編譯內嵌 `cofg.yaml`（`BUILD_COFG`）。
+  - `src/parser/markdown.rs`：批次轉檔 `md2html_all()`；TOC 生成 `make_toc()`；透過 `wax::Glob` 掃描 `public_path`。
+  - `src/parser/mod.rs`：`md2html(md, &Cofg)` 將 Markdown AST（markdown-ppp）轉成 HTML，再用模板 `./meta/html-t.templating` 包裝。
+  - `src/parser/templating.rs`：`TemplateEngine` 與 `TemplateContext`。引擎以 `OnceCell` 快取；`hot_reload` 時會重建以反映模板變更。Context 解析 `templating.value` 的 `name:value` 字串為 bool/number/string，並預設注入 `server-version`。
+  - `src/main.rs`：啟動流程：init logger/目錄 → `remove_public`（刪除既有對應 HTML）→ `md2html_all` → `make_toc?` → 啟動 HTTP 伺服（背景 thread）→ 檔案監看（`notify`，1 秒 debounce，忽略 `.git`）。
+- 靜態檔案服務：`actix_files::Files::new("/", public_path)`；`index_file("index.html")`；自訂 404 來自 `./meta/404.html`；可清單目錄。
 
-## 執行與開發工作流
+## 開發與測試工作流
 
-- 一般開發：`cargo run`（會：初始化 config / 生成 HTML / 啟動 watcher+server）。
-- 針對大量 Markdown 變動：可手動呼叫 `parser::markdown::md2html_all()`；保持使用同一份 `Cofg`。
-- 交付建置：`cargo build --release`；CI 使用 `houseabsolute/actions-rust-cross` 交叉編譯多平台。
-- 測試：目前僅 `src/test/` 內基本測試；新增測試時延續模組內嵌 `#[cfg(test)]` 或集中於此資料夾皆可，但請保持簡潔。
+- 建置/執行：`cargo run`（會初始化 config、轉檔並啟動 watcher+server）。發佈：`cargo build --release`。
+- 測試：測試位於 `src/test/`。VS Code 內建工作「cargo: nextest」可執行；若未安裝 nextest，使用 `cargo test`。
+- 內容目錄：預設 `public_path: ./public/`；模板放在 `./meta/`（需包含 `html-t.templating`、`404.html`）。
 
-## 重要慣例 / 注意事項
+### 測試策略（擴充到更多模組）
 
-- Config 取得：偏好先 `let cfg = Cofg::new();` 再傳遞引用，避免在迴圈或熱路徑多次呼叫 `Cofg::new()`。
-- 轉檔輸出：HTML 檔名 = 原始 Markdown 同路徑改副檔名 `.html`；啟動時會嘗試刪除舊對應 HTML（避免殘留過時內容）。
-- TOC：由 `toc.ext` 列表的副檔名（如 html, pdf）掃描組成；結果寫到 `toc.path`；生成時會覆蓋舊檔。
-- 檔案監看：`notify` + 1 秒 debounce；期間聚合事件後僅執行一次完整重建。避免在監看回呼內新增阻塞性長任務。
-- Logger：`middleware.logger.format` 使用 `%{url}xi` 等佔位；若新增欄位，注意 `actix-web` 支援的格式化鍵值。
-- URL 顯示：中介層 logger 會 percent-decode URL；其他邏輯若需 raw URL，請自行取得原值。
-- 模板 context 動態值：只允許簡單 `name:value`；複雜結構需在程式端擴充 `get_context`。
-- 錯誤處理：目前多以 `unwrap()` / `?`；若改為長期常駐 service，應逐步用 `thiserror` 或自訂錯誤類型（僅在需要時調整，勿一次性大改）。
+- 位置：維持 `src/test/` 作為整合/模組測試；輕量單元測試可就地放在各模組 `#[cfg(test)]`。
+- parser：
+  - `md2html`：以最小 Markdown（如 `# h1`）驗證輸出包含 `<h1>` 且套上模板殼（context 中 `server-version` 可檢查）。
+  - `md2html_all/make_toc`：使用臨時資料夾（`std::env::temp_dir()` + 手動清理）建立 `public/` 與 `meta/html-t.templating`，生成後斷言輸出檔存在與基本內容。
+- templating：對 `get_context` 餵入 `value: ["a:true","b:1","c:txt"]`，斷言 bool/number/string 三型皆正確。
+- cofg：修改暫存 `cofg.yaml` 後呼叫 `Cofg::get(true)`，在 `hot_reload=true` 下斷言值有更新；也測 `Default` 與 `CofgAddrs` Display（範例如現有 `src/test/cofg.rs`）。
+- HTTP（選配）：用 `actix_web::test` 啟動與 `run_server` 相同的 `App` 組態，對不存在路徑斷言 404 來自 `meta/404.html`；靜態清單可驗證索引。
+- 監看（選配/慢）：避免直接測 `notify` 事件；僅驗證回呼核心邏輯（呼叫 `md2html_all` + `make_toc?`）。
 
-## 可擴充方向（保持最小侵入）
+## CI / 發佈
 
-- 新增自訂模板變數：修改 `templating::get_context` 加入型別判斷；或擴充 `cofg.yaml`。
-- 支援更多輸出格式：在 `md2html_all` 中依副檔名條件呼叫不同 render pipeline；保持函式純粹 (input md → output string)。
-- 優化性能：將 `Cofg`、`TemplateEngine` 緩存於 `lazy_static` / `once_cell`；確保 hot_reload 模式仍正確失效 cache。
+- 安全稽核：`.github/workflows/Security-audit.yml` 每週與依賴變更時跑 `rustsec/audit-check`。
+- 建置/發佈：`.github/workflows/cli.yml` 透過 `houseabsolute/actions-rust-cross` 交叉編譯多平台並以 `actions-rust-release` 發佈產物；在 push/PR/手動觸發時執行。
 
-## PR / 變更指引（AI 請遵守）
+## 專案慣例與注意事項
 
-- 不在未需求驅動下重寫整個模組；專注於需求範圍。
-- 若調整公共 API (函式簽名 / 結構欄位)，同步更新使用處與 README 範例。
-- 引入新 crate 前：確認標準庫或現有依賴是否已能解決。
-- 保持檔案/模組命名簡短小寫；設定檔新增欄位需在 `cofg.yaml` + `Cofg` struct + 預設值同步。
+- 設定取得：在熱路徑請重用 `let cfg = Cofg::get(false);` 並傳參考；只有在需要讀入最新檔案時（且 `hot_reload=true`）才用 `Cofg::get(true)`。
+- 轉檔規則：輸出 HTML 檔名 = 原始 Markdown 檔改副檔名 `.html`；啟動時 `remove_public()` 會清掉舊對應 HTML，避免殘留。
+- TOC：根據 `toc.ext`（如 `html,pdf`）掃描，寫到 `toc.path`（相對於 `public_path`）。生成會覆蓋舊檔。
+- 檔案監看：`notify` + 1 秒 debounce；回呼僅觸發一次完整重建（`md2html_all` + `make_toc?`）。避免在回呼中加入長時間阻塞任務。
+- Logger 與 URL：中介層 logger 使用 `%{url}xi` 等佔位，並對 URL 做 percent-decode；若邏輯需要 raw URL，請自行從請求取得原值。
+- 模板 context：只支援簡單 `name:value`；複雜結構請擴充 `get_context`。`TemplateEngine` 會在 `hot_reload` 下自動重建。
 
-## 範例：新增一個布林模板參數流程
+## 擴充與變更指引（小改動優先）
 
-1. 在 `cofg.yaml` 的 `templating.value` 增加 `- "feature_x:true"`。
-2. 重新啟動或在 hot reload 模式下直接使用 `{{ feature_x }}` 於 `html-t.templating`。
+- 加模板變數：在 `cofg.yaml` 的 `templating.value` 增加條目（例如 `- "feature_x:true"`），模板可直接用 `{{ feature_x }}`；`hot_reload=true` 可免重啟。
+- 新設定欄位：同時更新 `src/cofg/cofg.yaml`、`Cofg` 結構（`nest_struct`）、並確保 `Default`（`BUILD_COFG`）同步。
+- 新輸出格式：在 `md2html_all()` 依副檔名分支呼叫對應 render；維持 `md2html(md, &Cofg) -> String` 的純函式特性。
+
+## 參考與位置
+
+- 設定範例：`src/cofg/cofg.yaml`
+- 模板：`meta/html-t.templating`、`meta/404.html`
+- 核心流程：`src/main.rs`、`src/parser/markdown.rs`、`src/parser/mod.rs`、`src/parser/templating.rs`
+
+有未盡之處或需補充的開發流程（例如特定 CI/發佈規範）請回饋，我會再精煉補齊。
