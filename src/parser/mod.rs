@@ -1,14 +1,23 @@
 //! parser
 
+use crate::parser::templating::set_context;
+
 pub(crate) mod markdown;
 pub(crate) mod templating;
 
 /// input md str
 /// return html str
-pub(crate) fn md2html(md: String, c: &crate::cofg::Cofg) -> crate::error::AppResult<String> {
+pub(crate) fn md2html(
+  md: String,
+  c: &crate::cofg::Cofg,
+  template_data_list: Vec<String>
+) -> crate::error::AppResult<String> {
   // let c = &crate::cofg::Cofg::new();
   let mut engine = templating::get_engine(c);
   let mut context = templating::get_context(c);
+  for template_data in template_data_list {
+    set_context(&mut context, &template_data);
+  }
 
   let html_t = engine.compile_to_bytecode("html-t.templating")?;
 

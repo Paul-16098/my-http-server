@@ -10,12 +10,19 @@ use crate::error::{ AppResult, AppError };
 pub(crate) fn md2html_all() -> AppResult<()> {
   let md_files = Glob::new("**/*.{md,markdown}")?;
   let cfg = crate::cofg::Cofg::get(false); // cached
-  let public_path = cfg.public_path.clone();
+  let public_path = &cfg.public_path.clone();
   for entry in md_files.walk(public_path) {
     let entry = entry?; // WalkError already converted by ? via AppError
     let path = entry.path().to_path_buf();
     let out_path_obj = path.with_extension("html");
-    write(&out_path_obj, md2html(read_to_string(&path)?, &cfg)?)?;
+    write(
+      &out_path_obj,
+      md2html(
+        read_to_string(&path)?,
+        &cfg,
+        vec![format!("path:{}", out_path_obj.strip_prefix(public_path).unwrap().display())]
+      )?
+    )?;
   }
   Ok(())
 }
@@ -57,7 +64,7 @@ pub(crate) fn make_toc() -> AppResult<()> {
       )
     ).as_str();
   }
-  write(out_path, md2html(toc_str, &c)?)?;
+  write(out_path, md2html(toc_str, &c, vec!["path:toc".to_string()])?)?;
 
   Ok(())
 }
