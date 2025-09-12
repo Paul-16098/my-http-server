@@ -16,7 +16,7 @@
 ## 開發與測試工作流
 
 - 建置/執行：`cargo run`（會初始化 config、轉檔並啟動 watcher+server）。發佈：`cargo build --release`。
-- 測試：測試位於 `src/test/`。VS Code 內建工作「cargo: nextest」可執行；若未安裝 nextest，使用 `cargo test`。
+- 測試：測試位於 `src/test/`。VS Code 工作「cargo: nextest」可執行；若未安裝 nextest，使用 `cargo test`。
 - 內容目錄：預設 `public_path: ./public/`；模板放在 `./meta/`（需包含 `html-t.templating`、`404.html`）。
 
 ### 測試策略（擴充到更多模組）
