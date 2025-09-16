@@ -36,26 +36,37 @@ COPY --from=builder /app/target/release/my-http-server /usr/local/bin/my-http-se
 RUN set -eux; \
     mkdir -p /app/meta /app/public; \
     printf '%s\n' \
-    '<!doctype html>' \
-    '<html lang="en">' \
-    '  <head>' \
-    '    <meta charset="utf-8" />' \
-    '    <meta name="viewport" content="width=device-width, initial-scale=1" />' \
-    '    <title>{{ title | default: "my-http-server" }}</title>' \
-    '    <style>' \
-    '      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem auto; max-width: 900px; padding: 0 1rem; }' \
-    '      nav { margin-bottom: 1rem; }' \
-    '      pre, code { background: #f6f8fa; }' \
-    '      .path { color: #888; font-size: .9em; }' \
-    '    </style>' \
-    '  </head>' \
-    '  <body>' \
-    '    <nav class="path">{{ path | default: "index" }} — v{{ server-version }}</nav>' \
-    '    <main>' \
-    '      {{ body | safe }}' \
-    '    </main>' \
-    '  </body>' \
-    '</html>' \
+    '<!DOCTYPE html> \
+    '<html> \
+    '  <head> \
+    '    <meta charset="utf-8" /> \
+    '    <link \
+    '      rel="stylesheet" \
+    '      type="text/css" \
+    '      media="screen" \
+    '      href="/css/main.css" \
+    '    /> \
+    '    <link \
+    '      rel="stylesheet" \
+    '      type="text/css" \
+    '      media="screen" \
+    '      href="/css/github.css" \
+    '    /> \
+    '  </head> \
+    '  <body class="markdown-body"> \
+    '    {{& body}} \
+    ' \
+    '    <hr /> \
+    '    <a href="/">goto root</a> \
+    '    <footer style="text-align: center"> \
+    '      <a \
+    '        style="color: rgba(0, 0, 0, 0.489)" \
+    '        href="https://github.com/Paul-16098/my-http-server/" \
+    '        >my-http-server v{{server-version}}</a \
+    '      > \
+    '    </footer> \
+    '  </body> \
+    '</html> \
     > /app/meta/html-t.templating; \
     printf '%s\n' \
     '<!doctype html>' \
@@ -72,32 +83,6 @@ RUN set -eux; \
     '</html>' \
     > /app/meta/404.html
 
-# Provide a container-friendly default configuration (complete schema)
-# Note: The application expects a full config file; do not trim fields.
-RUN set -eux && cat > /app/cofg.yaml <<'YAML'
-addrs:
-	ip: 0.0.0.0
-	port: 8080
-middleware:
-	normalize_path: true
-	compress: true
-	logger:
-		enabling: true
-		format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
-watch: false
-templating:
-	hot_reload: false
-	value:
-		# - "name:value"
-		# - "name:env:ENV_VALUE"
-toc:
-	make_toc: true
-	path: index.html
-	ext:
-		- html
-		- pdf
-public_path: ./public/
-YAML
 
 # Ensure ownership so the app user can write HTML outputs, logs, etc.
 RUN chown -R appuser:appuser /app
