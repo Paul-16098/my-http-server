@@ -7,8 +7,9 @@ FROM rust:1.89.0-slim AS builder
 WORKDIR /app
 
 # Pre-fetch dependencies for better layer cache
+COPY Cargo.toml ./Cargo.toml
 COPY Cargo.lock ./Cargo.lock
-RUN cargo fetch --locked --lockfile-path ./Cargo.lock
+RUN cargo fetch --locked
 
 # Copy sources and assets
 COPY src ./src
