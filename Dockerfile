@@ -35,40 +35,27 @@ COPY --from=builder /app/target/release/my-http-server /usr/local/bin/my-http-se
 # Create default template files so the app can run out-of-the-box (no heredoc to keep parser happy)
 RUN set -eux; \
     mkdir -p /app/meta /app/public; \
-    printf '%s\n' \
-    '<!DOCTYPE html> \
-    '<html> \
-    '  <head> \
-    '    <meta charset="utf-8" /> \
-    '    <link \
-    '      rel="stylesheet" \
-    '      type="text/css" \
-    '      media="screen" \
-    '      href="/css/main.css" \
-    '    /> \
-    '    <link \
-    '      rel="stylesheet" \
-    '      type="text/css" \
-    '      media="screen" \
-    '      href="/css/github.css" \
-    '    /> \
-    '  </head> \
-    '  <body class="markdown-body"> \
-    '    {{& body}} \
-    ' \
-    '    <hr /> \
-    '    <a href="/">goto root</a> \
-    '    <footer style="text-align: center"> \
-    '      <a \
-    '        style="color: rgba(0, 0, 0, 0.489)" \
-    '        href="https://github.com/Paul-16098/my-http-server/" \
-    '        >my-http-server v{{server-version}}</a \
-    '      > \
-    '    </footer> \
-    '  </body> \
-    '</html> \
+    printf "%s\n" \
+    '<!DOCTYPE html>' \
+    '<html>' \
+    '  <head>' \
+    '    <meta charset="utf-8" />' \
+    '    <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />' \
+    '    <link rel="stylesheet" type="text/css" media="screen" href="/css/github.css" />' \
+    '  </head>' \
+    '  <body class="markdown-body">' \
+    '    {{& body}}' \
+    '    <hr />' \
+    '    <a href="/">goto root</a>' \
+    '    <footer style="text-align: center">' \
+    '      <a style="color: rgba(0, 0, 0, 0.489)" href="https://github.com/Paul-16098/my-http-server/">' \
+    '        my-http-server v{{server-version}}' \
+    '      </a>' \
+    '    </footer>' \
+    '  </body>' \
+    '</html>' \
     > /app/meta/html-t.templating; \
-    printf '%s\n' \
+    printf "%s\n" \
     '<!doctype html>' \
     '<html lang="en">' \
     '  <head>' \
@@ -82,7 +69,6 @@ RUN set -eux; \
     '  </body>' \
     '</html>' \
     > /app/meta/404.html
-
 
 # Ensure ownership so the app user can write HTML outputs, logs, etc.
 RUN chown -R appuser:appuser /app
