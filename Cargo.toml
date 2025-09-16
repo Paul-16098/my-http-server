@@ -25,3 +25,7 @@
     ] }
     once_cell = "1.21.3"
     thiserror = "2.0.16"
+
+[[bin]]
+    name = "my-http-server"
+    path = "src/main.rs"
