@@ -3,13 +3,11 @@
 # - Runtime: debian:bookworm-slim, non-root user
 # - Provides a full cofg.yaml tuned for container (bind 0.0.0.0, no watch/hot_reload)
 
-ARG RUST_VERSION=1
-
 FROM rust:1.89.0-slim AS builder
 WORKDIR /app
 
 # Pre-fetch dependencies for better layer cache
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.lock ./Cargo.lock
 RUN cargo fetch --locked
 
 # Copy sources and assets
