@@ -5,7 +5,7 @@
 
 ARG RUST_VERSION=1
 
-FROM rust:${RUST_VERSION}-bookworm AS builder
+FROM rust:1.89.0-slim AS builder
 WORKDIR /app
 
 # Pre-fetch dependencies for better layer cache
@@ -19,7 +19,7 @@ COPY src ./src
 RUN cargo build --locked --release
 
 
-FROM debian:bookworm-slim AS runtime
+FROM debian:bullseye-slim AS runtime
 WORKDIR /app
 
 # Minimal runtime deps
