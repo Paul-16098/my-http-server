@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Pre-fetch dependencies for better layer cache
 COPY Cargo.lock ./Cargo.lock
-RUN cargo fetch --locked
+RUN cargo fetch --locked --lockfile-path ./Cargo.lock
 
 # Copy sources and assets
 COPY src ./src
