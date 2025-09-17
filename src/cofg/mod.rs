@@ -61,6 +61,7 @@ impl Cofg {
 
   /// Get cached config (lazy init). If `force_reload` is true and current config has
   /// `templating.hot_reload` enabled, it'll reload from disk.
+  /// imp eq Cofg::get(false)
   pub(crate) fn new() -> Self {
     Self::get(false)
   }

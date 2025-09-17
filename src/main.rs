@@ -37,9 +37,17 @@ async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
 
   debug!("{req:#?}");
 
-  let req_path = Path::new(&Cofg::new().public_path).join(
-    req.match_info().query("filename").parse::<std::path::PathBuf>().unwrap()
-  );
+  let filename_str = req.match_info().query("filename");
+  let filename_path = match filename_str.parse::<std::path::PathBuf>() {
+    Ok(path) => path,
+    Err(e) => {
+      warn!("{e}");
+      return HttpResponseBuilder::new(StatusCode::BAD_REQUEST).body(
+        format!("Invalid filename path,{e}")
+      );
+    }
+  };
+  let req_path = Path::new(&Cofg::new().public_path).join(filename_path);
   if !req_path.exists() {
     debug!("{}:!exists", req_path.display());
     return match actix_files::NamedFile::open_async("./meta/404.html").await {
@@ -99,7 +107,7 @@ async fn index(_: actix_web::HttpRequest) -> impl actix_web::Responder {
   if index_file.exists() {
     let f = read_to_string(index_file);
     if let Ok(value) = f {
-      debug!("index exitis=>show file");
+      debug!("index exists=>show file");
       HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(value)
     } else {
       let err = f.err().unwrap();
@@ -109,7 +117,7 @@ async fn index(_: actix_web::HttpRequest) -> impl actix_web::Responder {
       )
     }
   } else {
-    debug!("index !exitis=>get toc");
+    debug!("index !exists=>get toc");
     let toc = get_toc(c);
     if let Ok(v) = toc {
       let r = md2html(v, c, vec!["path:toc".to_string()]);
@@ -180,11 +188,7 @@ async fn main() -> Result<(), AppError> {
   let s = cofg::Cofg::get(false);
   init()?;
   debug!("cofg: {s:#?}");
-  // md2html_all()?;
-  // if s.toc.make_toc {
-  //   make_toc()?;
-  // }
 
-  build_server(&s).unwrap().await.unwrap();
+  build_server(&s)?.await?;
   Ok(())
 }
