@@ -1,38 +1,48 @@
+# syntax=docker/dockerfile:1.7
 # Multi-stage Dockerfile for my-http-server (Rust + actix-web)
-# - Builder: Rust stable on Debian (bookworm)
-# - Runtime: debian:bookworm-slim, non-root user
-# - Provides a full cofg.yaml tuned for container (bind 0.0.0.0, no watch/hot_reload)
+# - Builder: rust:1.89.0-slim (bookworm)
+# - Runtime: debian:bookworm-slim (non-root)
+# - BuildKit cache mounts for faster cargo builds
+# - HEALTHCHECK using wget
+# - Default templates baked in; mount volumes to override
 
 FROM rust:1.89.0-slim AS builder
 WORKDIR /app
 
-# Pre-fetch dependencies for better layer cache
-COPY Cargo.toml ./Cargo.toml
-COPY Cargo.lock ./Cargo.lock
+# Speed up release build without requiring strip in runtime
+ENV RUSTFLAGS="-C strip=symbols"
+
+# Pre-fetch deps for better layer cache
+COPY Cargo.toml Cargo.lock ./
 RUN cargo fetch --locked
 
-# Copy sources and assets
+# Copy source
 COPY src ./src
 
-# Build release binary
-RUN cargo build --locked --release
+# Build with BuildKit cache mounts
+# Enable BuildKit before building: DOCKER_BUILDKIT=1
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --locked --release && \
+    mkdir -p /app/bin && \
+    cp -v /app/target/release/my-http-server /app/bin/my-http-server
 
 
-FROM debian:bullseye-slim AS runtime
+FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 
-# Minimal runtime deps
+# Minimal runtime deps: certs + wget for healthcheck
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Copy binary and assets
-COPY --from=builder /app/target/release/my-http-server /usr/local/bin/my-http-server
+# Copy binary
+COPY --from=builder /app/bin/my-http-server /usr/local/bin/my-http-server
 
-# Create default template files so the app can run out-of-the-box (no heredoc to keep parser happy)
+# Default templates so container runs out-of-the-box
 RUN set -eux; \
     mkdir -p /app/meta /app/public; \
     printf "%s\n" \
@@ -70,7 +80,7 @@ RUN set -eux; \
     '</html>' \
     > /app/meta/404.html
 
-# Ensure ownership so the app user can write HTML outputs, logs, etc.
+# Ensure ownership so appuser can write generated HTML
 RUN chown -R appuser:appuser /app
 USER appuser
 
@@ -78,7 +88,10 @@ ENV RUST_LOG=info
 EXPOSE 8080
 
 # Persist content directory if users want to mount their own
-VOLUME ["/app/public"]
+VOLUME ["/app/public","/app/meta"]
+
+# Container-internal healthcheck (requires server bind to 0.0.0.0)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:8080/ > /dev/null || exit 1
 
 ENTRYPOINT ["/usr/local/bin/my-http-server"]
-

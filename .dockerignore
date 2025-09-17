@@ -1,13 +1,23 @@
-# Reduce build context size and avoid copying local artifacts
-/target/
-/nextest/
-/.git/
-/.github/
-/.idea/
-/.vscode/
+# Build artifacts
+target/
+
+# VCS / CI
+.git/
+.github/
+
+# OS/editor junk
+**/.DS_Store
+.vscode/
+.idea/
+*.iml
+
+# Logs
 **/*.log
-**/*.tmp
-**/*.swp
-.DS_Store
-Thumbs.db
-node_modules/
+
+# Local content/templates are usually mounted at runtime
+public/
+meta/
+
+# Other
+.dockerignore
+Dockerfile

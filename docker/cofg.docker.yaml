@@ -1,6 +1,6 @@
 addrs:
-  # like: 127.0.0.1
-  ip: 127.0.0.1
+  # Bind to all interfaces inside container
+  ip: 0.0.0.0
   # like: 80, 8080
   port: 8080
 middleware:
@@ -12,8 +12,8 @@ middleware:
     # enabling logger
     enabling: true
     # logger format
-    format: '%s "%{Referer}i%{url}xi" "%{User-Agent}i"'
-# watch: true
+    format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
+watch: true
 templating:
   hot_reload: true
   value:
@@ -21,7 +21,7 @@ templating:
     # value: bool(true/false),num(i64)
     # - "name:env:ENV_VALUE"
 toc:
-  # make_toc: true
+  make_toc: true
   path: index.html
   ext:
     - html
