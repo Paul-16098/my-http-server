@@ -2,36 +2,26 @@
 
 [![Build&release](https://github.com/Paul-16098/my-http-server/actions/workflows/cli.yml/badge.svg?branch=main)](https://github.com/Paul-16098/my-http-server/actions/workflows/cli.yml) [![Security audit](https://github.com/Paul-16098/my-http-server/actions/workflows/Security-audit.yml/badge.svg)](https://github.com/Paul-16098/my-http-server/actions/workflows/Security-audit.yml)
 
-輕量級「Markdown → HTML」靜態伺服器，使用 Rust 與 actix-web。啟動時會將 `public/` 下的 `.md`、`.markdown` 轉成 `.html`，提供靜態服務並支援檔案監看、模板套版與可選 TOC 生成。
+輕量級「Markdown → HTML」伺服器，使用 Rust 與 actix-web。支援：
+
+- 即時渲染：請求 `.md` 路徑時現場轉成 HTML 回應（使用 `meta/html-t.templating` 外殼）。
+- 自訂模板與 Context：hot reload、簡單 `name:value` 型別（含環境變數注入）。
+- 404 與中介層：自訂 `meta/404.html`、NormalizePath、Compress、Logger（URL 於日誌中會先 percent-decode）。
 
 ## 功能
 
-- 轉檔與靜態服務：啟動時批次將 Markdown 轉為 HTML，並以 actix-files 提供靜態服務（包含目錄清單、可自訂 404）。
-- 檔案監看：預設開啟；偵測變更後以 1 秒 debounce 觸發完整重建。
-- 模板引擎：以 `meta/html-t.templating` 作為外殼模板；支援 hot reload 與自訂 context 值。
-- TOC 生成：可依副檔名清單掃描並輸出到指定路徑（如 `index.html`）。
-- 中介層：可選 NormalizePath、Compress、Logger（URL 於日誌中會自動 percent-decode）。
+- 即時 Markdown → HTML：對 `.md` 請求直接回傳渲染結果。
+- 批次轉檔（監看時）：變更觸發 `md2html_all()` 與 `make_toc()`（若啟用）。
+- TOC 與首頁：
+  - `GET /` 若有 `public/index.html` 則直接回傳；否則即時產出 TOC（依 `toc.ext`）。
+- 模板引擎：`meta/html-t.templating` 為外殼；預設注入 `server-version` 與每頁 `path`。
+- 中介層：NormalizePath、Compress、Logger（可依設定啟用）。
 
 ## 快速開始
 
-前置需求：已安裝 Rust（stable）。
+需求：Rust（stable）。
 
-1. 取得原始碼並建置
-
-```pwsh
-git clone https://github.com/Paul-16098/my-http-server.git
-cd my-http-server
-cargo build --release
-```
-
-2. 準備必要目錄與模板
-
-- 內容目錄：`./public/`
-- 模板目錄：`./meta/` 需至少包含：
-  - `html-t.templating`：主模板（會注入 `{{ body }}` 與其他 context 變數）
-  - `404.html`：自訂 404 頁面
-
-最小範例：
+1. 準備模板與內容目錄（最小化範例）
 
 ```html
 <!-- meta/html-t.templating -->
@@ -49,77 +39,155 @@ cargo build --release
 <h1>404 Not Found</h1>
 ```
 
-3. 放一個 Markdown 檔案並啟動伺服器
+1. 放一個 Markdown 並啟動
 
 ```pwsh
-New-Item -Type Directory -Force public | Out-Null
-"# Hello
-
-這是首頁。" | Set-Content -Encoding UTF8 public\index.md
+New-Item -Type Directory -Force public,meta | Out-Null
+"# Hello\n\n這是首頁。" | Set-Content -Encoding UTF8 public\index.md
 
 cargo run
 ```
 
-預設會在 `http://127.0.0.1:8080/` 提供服務。第一次啟動會：
+預設服務位置：`http://127.0.0.1:8080/`。
 
-- 清理舊有對應的 HTML（僅刪除 `public/` 下與 md 同名的 `.html`）。
-- 將所有 Markdown 轉為 HTML。
-- 若 `toc.make_toc=true`，產生 TOC（預設輸出 `public/index.html`）。
-- 啟動 HTTP 伺服與檔案監看（可由設定檔關閉）。
+## 設定（cofg.yaml）
 
-## 設定
-
-執行目錄下的 `./cofg.yaml`（可不提供，會使用內建預設值）。目前欄位（對照 `src/cofg/cofg.yaml`）：
+在執行目錄下放 `./cofg.yaml`（可省略，程式會以編譯內嵌預設值啟動，且首次啟動會落地一份）。重點欄位（對照 `src/cofg/cofg.yaml`）：
 
 - addrs
-  - ip: 預設 `127.0.0.1`
-  - port: 預設 `8080`
+  - ip：預設 `127.0.0.1`（容器環境請改 `0.0.0.0`）
+  - port：預設 `8080`
 - middleware
-  - normalize_path: 是否啟用 NormalizePath（預設 true）
-  - compress: 是否啟用 Compress（預設 true）
+  - normalize_path：NormalizePath（預設 true）
+  - compress：Compress（預設 true）
   - logger
-    - enabling: 是否啟用請求日誌（預設 true）
-    - format: 日誌格式字串，支援 `%{url}xi`、`%s`、`%{Referer}i`、`%{User-Agent}i` 等
-- watch: 是否啟用檔案監看（預設 true）
+    - enabling：是否啟用請求日誌（預設 true）
+    - format：支援 `%{url}xi`、`%s`、`%{Referer}i`、`%{User-Agent}i` 等佔位
+- watch：是否啟用檔案監看（預設 true）
 - templating
-  - hot_reload: 是否啟用模板熱重載（預設 true）；啟用時也會允許 `Cofg::get(true)` 重新讀取設定
-  - value: 供模板使用的 `name:value` 字串陣列，支援：
-    - 布林與數字（i64）
-    - 文字（預設）
-    - `name:env:ENV_NAME` 會讀取環境變數
+  - hot_reload：是否熱重載模板（預設 true）；亦允許 `Cofg::get(true)` 重新載入設定
+  - value：`name:value` 陣列；型別支援 bool、i64、string；`name:env:ENV` 會讀 env
 - toc
-  - make_toc: 是否生成 TOC（預設 true）
-  - path: 輸出相對於 `public_path` 的路徑（預設 `index.html`）
-  - ext: 需要納入 TOC 掃描的副檔名清單（預設 `html,pdf`）
-- public_path: 內容根目錄（預設 `./public/`）
+  - make_toc：是否生成 TOC（預設 true）
+  - path：相對於 `public_path` 的輸出（預設 `index.html`）
+  - ext：掃描副檔名清單（預設 `html,pdf,md`）
+- public_path：內容根目錄（預設 `./public/`）
 
-提示：轉檔時每個輸出的頁面會額外注入 `path` 變數（不含 `public_path` 前綴），可在模板中使用；全域還會注入 `server-version`。
+額外注入的模板變數：
+
+- `server-version`（全域）
+- `path`（每頁，為去除 `public_path` 前綴後的相對路徑）
 
 ## 運作細節
 
-- 移除舊輸出：啟動時會移除 `public/` 內所有 Markdown 對應的 `.html`，避免殘留過期輸出。
-- 監看與重建：檔案變更後以 1 秒 debounce，重建「全部」內容，並在需要時重建模板與重載設定（若 `templating.hot_reload=true`）。
-- 靜態服務：
-  - 根目錄對應 `public_path`，啟用目錄清單與 `index.html`。
-  - 404 由 `./meta/404.html` 提供。
-- 日誌：URL 會預先 percent-decode 後再寫入日誌。
+- 啟動流程：初始化 logger/目錄 → 清理舊 `.html`（僅清與 md 同名者）→ 啟動 HTTP 伺服（背景 thread）→ 檔案監看（可關閉）。
+- 請求處理：
+  - `GET /`：若存在 `public/index.html` 則回傳；否則即時渲染 TOC。
+  - 其他路徑：
+    - `.md`：讀檔並即時渲染成 HTML 回傳。
+    - 其他副檔名：作為靜態檔回傳（找不到則回 `meta/404.html`）。
+- 檔案監看：變更後收斂事件（1 秒 debounce），一次性執行：
+  - `Cofg::get(true)`（若 `templating.hot_reload=true`）
+  - `md2html_all()`（批次轉檔）
+  - `make_toc()`（若 `toc.make_toc=true`）
+- 日誌：URL 先 percent-decode 再寫入。
+
+## Docker 使用
+
+本倉庫含多階段 Dockerfile（Debian 基底）。建議做法：
+
+1. 建置映像：
+
+```pwsh
+docker build -t my-http-server .
+```
+
+1. 準備容器設定檔（重點：綁定到 0.0.0.0）
+
+```yaml
+# cofg.yaml（容器建議值）
+addrs:
+  ip: 0.0.0.0
+  port: 8080
+watch: false # 依需求；容器通常可關閉監看
+templating:
+  hot_reload: false # 依需求；關閉可降噪
+toc:
+  make_toc: true
+public_path: ./public/
+```
+
+1. 執行容器（掛載內容與設定檔）：
+
+```pwsh
+docker run --rm -p 8080:8080 `
+  -v ${PWD}/public:/app/public `
+  -v ${PWD}/cofg.yaml:/app/cofg.yaml `
+  my-http-server
+```
+
+備註：若未掛載 `cofg.yaml` 且預設仍綁 `127.0.0.1`，容器對外將不可達。
+
+### 使用 docker-compose（推薦）
+
+本倉庫已提供可用範例：`docker-compose.yml` 與 `docker/cofg.docker.yaml`。
+
+1. 確認 `public/` 內已有 Markdown 內容（或空資料夾也可）。
+
+2. 啟動：
+
+```pwsh
+docker compose up -d --build
+```
+
+注意事項：
+
+- 若你有掛載 `./meta:/app/meta`，請確保 `meta/` 內至少包含下列兩個檔案，否則會出現 500（模板缺失）：
+  - `meta/html-t.templating`
+  - `meta/404.html`
+    如不想自備模板，可移除該 volume，改用容器內建的預設模板。
+- `docker/cofg.docker.yaml` 內已示範容器建議配置（綁定 `0.0.0.0:8080`）。
+- 可用環境變數注入模板變數。例如在 `docker-compose.yml` 設定：
+
+  - `SITE_NAME=My Awesome Site`
+    並在 `docker/cofg.docker.yaml` 加入：
+
+  ```yaml
+  templating:
+    hot_reload: true
+    value:
+      - "site_name:env:SITE_NAME"
+  ```
+
+  之後你可以在模板中使用 `{{ SITE_NAME }}`。
+
+1. 存取：
+
+瀏覽器開啟 `http://localhost:8080/`。
+
+環境變數示例：在 `docker-compose.yml` 中已示範 `SITE_NAME`，並在 `docker/cofg.docker.yaml` 透過 `templating.value` 的 `name:env:ENV_NAME` 注入模板。
 
 ## 測試
 
-偏好使用 nextest（若未安裝，可直接 `cargo test`）：
+偏好使用 nextest（若未安裝可改 `cargo test`）：
 
 ```pwsh
 cargo nextest run --no-fail-fast
 ```
 
-測試涵蓋：設定載入/熱更新、模板 context、Markdown 轉 HTML 與 TOC 基本驗證等。測試檔位於 `src/test/`。
+測試涵蓋：設定載入/熱重載、模板 context、Markdown → HTML 基本渲染、TOC 生成等。測試檔位於 `src/test/`。
+
+## CI / 發佈
+
+- 安全稽核：`.github/workflows/Security-audit.yml` 例行執行 `rustsec/audit-check`。
+- 建置/發佈：`.github/workflows/cli.yml` 交叉編譯並釋出 artifacts。
 
 ## 常見問題（FAQ）
 
-- 啟動失敗：Port 已被占用？請調整 `cofg.yaml` 的 `addrs.port`。
-- 空白頁或 404：請確認 `meta/html-t.templating` 與 `meta/404.html` 存在，且 `public/` 有可轉檔的 Markdown 或已有 `index.html`。
-- 模板/設定修改未生效：請確認 `templating.hot_reload=true`；否則需重啟程式。
-- 自行手動放入的 `.html` 被刪除？啟動時只會刪除「與 Markdown 同名」的 `.html`，避免舊輸出殘留；若與 md 同名則會被清理。
+- 啟動失敗：Port 已被占用？調整 `addrs.port`。
+- 空白頁或 404：檢查 `meta/html-t.templating`、`meta/404.html` 與 `public/` 內容是否齊備。
+- 變更未生效：若需熱重載請將 `templating.hot_reload=true`；否則需重啟。
+- `.html` 被刪？只會刪除「與 Markdown 同名」的 `.html` 以避免舊輸出殘留。
 
 ## 專案結構速覽
 
@@ -134,4 +202,4 @@ public/            # 網站內容（自行建立）
 
 ## 授權與貢獻
 
-歡迎開 Issue 與 PR。提交前請先跑測試以確保通過。
+歡迎開 Issue 與 PR。提交前請先執行測試以確保通過。
