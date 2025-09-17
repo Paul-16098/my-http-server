@@ -12,8 +12,8 @@ middleware:
     # enabling logger
     enabling: true
     # logger format
-    format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
-watch: true
+    format: '%s "%{Referer}i%{url}xi" "%{User-Agent}i"'
+# watch: true
 templating:
   hot_reload: true
   value:
@@ -21,9 +21,10 @@ templating:
     # value: bool(true/false),num(i64)
     # - "name:env:ENV_VALUE"
 toc:
-  make_toc: true
+  # make_toc: true
   path: index.html
   ext:
     - html
+    - md
     - pdf
 public_path: ./public/

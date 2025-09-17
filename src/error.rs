@@ -1,5 +1,6 @@
 //! Unified error types using thiserror
 
+use log::warn;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -11,7 +12,18 @@ pub(crate) enum AppError {
   #[error("Notify error: {0}")] Notify(#[from] notify::Error),
   #[error("Markdown parse error: {0}")] MarkdownParse(String),
   #[error("Config error: {0}")] Config(#[from] config::ConfigError),
-  #[error("Other: {0}")] Other(String),
+  #[error("Other error: {0}")] Other(String),
+}
+
+impl actix_web::Responder for AppError {
+  type Body = actix_web::body::BoxBody;
+
+  fn respond_to(self, _: &actix_web::HttpRequest) -> actix_web::HttpResponse<Self::Body> {
+    warn!("{self}");
+    actix_web::HttpResponseBuilder
+      ::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR)
+      .body(self.to_string())
+  }
 }
 
 impl From<nom::Err<nom::error::Error<&str>>> for AppError {

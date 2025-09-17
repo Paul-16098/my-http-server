@@ -4,7 +4,7 @@ use std::{ fs::{ read_to_string, remove_file, write }, path::Path };
 
 use wax::Glob;
 
-use crate::{ error, parser::md2html };
+use crate::{ cofg::Cofg, error, parser::md2html };
 use crate::error::{ AppResult, AppError };
 
 pub(crate) fn md2html_all() -> AppResult<()> {
@@ -31,8 +31,7 @@ const NON_ALPHANUMERIC: &percent_encoding::AsciiSet = &percent_encoding::NON_ALP
   b'/'
 );
 
-pub(crate) fn make_toc() -> AppResult<()> {
-  let c = crate::cofg::Cofg::get(false);
+pub(crate) fn get_toc(c: &Cofg) -> AppResult<String> {
   let pp = &c.public_path;
 
   let out_path = &Path::new(pp).join(std::ops::Deref::deref(&c.toc.path));
@@ -41,9 +40,6 @@ pub(crate) fn make_toc() -> AppResult<()> {
     .ok_or_else(|| AppError::Other("toc path has no parent".into()))?
     .canonicalize()?;
 
-  if out_path.exists() {
-    remove_file(out_path)?;
-  }
   let mut toc_str = String::from("# toc\n\n");
   for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(pp) {
     let entry = entry?;
@@ -64,7 +60,19 @@ pub(crate) fn make_toc() -> AppResult<()> {
       )
     ).as_str();
   }
-  write(out_path, md2html(toc_str, &c, vec!["path:toc".to_string()])?)?;
+  Ok(toc_str)
+}
+
+pub(crate) fn make_toc() -> AppResult<()> {
+  let c = crate::cofg::Cofg::get(false);
+  let pp = &c.public_path;
+
+  let out_path = &Path::new(pp).join(std::ops::Deref::deref(&c.toc.path));
+
+  if out_path.exists() {
+    remove_file(out_path)?;
+  }
+  write(out_path, md2html(get_toc(&c)?, &c, vec!["path:toc".to_string()])?)?;
 
   Ok(())
 }
