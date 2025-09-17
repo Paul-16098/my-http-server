@@ -9,7 +9,6 @@ pub(crate) enum AppError {
   #[error("Glob pattern error: {0}")] GlobPattern(#[from] wax::BuildError),
   #[error("Glob walk error: {0}")] GlobWalk(#[from] wax::WalkError),
   #[error("Template error: {0}")] Template(#[from] mystical_runic::RuneError),
-  #[error("Notify error: {0}")] Notify(#[from] notify::Error),
   #[error("Markdown parse error: {0}")] MarkdownParse(String),
   #[error("Config error: {0}")] Config(#[from] config::ConfigError),
   #[error("Other error: {0}")] Other(String),

@@ -9,14 +9,12 @@
     config = "0.15.15"
     env_logger = "0.11.8"
     log = "0.4.28"
-    ctrlc = "3.4.5"
     markdown-ppp = { version = "2.1.0", features = [
         "ast-serde",
     ] }
     mystical-runic = "0.5.3"
     nest_struct = "0.5.5"
     nom = "8.0.0"
-    notify = "8.2.0"
     percent-encoding = "2.3.2"
     serde = "1.0.219"
     wax = { version = "0.6.0", features = [

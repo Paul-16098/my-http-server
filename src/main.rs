@@ -4,7 +4,7 @@
 mod test;
 
 mod parser;
-use crate::parser::markdown::{ get_toc, make_toc, md2html_all };
+use crate::parser::markdown::get_toc;
 mod cofg;
 use crate::cofg::Cofg;
 mod error;
@@ -13,12 +13,9 @@ use crate::parser::md2html;
 
 use actix_files::NamedFile;
 use log::{ debug, error, info, warn };
-use notify::Watcher;
-use std::fs::{ create_dir_all, read_to_string, remove_file };
+use std::fs::{ create_dir_all, read_to_string };
 use std::path::Path;
-use std::sync::{ atomic::{ AtomicBool, Ordering }, Arc };
-use wax::Glob;
-use actix_web::{ dev::{ Server, ServerHandle }, http::KeepAlive, middleware, App, HttpServer };
+use actix_web::{ dev::Server, http::KeepAlive, middleware, App, HttpServer };
 
 fn init() -> AppResult<()> {
   env_logger

@@ -7,7 +7,7 @@ use wax::Glob;
 use crate::{ cofg::Cofg, error, parser::md2html };
 use crate::error::{ AppResult, AppError };
 
-pub(crate) fn md2html_all() -> AppResult<()> {
+pub(crate) fn _md2html_all() -> AppResult<()> {
   let md_files = Glob::new("**/*.{md,markdown}")?;
   let cfg = crate::cofg::Cofg::get(false); // cached
   let public_path = &cfg.public_path.clone();
@@ -63,7 +63,7 @@ pub(crate) fn get_toc(c: &Cofg) -> AppResult<String> {
   Ok(toc_str)
 }
 
-pub(crate) fn make_toc() -> AppResult<()> {
+pub(crate) fn _make_toc() -> AppResult<()> {
   let c = crate::cofg::Cofg::get(false);
   let pp = &c.public_path;
 
