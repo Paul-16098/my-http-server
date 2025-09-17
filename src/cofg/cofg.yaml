@@ -12,7 +12,7 @@ middleware:
     # enabling logger
     enabling: true
     # logger format
-    format: '%s "%{Referer}i%{url}xi" "%{User-Agent}i"'
+    format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
 # watch: true
 templating:
   hot_reload: true
