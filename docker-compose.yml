@@ -1,0 +1,21 @@
+services:
+  run:
+    build: .
+    container_name: my-http-server
+    ports:
+      - "8080:8080"
+    environment:
+      # Rust logger level (info/debug/trace)
+      - RUST_LOG=info
+      # Example envs consumed by templating.value in cofg.docker.yaml
+      - SITE_NAME=My Awesome Site
+    volumes:
+      # Serve your markdown content from the host
+      - ./public:/app/public
+      - ./meta:/app/meta
+      # Provide container-tuned config (bind 0.0.0.0, disable watch/hot_reload if desired)
+      - ./docker/cofg.docker.yaml:/app/cofg.yaml
+    restart: unless-stopped
+    # If you encounter permission issues writing to /app/public on some hosts,
+    # you can temporarily run as root by uncommenting the next line:
+    # user: "0:0"

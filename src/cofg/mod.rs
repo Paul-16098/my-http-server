@@ -28,13 +28,13 @@ pub(crate) struct Cofg {
     }
   },
   /// watch file changes
-  pub(crate) watch: bool,
+  // pub(crate) watch: bool,
   pub(crate) templating: nest! {
     pub(crate) value: Option<Vec<String>>,
     pub(crate) hot_reload: bool
   },
   pub(crate) toc: nest! {
-    pub(crate) make_toc: bool,
+    // pub(crate) make_toc: bool,
     pub(crate) path: String,
     pub(crate) ext: Vec<String>
   },
@@ -61,6 +61,7 @@ impl Cofg {
 
   /// Get cached config (lazy init). If `force_reload` is true and current config has
   /// `templating.hot_reload` enabled, it'll reload from disk.
+  /// imp eq Cofg::get(false)
   pub(crate) fn new() -> Self {
     Self::get(false)
   }
@@ -94,6 +95,13 @@ impl Cofg {
 impl std::fmt::Display for CofgAddrs {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}:{}", self.ip, self.port)
+  }
+}
+impl std::net::ToSocketAddrs for CofgAddrs {
+  type Iter = std::vec::IntoIter<std::net::SocketAddr>;
+
+  fn to_socket_addrs(&self) -> std::io::Result<Self::Iter> {
+    std::net::ToSocketAddrs::to_socket_addrs(&(self.ip.as_str(), self.port))
   }
 }
 
