@@ -18,7 +18,7 @@ use std::fs::{ create_dir_all, read_to_string };
 use std::path::Path;
 use actix_web::{ dev::Server, http::KeepAlive, middleware, App, HttpServer };
 
-fn init() -> AppResult<()> {
+fn init(c: &Cofg) -> AppResult<()> {
   env_logger
     ::builder()
     .default_format()
@@ -28,7 +28,7 @@ fn init() -> AppResult<()> {
     .parse_default_env()
     .init();
 
-  create_dir_all(cofg::Cofg::get(false).public_path)?;
+  create_dir_all(c.public_path.clone())?;
   Ok(())
 }
 
@@ -202,7 +202,7 @@ async fn main() -> Result<(), AppError> {
   }
   let s: Cofg = s;
 
-  init()?;
+  init(&s)?;
   debug!("cofg: {s:#?}");
 
   build_server(&s)?.await?;
