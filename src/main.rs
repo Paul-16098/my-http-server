@@ -6,12 +6,13 @@ mod test;
 mod parser;
 use crate::parser::markdown::get_toc;
 mod cofg;
-use crate::cofg::Cofg;
+use crate::cofg::{ Cofg, CofgAddrs, cli };
 mod error;
 use crate::error::{ AppResult, AppError };
 use crate::parser::md2html;
 
 use actix_files::NamedFile;
+use clap::Parser;
 use log::{ debug, error, info, warn };
 use std::fs::{ create_dir_all, read_to_string };
 use std::path::Path;
@@ -185,7 +186,22 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
 
 #[actix_web::main]
 async fn main() -> Result<(), AppError> {
-  let s = cofg::Cofg::get(false);
+  let mut s = cofg::Cofg::new();
+  let cli = &cli::Args::parse();
+  match (&cli.ip, cli.port) {
+    (None, None) => (),
+    (None, Some(port)) => {
+      s.addrs.port = port;
+    }
+    (Some(ip), None) => {
+      s.addrs.ip = ip.to_string();
+    }
+    (Some(_), Some(_)) => {
+      s.addrs = CofgAddrs::from(cli);
+    }
+  }
+  let s: Cofg = s;
+
   init()?;
   debug!("cofg: {s:#?}");
 
