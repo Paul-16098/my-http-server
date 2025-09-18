@@ -184,10 +184,7 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
   Ok(server)
 }
 
-#[actix_web::main]
-async fn main() -> Result<(), AppError> {
-  let mut s = cofg::Cofg::new();
-  let cli = &cli::Args::parse();
+fn build_config_from_cli(mut s: Cofg, cli: &cli::Args) -> Cofg {
   match (&cli.ip, cli.port) {
     (None, None) => (),
     (None, Some(port)) => {
@@ -200,7 +197,12 @@ async fn main() -> Result<(), AppError> {
       s.addrs = CofgAddrs::from(cli);
     }
   }
-  let s: Cofg = s;
+  s
+}
+
+#[actix_web::main]
+async fn main() -> Result<(), AppError> {
+  let s = build_config_from_cli(Cofg::new(), &cli::Args::parse());
 
   init(&s)?;
   debug!("cofg: {s:#?}");
