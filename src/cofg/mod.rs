@@ -4,4 +4,3 @@ pub(crate) mod cofg;
 pub(crate) mod cli;
 
 pub(crate) use cofg::*;
-pub(crate) use cli::*;
