@@ -7,7 +7,7 @@ use std::sync::{ RwLock };
 pub(crate) const BUILD_COFG: &str = include_str!("cofg.yaml");
 
 #[nest_struct]
-#[derive(Clone, Debug, serde::Deserialize)]
+#[derive(PartialEq, Clone, Debug, serde::Deserialize)]
 pub(crate) struct Cofg {
   pub(crate) addrs: nest! {
     /// like: 127.0.0.1

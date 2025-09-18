@@ -9,7 +9,7 @@ use crate::error::{ AppResult, AppError };
 
 pub(crate) fn _md2html_all() -> AppResult<()> {
   let md_files = Glob::new("**/*.{md,markdown}")?;
-  let cfg = crate::cofg::Cofg::new(); // cached
+  let cfg = crate::cofg::Cofg::new(); // returns cached config (not a fresh instance)
   let public_path = &cfg.public_path.clone();
   for entry in md_files.walk(public_path) {
     let entry = entry?; // WalkError already converted by ? via AppError
