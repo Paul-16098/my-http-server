@@ -6,18 +6,19 @@ mod test;
 mod parser;
 use crate::parser::markdown::get_toc;
 mod cofg;
-use crate::cofg::Cofg;
+use crate::cofg::{ Cofg, CofgAddrs, cli };
 mod error;
 use crate::error::{ AppResult, AppError };
 use crate::parser::md2html;
 
 use actix_files::NamedFile;
+use clap::Parser;
 use log::{ debug, error, info, warn };
 use std::fs::{ create_dir_all, read_to_string };
 use std::path::Path;
 use actix_web::{ dev::Server, http::KeepAlive, middleware, App, HttpServer };
 
-fn init() -> AppResult<()> {
+fn init(c: &Cofg) -> AppResult<()> {
   env_logger
     ::builder()
     .default_format()
@@ -27,7 +28,7 @@ fn init() -> AppResult<()> {
     .parse_default_env()
     .init();
 
-  create_dir_all(cofg::Cofg::get(false).public_path)?;
+  create_dir_all(c.public_path.clone())?;
   Ok(())
 }
 
@@ -183,10 +184,27 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
   Ok(server)
 }
 
+fn build_config_from_cli(mut s: Cofg, cli: &cli::Args) -> Cofg {
+  match (&cli.ip, cli.port) {
+    (None, None) => (),
+    (None, Some(port)) => {
+      s.addrs.port = port;
+    }
+    (Some(ip), None) => {
+      s.addrs.ip = ip.to_string();
+    }
+    (Some(_), Some(_)) => {
+      s.addrs = CofgAddrs::from(cli);
+    }
+  }
+  s
+}
+
 #[actix_web::main]
 async fn main() -> Result<(), AppError> {
-  let s = cofg::Cofg::get(false);
-  init()?;
+  let s = build_config_from_cli(Cofg::new(), &cli::Args::parse());
+
+  init(&s)?;
   debug!("cofg: {s:#?}");
 
   build_server(&s)?.await?;
