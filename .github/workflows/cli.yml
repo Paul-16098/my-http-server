@@ -59,11 +59,28 @@ jobs:
 
       - name: Import GPG key
         # GPG signing for release artifacts - requires GPG_PRIVATE_KEY and GPG_PASSPHRASE secrets
-        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@master
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: GPG sign release artifacts
+        shell: bash
+        run: |
+          # Find and sign all release artifacts in working directory
+          echo "Looking for artifacts to sign..."
+          ls -la my-http-server-* || echo "No artifacts found yet"
+
+          for file in my-http-server-*.{tar.gz,zip,sha256}; do
+            if [[ -f "$file" && ! "$file" =~ \.sig$ ]]; then
+              echo "Signing $file"
+              gpg --detach-sign --armor "$file"
+              echo "Created signature: $file.sig"
+            fi
+          done
+
+          echo "Available signature files:"
+          ls -la *.sig || echo "No signatures created"
 
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
@@ -75,30 +92,4 @@ jobs:
           extra-files: |
             LICENSE.txt
             README.md
-
-      - name: GPG sign release artifacts
-        # TODO: Completed - GPG signing implementation for release artifacts
-        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-        shell: bash
-        run: |
-          # Find and sign all release artifacts in working directory
-          echo "Looking for artifacts to sign..."
-          ls -la my-http-server-* || echo "No artifacts found yet"
-          
-          for file in my-http-server-*.{tar.gz,zip,sha256}; do
-            if [[ -f "$file" && ! "$file" =~ \.sig$ ]]; then
-              echo "Signing $file"
-              gpg --detach-sign --armor "$file"
-              echo "Created signature: $file.sig"
-            fi
-          done
-          
-          echo "Available signature files:"
-          ls -la *.sig || echo "No signatures created"
-
-      - name: Upload GPG signatures
-        if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: "*.sig"
-          tag_name: ${{ github.ref_name }}
+            **/*.sig
