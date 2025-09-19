@@ -64,6 +64,9 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
+      - shell: bash
+        run: ls -laR
+
       - name: GPG sign release artifacts
         if: ${{ contains(runner.os, 'Windows') }}
         shell: bash
