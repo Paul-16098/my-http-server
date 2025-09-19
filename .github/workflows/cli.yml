@@ -71,20 +71,13 @@ jobs:
         if: ${{ contains(runner.os, 'Windows') }}
         shell: bash
         run: |
-          # Find and sign all release artifacts in working directory
-          echo "Looking for artifacts to sign..."
-          ls -laR my-http-server-* || echo "No artifacts found yet"
+          gpg --detach-sign --armor "./target/${{ matrix.platform.target }}/release/my-http-server.exe"
 
-          for file in my-http-server-*.{tar.gz,zip,sha256}; do
-            if [[ -f "$file" && ! "$file" =~ \.sig$ ]]; then
-              echo "Signing $file"
-              gpg --detach-sign --armor "$file"
-              echo "Created signature: $file.sig"
-            fi
-          done
-
-          echo "Available signature files:"
-          ls -laR *.sig || echo "No signatures created"
+      - name: GPG sign release artifacts
+        if: ${{ !contains(runner.os, 'Windows') }}
+        shell: bash
+        run: |
+          gpg --detach-sign --armor "./target/${{ matrix.platform.target }}/release/my-http-server"
 
       - name: Publish artifacts and release
         uses: fvj/actions-rust-release@jvf/add-glob-support-to-extra-files
