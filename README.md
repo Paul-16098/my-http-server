@@ -182,6 +182,15 @@ cargo nextest run --no-fail-fast
 - 安全稽核：`.github/workflows/Security-audit.yml` 例行執行 `rustsec/audit-check`。
 - 建置/發佈：`.github/workflows/cli.yml` 交叉編譯並釋出 artifacts。
 
+### GPG 簽署
+
+發佈流程會自動對 release artifacts 進行 GPG 簽署。需要在 GitHub repository secrets 中設定：
+
+- `GPG_PRIVATE_KEY`：GPG 私鑰（ASCII-armored 格式）
+- `GPG_PASSPHRASE`：GPG 私鑰密碼
+
+簽署檔案將以 `.sig` 副檔名附加至 GitHub release，可用於驗證下載檔案的完整性。
+
 ## 常見問題（FAQ）
 
 - 啟動失敗：Port 已被占用？調整 `addrs.port`。
