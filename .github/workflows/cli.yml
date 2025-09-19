@@ -89,4 +89,5 @@ jobs:
           extra-files: |
             LICENSE.txt
             README.md
+            **/*.asc
             **/*.sig
