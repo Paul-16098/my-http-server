@@ -57,6 +57,13 @@ jobs:
           args: "--locked --release"
           strip: true
 
+      - name: sign
+        if: false
+        run: |
+          # todo: #5 gpg sign
+          gpg --import 
+          gpg -v -u "pl816098@gmail.com" --detach-sign
+
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
         id: Publish-artifacts-and-release

@@ -4,7 +4,7 @@ use mystical_runic::{ TemplateEngine, TemplateContext };
 use once_cell::sync::OnceCell;
 use std::sync::RwLock;
 
-pub(crate) fn set_context(context: &mut TemplateContext, data: &str) {
+pub(crate) fn set_context_value(context: &mut TemplateContext, data: &str) {
   // Split only at the first ':'; skip malformed entries
   if let Some((name_raw, value_raw)) = data.split_once(':') {
     let name = name_raw.trim();
@@ -40,7 +40,7 @@ pub(crate) fn get_context(c: &crate::cofg::Cofg) -> TemplateContext {
   context.set_string("server-version", env!("CARGO_PKG_VERSION"));
   if let Some(raw_str) = &c.templating.value {
     for data in raw_str {
-      set_context(&mut context, data);
+      set_context_value(&mut context, data);
     }
   }
 
