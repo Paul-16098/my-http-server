@@ -83,7 +83,7 @@ jobs:
           ls -la *.sig || echo "No signatures created"
 
       - name: Publish artifacts and release
-        uses: houseabsolute/actions-rust-release@v0
+        uses: fvj/actions-rust-release@jvf/add-glob-support-to-extra-files
         id: Publish-artifacts-and-release
         with:
           executable-name: my-http-server
@@ -92,4 +92,4 @@ jobs:
           extra-files: |
             LICENSE.txt
             README.md
-            *.sig
+            **/*.sig
