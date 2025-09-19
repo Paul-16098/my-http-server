@@ -65,11 +65,12 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: GPG sign release artifacts
+        if: ${{ contains(runner.os, 'Windows') }}
         shell: bash
         run: |
           # Find and sign all release artifacts in working directory
           echo "Looking for artifacts to sign..."
-          ls -la my-http-server-* || echo "No artifacts found yet"
+          ls -laR my-http-server-* || echo "No artifacts found yet"
 
           for file in my-http-server-*.{tar.gz,zip,sha256}; do
             if [[ -f "$file" && ! "$file" =~ \.sig$ ]]; then
@@ -80,7 +81,7 @@ jobs:
           done
 
           echo "Available signature files:"
-          ls -la *.sig || echo "No signatures created"
+          ls -laR *.sig || echo "No signatures created"
 
       - name: Publish artifacts and release
         uses: fvj/actions-rust-release@jvf/add-glob-support-to-extra-files
