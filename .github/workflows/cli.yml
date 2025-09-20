@@ -71,13 +71,13 @@ jobs:
         if: ${{ contains(runner.os, 'Windows') }}
         shell: bash
         run: |
-          gpg --detach-sign --armor "./target/${{ matrix.platform.target }}/release/my-http-server.exe"
+          gpg --detach-sign "./target/${{ matrix.platform.target }}/release/my-http-server.exe"
 
       - name: GPG sign release artifacts
         if: ${{ !contains(runner.os, 'Windows') }}
         shell: bash
         run: |
-          gpg --detach-sign --armor "./target/${{ matrix.platform.target }}/release/my-http-server"
+          gpg --detach-sign "./target/${{ matrix.platform.target }}/release/my-http-server"
 
       - name: Publish artifacts and release
         uses: fvj/actions-rust-release@jvf/add-glob-support-to-extra-files
