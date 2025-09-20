@@ -10,6 +10,8 @@ use crate::cofg::{ Cofg, CofgAddrs, cli };
 mod error;
 use crate::error::{ AppResult, AppError };
 use crate::parser::md2html;
+mod http_ext;
+use crate::http_ext::HttpRequestCachedExt;
 
 use actix_files::NamedFile;
 use clap::Parser;
@@ -38,17 +40,8 @@ async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
 
   debug!("{req:#?}");
 
-  let filename_str = req.match_info().query("filename");
-  let filename_path = match filename_str.parse::<std::path::PathBuf>() {
-    Ok(path) => path,
-    Err(e) => {
-      warn!("{e}");
-      return HttpResponseBuilder::new(StatusCode::BAD_REQUEST).body(
-        format!("Invalid filename path,{e}")
-      );
-    }
-  };
-  let req_path = Path::new(&Cofg::new().public_path).join(filename_path);
+  let _filename_path = req.cached_filename_path();
+  let req_path = req.cached_public_req_path(&Cofg::new());
   if !req_path.exists() {
     debug!("{}:!exists", req_path.display());
     return match actix_files::NamedFile::open_async("./meta/404.html").await {
@@ -64,7 +57,7 @@ async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
     };
   }
 
-  if req_path.extension().and_then(|v| v.to_str()) == Some("md") {
+  if req.cached_is_markdown(&Cofg::new()) {
     debug!("is md");
     match read_to_string(&req_path) {
       Ok(file) => {
@@ -99,8 +92,11 @@ async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
 }
 
 #[actix_web::get("/", name = "index")]
-async fn index(_: actix_web::HttpRequest) -> impl actix_web::Responder {
+async fn index(req: actix_web::HttpRequest) -> impl actix_web::Responder {
   use actix_web::HttpResponseBuilder;
+
+  // Warm and use request-level cached decoded URI for consistent logging/debug
+  debug!("index request uri: {}", req.cached_decoded_uri());
 
   let c = &Cofg::new();
 
