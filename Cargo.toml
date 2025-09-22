@@ -9,9 +9,9 @@
     config = "0.15.16"
     env_logger = "0.11.8"
     log = "0.4.28"
-    markdown-ppp = { version = "2.1.0", features = [
+    markdown-ppp = { version = "2.1.1", features = [
         "ast-serde",
-    ], git = "https://github.com/Paul-16098/fix-7/" }
+    ] }
     mystical-runic = "0.5.3"
     nest_struct = "0.5.5"
     nom = "8.0.0"
