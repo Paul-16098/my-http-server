@@ -232,7 +232,7 @@ async fn main() -> Result<(), AppError> {
   let s = build_config_from_cli(Cofg::new(), &cli::Args::parse());
 
   init(&s)?;
-  info!("{}", env!("VERSION"));
+  info!("VERSION: {}", option_env!("VERSION").unwrap_or("?"));
   debug!("cofg: {s:#?}");
 
   build_server(&s)?.await?;
