@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1.18
 # Multi-stage Dockerfile for my-http-server (Rust + actix-web)
 # - Builder: rust:1.89.0-slim (bookworm)
 # - Runtime: debian:bookworm-slim (non-root)
@@ -6,7 +6,7 @@
 # - HEALTHCHECK using wget
 # - Default templates baked in; mount volumes to override
 
-FROM rust:1.89.0-slim AS builder
+FROM rust:1.90.0-slim AS builder
 WORKDIR /app
 
 # Speed up release build without requiring strip in runtime

@@ -1,4 +1,10 @@
 //! Unified error types using thiserror
+//!
+//! WHY: Collapse disparate library & IO errors into a small enum convertible to an Actix
+//! Responder—simplifies bubbling errors up from deep helpers (markdown, glob, template) without
+//! sprinkling HTTP response shaping logic throughout.
+//!
+//! 中文：集中管理錯誤型別並直接實作 Responder，讓內層只需 `?` 傳遞，不需關心 HTTP 回應細節。
 
 use log::warn;
 use thiserror::Error;

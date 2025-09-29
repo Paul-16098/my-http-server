@@ -1,29 +1,29 @@
 [package]
     name    = "my-http-server"
-    version = "3.0.1"
+    version = "3.0.2"
     edition = "2024"
 
 [dependencies]
     actix-files = "0.6.8"
     actix-web = "4.11.0"
-    config = "0.15.16"
+    config = "0.15.17"
     env_logger = "0.11.8"
     log = "0.4.28"
-    markdown-ppp = { version = "2.1.0", features = [
+    markdown-ppp = { version = "2.7.1", features = [
         "ast-serde",
-    ], git = "https://github.com/Paul-16098/fix-7/" }
+    ] }
     mystical-runic = "0.5.3"
     nest_struct = "0.5.5"
     nom = "8.0.0"
     percent-encoding = "2.3.2"
-    serde = "1.0.225"
+    serde = "1.0.228"
     wax = { version = "0.6.0", features = [
         "miette",
         "walk",
     ] }
     once_cell = "1.21.3"
-    thiserror = "2.0.16"
-    clap = { version = "4.5.47", features = [
+    thiserror = "2.0.17"
+    clap = { version = "4.5.48", features = [
         "derive",
     ] }
 
