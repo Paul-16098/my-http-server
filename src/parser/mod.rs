@@ -5,8 +5,19 @@ use crate::parser::templating::set_context_value;
 pub(crate) mod markdown;
 pub(crate) mod templating;
 
-/// input md str
-/// return html str
+/// Convert a single markdown string into full HTML page via template `html-t.templating`.
+///
+/// Steps:
+/// 1. Acquire (or rebuild) template engine
+/// 2. Build fresh context (server + configured vars)
+/// 3. Apply extra template_data_list entries (e.g. `path:...`)
+/// 4. Parse markdown → AST → HTML body
+/// 5. Inject `body` then render compiled template
+///
+/// WHY: Keep side effects (engine caching, context assembly) localized while exposing a pure-ish
+/// interface to callers. Accepts owned `md` so upstream can cheaply `read_to_string` and transfer
+/// ownership without clone.
+/// 中文：集中渲染步驟，讓呼叫端只需提供字串與附加變數；擁有字串避免多餘 clone。
 pub(crate) fn md2html(
   md: String,
   c: &crate::cofg::Cofg,

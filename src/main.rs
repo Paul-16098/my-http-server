@@ -20,6 +20,11 @@ use std::fs::{ create_dir_all, read_to_string };
 use std::path::Path;
 use actix_web::{ dev::Server, http::KeepAlive, middleware, App, HttpServer };
 
+/// Initialize logging & ensure `public_path` directory exists.
+///
+/// WHY: Keep side-effect setup isolated from `main()`. Directory creation early prevents
+/// per-request race to create it lazily. Logger configured with module paths for traceability.
+/// 中文：集中初始化，避免每次請求重複檢查；模組路徑便於除錯追蹤。
 fn init(c: &Cofg) -> AppResult<()> {
   env_logger
     ::builder()
@@ -35,6 +40,18 @@ fn init(c: &Cofg) -> AppResult<()> {
 }
 
 #[actix_web::get("/{filename:.*}")]
+/// Fallback handler for any path (captures `/{filename:.*}`) serving either a rendered markdown
+/// or static file; returns custom 404 page if missing.
+///
+/// Flow:
+/// 1. Resolve absolute disk path under `public_path`
+/// 2. If missing → attempt meta/404.html else plain text 404
+/// 3. If markdown → read + `md2html` with `path:` context
+/// 4. Else stream static file
+///
+/// WHY: Unify file resolution & markdown rendering into one route while keeping index logic
+/// separate for TOC special-case.
+/// 中文：統一路徑處理；Markdown 即時轉換，其餘走靜態檔。
 async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
   use actix_web::{ HttpResponseBuilder, http::StatusCode };
 
@@ -92,6 +109,11 @@ async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
 }
 
 #[actix_web::get("/", name = "index")]
+/// Index route: serve `public/index.html` if present else dynamic TOC rendered via markdown.
+///
+/// WHY: Avoid forcing a pre-generated index; dynamic TOC ensures consistency with current files.
+/// Using TOC only when index missing allows users to override with custom landing page.
+/// 中文：若存在自定義 index 則優先；否則即時產生 TOC 提供導覽。
 async fn index(req: actix_web::HttpRequest) -> impl actix_web::Responder {
   use actix_web::HttpResponseBuilder;
 
@@ -137,6 +159,11 @@ async fn index(req: actix_web::HttpRequest) -> impl actix_web::Responder {
   }
 }
 
+/// Construct Actix `HttpServer` with conditional middleware based on config flags.
+///
+/// WHY: Keeps `main` concise; middleware toggles (path normalize, compress, logger) are applied
+/// only when enabled to avoid unnecessary overhead.
+/// 中文：依設定按需加掛 middleware，減少未使用功能的開銷。
 fn build_server(s: &Cofg) -> std::io::Result<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
@@ -180,6 +207,10 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
   Ok(server)
 }
 
+/// Merge CLI overrides into loaded config.
+///
+/// WHY: Preserve file-based config as baseline; explicit CLI flags have higher precedence.
+/// 中文：以設定檔為基礎，命令列參數覆寫對應欄位。
 fn build_config_from_cli(mut s: Cofg, cli: &cli::Args) -> Cofg {
   match (&cli.ip, cli.port) {
     (None, None) => (),
@@ -201,6 +232,7 @@ async fn main() -> Result<(), AppError> {
   let s = build_config_from_cli(Cofg::new(), &cli::Args::parse());
 
   init(&s)?;
+  info!("{}", env!("VERSION"));
   debug!("cofg: {s:#?}");
 
   build_server(&s)?.await?;

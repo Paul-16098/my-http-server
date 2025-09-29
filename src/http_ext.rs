@@ -1,4 +1,10 @@
 //! HttpRequest per-request cached helpers
+//!
+//! WHY: Avoid recomputing derived request values (decoded URI, resolved disk path, extension
+//! checks). Actix's `Extensions` offers cheap per-request storage; this reduces repeated percent
+//! decode, path joins, & extension parsing when multiple middleware / handlers need them.
+//!
+//! 中文：使用每請求快取避免重複 percent-decode 與路徑組合，降低日誌或處理流程的重工。
 use actix_web::{ HttpRequest, HttpMessage };
 use percent_encoding::percent_decode;
 use std::borrow::Cow;
@@ -18,16 +24,20 @@ struct IsMarkdown(bool);
 
 /// Cached helpers for HttpRequest
 pub trait HttpRequestCachedExt {
-  /// Percent-decoded request URI as String (leading '/' trimmed to align with logger format)
+  /// Percent-decoded request URI as String (leading '/' trimmed to align with logger format).
+  /// WHY: Logger format expects trimmed path; decoding done once.
   fn cached_decoded_uri(&self) -> String;
 
-  /// Router-captured filename path (from match_info "filename"), parsed as PathBuf
+  /// Router-captured filename path (from match_info "filename"). Path segmentation deferred to
+  /// filesystem operations; caching avoids repeating `match_info` lookup.
   fn cached_filename_path(&self) -> PathBuf;
 
-  /// Absolute path on disk under public_path joined with filename
+  /// Absolute path on disk under `public_path` joined with filename.
+  /// WHY: Compose once; used for existence check, extension classification, and file reading.
   fn cached_public_req_path(&self, c: &Cofg) -> PathBuf;
 
-  /// Whether the requested file has extension .md
+  /// Whether the requested file has extension `.md`.
+  /// WHY: Determines dynamic render vs static file path.
   fn cached_is_markdown(&self, c: &Cofg) -> bool;
 }
 

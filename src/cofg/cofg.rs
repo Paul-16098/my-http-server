@@ -1,4 +1,12 @@
-//! cofg main
+//! Configuration (Cofg)
+//!
+//! WHY: Centralized runtime configuration cached in a global `OnceCell<RwLock<_>>` so hot paths
+//! (HTTP request handling & markdown rendering) avoid disk IO / deserialization cost. A reload is
+//! only attempted when caller explicitly asks (`get(true)`) AND hot-reload is enabled. This keeps
+//! the steady-state fast while still offering a development-friendly live tweaking mode.
+//!
+//! 中文說明：集中式設定透過 `OnceCell` 快取，避免每次請求重新讀取/解析；只有在呼叫方要求且
+//! 設定檔允許 hot_reload 時才重讀，兼顧執行期效能與開發彈性。
 
 use nest_struct::nest_struct;
 use once_cell::sync::OnceCell;
@@ -59,13 +67,22 @@ impl Cofg {
       .unwrap()
   }
 
-  /// Get cached config (lazy init). If `force_reload` is true and current config has
-  /// `templating.hot_reload` enabled, it'll reload from disk.
-  /// imp eq Cofg::get(false)
+  /// Returns cached configuration (lazy init). Equivalent to `Cofg::get(false)`.
+  ///
+  /// WHY: Keep call sites terse in hot paths (e.g. HTTP handlers) while expressing intent of
+  /// "give me the (maybe) cached config".
+  ///
+  /// 中文：回傳快取設定（延遲初始化），語意精簡，避免熱路徑多寫參數。
   pub(crate) fn new() -> Self {
     Self::get(false)
   }
 
+  /// Obtain configuration, optionally forcing a reload when hot_reload is enabled.
+  ///
+  /// `force_reload = true` triggers a disk re-read ONLY IF `templating.hot_reload` is true.
+  /// This prevents accidental perf regressions in production where the file should be static.
+  ///
+  /// 中文：`force_reload` 僅在 hot_reload 啟用時實際重讀設定，避免正式環境多餘 IO。
   pub(crate) fn get(force_reload: bool) -> Self {
     let cell = GLOBAL_COFG.get_or_init(|| RwLock::new(Self::load_from_disk()));
     if
@@ -84,7 +101,12 @@ impl Cofg {
       .unwrap_or_default()
   }
 
-  /// Force refresh ignoring hot_reload flag (used rarely / tests)
+  /// Force a refresh ignoring the hot_reload flag (primarily for tests & rare admin scenarios).
+  ///
+  /// WHY: Testing and tooling may need to simulate live mutations even when runtime hot reload is
+  /// disabled. Provide a narrow escape hatch without exposing broadly.
+  ///
+  /// 中文：測試/工具情境可繞過 hot_reload 限制強制更新；避免在核心流程濫用。
   #[allow(dead_code)]
   pub(crate) fn force_refresh() {
     if let Some(lock) = GLOBAL_COFG.get() && let Ok(mut w) = lock.write() {
