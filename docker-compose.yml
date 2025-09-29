@@ -14,7 +14,7 @@ services:
       - ./public:/app/public
       - ./meta:/app/meta
       # Provide container-tuned config (bind 0.0.0.0, disable watch/hot_reload if desired)
-      - ./docker/cofg.docker.yaml:/app/cofg.yaml
+      - ./src/cofg/cofg.yaml:/app/cofg.yaml
     restart: unless-stopped
     # If you encounter permission issues writing to /app/public on some hosts,
     # you can temporarily run as root by uncommenting the next line:
