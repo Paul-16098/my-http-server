@@ -83,10 +83,9 @@ Only touches config reload & template engine rebuild. Markdown content is always
 
 ## Potential Future Evolutions
 
-| Area | Option | Considerations |
-|------|--------|----------------|
-| md cache | LRU keyed by (path, mtime) | Avoid reparse for high-traffic pages; need invalidation |
-| partials | Extend DSL for `include:` variables | Keep syntax minimal or move to structured YAML section |
-| search | Pre-index headings for quick lookup | Likely requires async task & incremental updates |
-| auth | Middleware gating private docs | Ensure config reload semantics include auth rules |
-
+| Area     | Option                              | Considerations                                          |
+| -------- | ----------------------------------- | ------------------------------------------------------- |
+| md cache | LRU keyed by (path, mtime)          | Avoid reparse for high-traffic pages; need invalidation |
+| partials | Extend DSL for `include:` variables | Keep syntax minimal or move to structured YAML section  |
+| search   | Pre-index headings for quick lookup | Likely requires async task & incremental updates        |
+| auth     | Middleware gating private docs      | Ensure config reload semantics include auth rules       |

@@ -150,3 +150,29 @@ Look up before `read_to_string`; if mtime changed re-render.
 | Hot Reload     | Rebuild template engine & allow config re-read (on explicit demand) every request |
 | Bytecode Cache | Precompiled template bytecode stored in memory for faster render                  |
 | TOC            | Table of Contents (generated markdown listing)                                    |
+
+## 13. Release Notes
+
+### 3.0.2 (2025-09-29)
+
+Focus: performance (per-request caching), documentation consolidation, and release automation hardening.
+
+Highlights:
+
+- Perf: Introduced per-request helper caching in `http_ext` to avoid repeated path/extension decoding work.
+- Docs: Added/updated architecture, request flow, key functions, performance cache rationale; unified developer guide.
+- CI/Release: Improved release workflow, added broader GPG detached signatures matching pattern, refined build metadata.
+- Automation: Renovate configuration added for ongoing dependency maintenance.
+- Dependencies: Bumped core libraries (templating, parsing, config, CLI, error handling) to latest compatible versions.
+
+Internal Notes:
+
+- Build script embeds `VERSION` = crate version + profile + short commit hash for traceability.
+- No breaking API changes; minor version bump stays within 3.x contract.
+- Future ideas: render cache & static export CLI flag (`--export`).
+
+Upgrade Guidance:
+
+- No action required; rebuild to benefit from caching & updated deps.
+- Optionally review new docs sections for mental model refresh.
+
