@@ -41,44 +41,9 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy binary
 COPY --from=builder /app/bin/my-http-server /usr/local/bin/my-http-server
+# Copy default runtime templates
+# COPY docker/meta /app/meta
 
-# Default templates so container runs out-of-the-box
-RUN set -eux; \
-    mkdir -p /app/meta /app/public; \
-    printf "%s\n" \
-    '<!DOCTYPE html>' \
-    '<html>' \
-    '  <head>' \
-    '    <meta charset="utf-8" />' \
-    '    <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />' \
-    '    <link rel="stylesheet" type="text/css" media="screen" href="/css/github.css" />' \
-    '  </head>' \
-    '  <body class="markdown-body">' \
-    '    {{& body}}' \
-    '    <hr />' \
-    '    <a href="/">goto root</a>' \
-    '    <footer style="text-align: center">' \
-    '      <a style="color: rgba(0, 0, 0, 0.489)" href="https://github.com/Paul-16098/my-http-server/">' \
-    '        my-http-server v{{server-version}}' \
-    '      </a>' \
-    '    </footer>' \
-    '  </body>' \
-    '</html>' \
-    > /app/meta/html-t.templating; \
-    printf "%s\n" \
-    '<!doctype html>' \
-    '<html lang="en">' \
-    '  <head>' \
-    '    <meta charset="utf-8" />' \
-    '    <meta name="viewport" content="width=device-width, initial-scale=1" />' \
-    '    <title>404 Not Found</title>' \
-    '  </head>' \
-    '  <body>' \
-    '    <h1>404 Not Found</h1>' \
-    '    <p>The requested resource was not found on this server.</p>' \
-    '  </body>' \
-    '</html>' \
-    > /app/meta/404.html
 
 # Ensure ownership so appuser can write generated HTML
 RUN chown -R appuser:appuser /app

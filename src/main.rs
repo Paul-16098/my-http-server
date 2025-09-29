@@ -235,6 +235,10 @@ async fn main() -> Result<(), AppError> {
   info!("VERSION: {}", option_env!("VERSION").unwrap_or("?"));
   debug!("cofg: {s:#?}");
 
+  if !Path::new("./meta/html-t.templating").exists() {
+    error!("missing required template: meta/html-t.templating");
+    std::process::exit(1);
+  }
   build_server(&s)?.await?;
   Ok(())
 }
