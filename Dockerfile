@@ -34,10 +34,8 @@ WORKDIR /app
 # Minimal runtime deps: certs + wget for healthcheck
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates wget \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy binary
 COPY --from=builder /app/bin/my-http-server /usr/local/bin/my-http-server

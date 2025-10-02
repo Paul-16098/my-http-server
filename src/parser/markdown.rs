@@ -64,11 +64,16 @@ pub(crate) fn get_toc(c: &Cofg) -> AppResult<String> {
     let entry = entry?;
     let path = entry
       .path()
-      .canonicalize()
-      ? // io error -> AppError::Io
+      .canonicalize()?
       .strip_prefix(out_dir)
       .map_err(|e| AppError::Other(format!("strip_prefix: {e}")))?
       .to_path_buf();
+
+    for ele in &c.toc.ig {
+      if path.to_string_lossy().contains(ele) {
+        continue;
+      }
+    }
 
     toc_str += format!(
       "- [{}]({})\n",
