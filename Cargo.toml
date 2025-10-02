@@ -6,7 +6,7 @@
 [dependencies]
     actix-files = "0.6.8"
     actix-web = "4.11.0"
-    config = "0.15.17"
+    config = "0.15.18"
     env_logger = "0.11.8"
     log = "0.4.28"
     markdown-ppp = { version = "2.7.1", features = [

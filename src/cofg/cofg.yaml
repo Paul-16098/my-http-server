@@ -21,7 +21,6 @@ templating:
     # value: bool(true/false),num(i64)
     # - "name:env:ENV_VALUE"
 toc:
-  # make_toc: true
   path: index.html
   ext:
     - html
