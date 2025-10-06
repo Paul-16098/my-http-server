@@ -6,7 +6,8 @@
 //!
 //! 中文：將批次轉換/TOC 邏輯與線上請求分離，保持主流程簡潔；底線開頭為工具函式。
 
-use std::{ fs::{ read_to_string, remove_file, write }, path::Path };
+use std::{ fs::{ read_to_string, write }, path::Path };
+use std::collections::BTreeMap;
 
 use wax::Glob;
 
@@ -42,6 +43,33 @@ const NON_ALPHANUMERIC: &percent_encoding::AsciiSet = &percent_encoding::NON_ALP
   b'/'
 );
 
+#[derive(Default)]
+struct TocNode {
+  children: BTreeMap<String, TocNode>,
+}
+
+fn emit_toc(
+  node: &TocNode,
+  prefix: &mut Vec<String>,
+  out: &mut String,
+  depth: usize,
+  encode: &dyn Fn(&str) -> String
+) {
+  for (name, child) in &node.children {
+    let path = if prefix.is_empty() {
+      name.clone()
+    } else {
+      format!("{}/{}", prefix.join("/"), name)
+    };
+    let indent = " ".repeat(depth * 4);
+    out.push_str(&format!("{indent}- [{}]({})\n", name, encode(&path)));
+
+    prefix.push(name.clone());
+    emit_toc(child, prefix, out, depth + 1, encode);
+    prefix.pop();
+  }
+}
+
 /// Generate an in-memory Markdown TOC listing files with configured extensions under `public_path`.
 ///
 /// Each entry becomes `- [stem](percent-encoded-path)`; non-alphanumeric chars percent-encoded
@@ -50,17 +78,17 @@ const NON_ALPHANUMERIC: &percent_encoding::AsciiSet = &percent_encoding::NON_ALP
 /// WHY: On-demand generation avoids stale TOC and eliminates pre-bake step. Lightweight glob walk
 /// acceptable since `/` root requests are comparatively infrequent.
 /// 中文：即時產生，避免 TOC 與檔案狀態不一致；根據 toc.path 上層資料夾決定掃描基準。
-pub(crate) fn get_toc(c: &Cofg) -> AppResult<String> {
-  let pp = &c.public_path;
-
-  let out_path = &Path::new(pp).join(std::ops::Deref::deref(&c.toc.path));
+pub(crate) fn get_toc(path: &Path, c: &Cofg, title: Option<String>) -> AppResult<String> {
+  let out_path = &Path::new(path).join(std::ops::Deref::deref(&c.toc.path));
   let out_dir = &out_path
     .parent()
     .ok_or_else(|| AppError::Other("toc path has no parent".into()))?
     .canonicalize()?;
 
-  let mut toc_str = String::from("# toc\n\n");
-  for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(pp) {
+  let mut toc_str = format!("# {}\n\n", title.unwrap_or("toc".to_string()));
+  // Build a tree of path components for stable, de-duplicated recursive output
+  let mut root: TocNode = TocNode::default();
+  for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(path) {
     let entry = entry?;
     let path = entry
       .path()
@@ -69,41 +97,31 @@ pub(crate) fn get_toc(c: &Cofg) -> AppResult<String> {
       .map_err(|e| AppError::Other(format!("strip_prefix: {e}")))?
       .to_path_buf();
 
-    for ele in &c.toc.ig {
-      if path.to_string_lossy().contains(ele) {
-        continue;
-      }
+    // Skip entries matching any ignore token
+    let path_str = path.to_string_lossy();
+    if c.toc.ig.iter().any(|ele| path_str.contains(ele)) {
+      continue;
     }
 
-    toc_str += format!(
-      "- [{}]({})\n",
-      path.with_extension("").display(),
-      percent_encoding::utf8_percent_encode(
-        &path.display().to_string().replace("\\", "/"),
-        NON_ALPHANUMERIC
-      )
-    ).as_str();
+    let comps: Vec<String> = path
+      .components()
+      .map(|c| c.as_os_str().to_string_lossy().to_string())
+      .collect();
+    let mut cur = &mut root;
+    for part in comps {
+      cur = cur.children.entry(part).or_default();
+    }
   }
+
+  // Emit recursively for arbitrary depth
+  let mut prefix: Vec<String> = Vec::new();
+  emit_toc(&root, &mut prefix, &mut toc_str, 0, &encode_path);
   Ok(toc_str)
 }
 
-/// Materialize the TOC as HTML file using templating, overwriting existing target.
-///
-/// WHY: Optional pre-generation when running in static hosting scenarios (e.g. CI build) to avoid
-/// computing TOC at runtime.
-/// 中文：可選的預先產生步驟，適合純靜態部署；非伺服器核心流程。
-pub(crate) fn _make_toc() -> AppResult<()> {
-  let c = crate::cofg::Cofg::new();
-  let pp = &c.public_path;
-
-  let out_path = &Path::new(pp).join(std::ops::Deref::deref(&c.toc.path));
-
-  if out_path.exists() {
-    remove_file(out_path)?;
-  }
-  write(out_path, md2html(get_toc(&c)?, &c, vec!["path:toc".to_string()])?)?;
-
-  Ok(())
+/// Module-level encode helper for links
+fn encode_path(s: &str) -> String {
+  percent_encoding::utf8_percent_encode(&s.replace("\\", "/"), NON_ALPHANUMERIC).to_string()
 }
 
 /// Parse raw markdown into AST using markdown_ppp with default config.

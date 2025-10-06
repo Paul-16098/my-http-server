@@ -12,7 +12,7 @@ middleware:
     # enabling logger
     enabling: true
     # logger format
-    format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
+    format: '"%{url}xi" %s "%{Referer}i" "%{User-Agent}i"'
 # watch: true
 templating:
   hot_reload: true
@@ -26,6 +26,7 @@ toc:
     - html
     - md
     - pdf
+    - txt
   ig:
     - node_modules
 public_path: ./public/
