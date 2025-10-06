@@ -1,65 +1,63 @@
-## AI 開發速覽 (my-http-server)
+## AI 開發速覽（my-http-server）
 
-目標：讓 AI 代理在 <50 行內掌握結構、熱路徑與變更模式，避免誤觸昂貴操作。
+目的：用 20–50 行讓代理快速上手本倉庫的結構、熱路徑、與變更守則（避免做壞昂貴路徑）。
 
-### 1. 核心架構
+1. 這是什麼（Big picture）
 
-- 角色：即時 Markdown → HTML 包裝（`meta/html-t.templating` 外殼）+ 其餘靜態檔。
-- 路由（`src/main.rs`）：
-  - `GET /`：若存在 `public/index.html` 直接回傳；否則動態組 TOC ( `get_toc` → `md2html`).
-  - `GET /{filename:.*}`：存在? → `.md` 動態 render (`md2html` + 注入 `path:<rel>` )；否則 `NamedFile`；不存在 → 自訂 404。
-- 熱路徑函式：`Cofg::new()`（配置快取）、`md2html()`（Markdown→fragment→ 模板 render）、`get_engine()`（模板引擎/可能重建）。
+- 以 `meta/html-t.templating` 為外殼，將請求到的 `.md` 即時渲染為 HTML；其餘走靜態檔。
+- 模組分工：
+  - HTTP：`src/request.rs`（路由與處理）+ `src/http_ext.rs`（每請求快取）+ `src/main.rs`（伺服器組裝與中介層）。
+  - 轉換：`src/parser/{markdown.rs, templating.rs}`（Markdown→fragment→ 模板引擎）。
+  - 設定：`src/cofg/{cofg.rs, cofg.yaml}`（快取 + 可選熱重載）。
 
-### 2. 配置與 Hot Reload
+2. 路由與處理流程（最常見）
 
-- `Cofg`：`OnceCell<RwLock<_>>`；`new()` = `get(false)`；只有 hot_reload 且呼叫 `get(true)` 才重讀磁碟。
-- 模板引擎：hot_reload=true → 每次重建；否則首次建構 + mystical_runic bytecode cache。
-- 常用配置鍵：`public_path`（內容根）、`templating.value`（`name:value` / `name:env:VAR` 注入）、`toc.ext`、middleware toggles。
+- `GET /`：若有 `public/index.html` 直接回傳；否則 `get_toc(public_path)` 產生 TOC → `md2html`。
+- `GET /{filename:.*}`：解析到 `public_path` 下實體路徑；
+  - 不存在 → 優先回 `meta/404.html`，否則純文字 404。
+  - `.md` → `read_to_string` → `md2html(file, &cfg, vec![format!("path:{}", path)])`。
+  - 其他 → `NamedFile::open_async` 靜態回應。
 
-### 3. 模板 Context 規則 (`parser/templating.rs`)
+3. 熱路徑與快取（務必遵守）
 
-- 內建：`server-version`, 每頁 `path`，渲染時再寫入 `body`。
-- `templating.value` 推斷：bool → i64 → string；缺冒號忽略（安全 no-op）。
-- 例：`feature_x:true` → `{{ feature_x }}`；`git_hash:env:GIT` → 從環境變數。
+- 設定：`Cofg::new()` 使用 `OnceCell<RwLock<_>>` 快取；`get(true)` 只有在 `templating.hot_reload=true` 才會重讀磁碟。
+- 模板引擎：`get_engine` 首次建立並啟用 bytecode cache；`hot_reload=true` 時每次重建（僅建議於開發）。
+- 每請求 Extension 快取：`cached_decoded_uri`、`cached_public_req_path`、`cached_is_markdown`，避免重複解碼/拼路徑。
 
-### 4. TOC 與路徑處理
+4. 模板 Context 規則（`parser/templating.rs`）
 
-- `get_toc` 走 `public_path`，擴展於 `toc.ext`；非英數 percent-encode，保留 `/`；Windows 轉 `/`。
-- Per-request 快取（`http_ext.rs`）提供 decoded uri、是否 markdown、拼接後的 public path，避免重複計算。
+- 內建：`server-version`；渲染時注入 `body`；每頁會傳入 `path:*`（如 TOC 用 `path:toc:index`）。
+- `templating.value` Mini-DSL：`name:value` 或 `name:env:ENV`；型別推斷順序 bool → i64 → string；缺冒號者忽略。
 
-### 5. 測試與工作流程
+5. TOC 與路徑處理（`parser/markdown.rs`）
 
-- 執行：`cargo run`（自動建立 `public/` / fallback config）；發佈：`cargo build --release`。
-- 測試：偏好 nextest（VS Code task: cargo: nextest）；測試放 `src/test/` 覆蓋 config/templating/markdown/http。
-- 新增功能：新增模板變數 → 改 `cofg.yaml` + (dev) 開 `templating.hot_reload`; 新設定欄位 → 同步 `src/cofg/cofg.yaml` + `Cofg` 結構 + `BUILD_COFG`。
+- `get_toc` 以 `toc.ext` 掃描；非英數字元百分比編碼但保留 `/`；Windows `\` 轉 `/`。
+- 產生 Markdown 清單後再交由 `md2html` 套上外殼。
 
-### 6. 變更守則（最小侵入）
+6. 開發工作流（本倉庫具體做法）
 
-- 不要將批次轉檔放入啟動流程：維持 `md2html` 純函式；批次用 `_md2html_all()` / `_make_toc()`（僅工具）。
-- 避免在熱路徑呼叫 `Cofg::get(true)`；只在管理/測試明確需求下使用。
-- 新 middleware：遵循 `.wrap(Condition::new(flag, M::new()))` 模式。
+- 執行：`cargo run`（會自動建立 `public_path`；若缺 `meta/html-t.templating` 會寫入預設並結束，需重跑）。
+- 測試：偏好 nextest（VS Code 任務：`cargo: nextest`）或 `cargo nextest run --no-fail-fast`；測試在 `src/test/`。
+- 發佈：`cargo build --release`；Docker 與 Compose 皆提供（容器中請將 `ip=0.0.0.0`）。
 
-### 7. 常見陷阱 & 快速診斷
+7. 變更守則（最小侵入）
 
-- 模板修改無效：確認 `templating.hot_reload=true` 或重啟。
-- 404 頁顯示為純文字：檢查 `meta/404.html` 是否存在。
-- URL 日誌 encode 異常：格式 `%{url}xi` 會先 percent-decode；需原始值則從 `HttpRequest` 取得。
-- 大量重複解析大檔：考慮後續實作 (path, mtime) HTML cache（尚未內建）。
+- 保持 `md2html` 純函式；批次工具請用 `_md2html_all()`（不應接到啟動流程）。
+- 熱路徑避免 `Cofg::get(true)`；必要時於測試/管理操作使用。
+- 新增 middleware 走 `.wrap(Condition::new(flag, M::new()))` 模式。
+- 新增設定欄位需同步：`src/cofg/cofg.yaml`、`Cofg` 結構、`BUILD_COFG` 內嵌預設。
 
-### 8. 安全 / 邊界注意
+8. 常見陷阱（對應修正）
 
-- 路徑未強制 canonical prefix 檢查（潛在 traversal 改進點）。
-- `templating.value` 內容受信；若未來接收使用者輸入需額外 sanitize。
+- 模板改了沒生效：開 `templating.hot_reload=true` 或重啟；TOC/Markdown 永遠即時讀檔。
+- 404 顯示純文字：缺 `meta/404.html`。
+- 日誌 URL 值：`%{url}xi` 會先 percent-decode；若需原始值改從 `HttpRequest` 取。
+- 安全性：尚未強制 canonical prefix；若內容根不受信，請新增前綴檢查避免 traversal。
 
-### 9. 快速定位檔案
+9. 檔案快速定位
 
-- Config：`src/cofg/cofg.rs` + `src/cofg/cofg.yaml`
-- 轉換/模板：`src/parser/{mod.rs,markdown.rs,templating.rs}`
-- HTTP 與進入點：`src/main.rs`
-- 測試範例：`src/test/*.rs`
+- HTTP/路由：`src/request.rs`、`src/main.rs`、`src/http_ext.rs`
+- 轉換/模板：`src/parser/{markdown.rs, templating.rs}`
+- 設定：`src/cofg/{cofg.rs, cofg.yaml}`；測試：`src/test/*.rs`
 
-### 10. 新手第一個 PR 建議
-
-新增一個模板變數（含 env 注入）+ 對應測試：確認 context 解析推斷與 hot_reload 生效。
-
-（若需更多：參考 `README.md` 與 `architecture.md`；本檔僅列即刻生產力所需要點。）
+範圍只記載已實作的行為與慣例；細節延伸可參考 `README.md`、`architecture.md`、`request-flow.md`、`key-functions.md`。
