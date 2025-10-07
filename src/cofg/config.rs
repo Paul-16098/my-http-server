@@ -10,7 +10,7 @@
 
 use nest_struct::nest_struct;
 use once_cell::sync::OnceCell;
-use std::sync::{ RwLock };
+use std::sync::RwLock;
 
 pub(crate) const BUILD_COFG: &str = include_str!("cofg.yaml");
 
@@ -18,34 +18,33 @@ pub(crate) const BUILD_COFG: &str = include_str!("cofg.yaml");
 #[derive(PartialEq, Clone, Debug, serde::Deserialize)]
 pub(crate) struct Cofg {
   pub(crate) addrs: nest! {
-    /// like: 127.0.0.1
-    pub(crate) ip: String,
-    /// like: 80, 8080
-    pub(crate) port: u16,
-  },
+      /// like: 127.0.0.1
+      pub(crate) ip: String,
+      /// like: 80, 8080
+      pub(crate) port: u16,
+    },
   pub(crate) middleware: nest! {
-    /// enabling NormalizePath
-    pub(crate) normalize_path: bool,
-    /// enabling Compress
-    pub(crate) compress: bool,
-    pub(crate) logger: nest! {
-      /// enabling logger
-      pub(crate) enabling: bool,
-      /// logger format
-      pub(crate) format: String
-    }
-  },
+      /// enabling NormalizePath
+      pub(crate) normalize_path: bool,
+      /// enabling Compress
+      pub(crate) compress: bool,
+      pub(crate) logger: nest! {
+        /// enabling logger
+        pub(crate) enabling: bool,
+        /// logger format
+        pub(crate) format: String
+      }
+    },
   /// watch file changes
   // pub(crate) watch: bool,
   pub(crate) templating: nest! {
-    pub(crate) value: Option<Vec<String>>,
-    pub(crate) hot_reload: bool
-  },
+      pub(crate) value: Option<Vec<String>>,
+      pub(crate) hot_reload: bool
+    },
   pub(crate) toc: nest! {
-    // pub(crate) make_toc: bool,
-    pub(crate) path: String,
-    pub(crate) ext: Vec<String>
-  },
+      pub(crate) ext: Vec<String>,
+      pub(crate) ig: Vec<String>
+    },
   pub(crate) public_path: String,
 }
 

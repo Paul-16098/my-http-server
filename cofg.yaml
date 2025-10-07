@@ -27,4 +27,6 @@ toc:
     - html
     - md
     - pdf
+  ig:
+    - node_modules
 public_path: ./public/

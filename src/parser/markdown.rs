@@ -6,41 +6,46 @@
 //!
 //! 中文：將批次轉換/TOC 邏輯與線上請求分離，保持主流程簡潔；底線開頭為工具函式。
 
-use std::{ fs::{ read_to_string, remove_file, write }, path::Path };
+use std::collections::BTreeMap;
+use std::path::Path;
 
+use log::debug;
 use wax::Glob;
 
-use crate::{ cofg::Cofg, error, parser::md2html };
-use crate::error::{ AppResult, AppError };
-
-/// Batch convert every `**/*.{md,markdown}` under `public_path` into `.html` siblings.
-///
-/// WHY: Optional build-time / manual utility; not invoked during normal server runtime to avoid
-/// upfront cost. Keeps `md2html` itself pure so we can reuse it in both paths.
-/// 中文：提供選擇性批次轉換工具，不影響伺服器啟動與即時渲染流程。
-pub(crate) fn _md2html_all() -> AppResult<()> {
-  let md_files = Glob::new("**/*.{md,markdown}")?;
-  let cfg = crate::cofg::Cofg::new(); // returns cached config (not a fresh instance)
-  let public_path = &cfg.public_path.clone();
-  for entry in md_files.walk(public_path) {
-    let entry = entry?; // WalkError already converted by ? via AppError
-    let path = entry.path().to_path_buf();
-    let out_path_obj = path.with_extension("html");
-    write(
-      &out_path_obj,
-      md2html(
-        read_to_string(&path)?,
-        &cfg,
-        vec![format!("path:{}", out_path_obj.strip_prefix(public_path).unwrap().display())]
-      )?
-    )?;
-  }
-  Ok(())
-}
+use crate::error::AppResult;
+use crate::{ cofg::config::Cofg, error };
 
 const NON_ALPHANUMERIC: &percent_encoding::AsciiSet = &percent_encoding::NON_ALPHANUMERIC.remove(
   b'/'
 );
+
+#[derive(Default, Debug)]
+struct TocNode {
+  children: BTreeMap<String, TocNode>,
+}
+
+fn emit_toc(
+  node: &TocNode,
+  prefix: &mut Vec<String>,
+  out: &mut String,
+  depth: usize,
+  encode: &dyn Fn(&str) -> String
+) {
+  for (name, child) in &node.children {
+    let path = if prefix.is_empty() {
+      name.clone()
+    } else {
+      format!("{}/{}", prefix.join("/"), name)
+    };
+    let indent = " ".repeat(depth * 4);
+    debug!("emit_toc: node={node:?};prefix={prefix:#?};out={out};depth={depth}");
+    out.push_str(&format!("{indent}- [{}]({})\n", name, encode(&path)));
+
+    prefix.push(name.clone());
+    emit_toc(child, prefix, out, depth + 1, encode);
+    prefix.pop();
+  }
+}
 
 /// Generate an in-memory Markdown TOC listing files with configured extensions under `public_path`.
 ///
@@ -50,55 +55,46 @@ const NON_ALPHANUMERIC: &percent_encoding::AsciiSet = &percent_encoding::NON_ALP
 /// WHY: On-demand generation avoids stale TOC and eliminates pre-bake step. Lightweight glob walk
 /// acceptable since `/` root requests are comparatively infrequent.
 /// 中文：即時產生，避免 TOC 與檔案狀態不一致；根據 toc.path 上層資料夾決定掃描基準。
-pub(crate) fn get_toc(c: &Cofg) -> AppResult<String> {
-  let pp = &c.public_path;
+pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppResult<String> {
+  debug!("root:{}", root_path.display());
+  let public_path = &Path::new(&c.public_path).canonicalize()?;
+  let root_path = &root_path.canonicalize()?;
 
-  let out_path = &Path::new(pp).join(std::ops::Deref::deref(&c.toc.path));
-  let out_dir = &out_path
-    .parent()
-    .ok_or_else(|| AppError::Other("toc path has no parent".into()))?
-    .canonicalize()?;
-
-  let mut toc_str = String::from("# toc\n\n");
-  for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(pp) {
+  let mut toc_str = format!("# {}\n\n", title.unwrap_or("toc".to_string()));
+  // Build a tree of path components for stable, de-duplicated recursive output
+  let mut root: TocNode = TocNode::default();
+  for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(root_path) {
     let entry = entry?;
-    let path = entry
-      .path()
-      .canonicalize()
-      ? // io error -> AppError::Io
-      .strip_prefix(out_dir)
-      .map_err(|e| AppError::Other(format!("strip_prefix: {e}")))?
-      .to_path_buf();
+    debug!("entry: {entry:#?}");
+    let path = entry.path().canonicalize()?.strip_prefix(root_path)?.to_path_buf();
+    debug!("path: {}", path.display());
 
-    toc_str += format!(
-      "- [{}]({})\n",
-      path.with_extension("").display(),
-      percent_encoding::utf8_percent_encode(
-        &path.display().to_string().replace("\\", "/"),
-        NON_ALPHANUMERIC
-      )
-    ).as_str();
+    // Skip entries matching any ignore token
+    let path_str = path.to_string_lossy();
+    if c.toc.ig.iter().any(|ele| path_str.contains(ele)) {
+      continue;
+    }
+
+    let comps: Vec<String> = path
+      .components()
+      .map(|c| c.as_os_str().to_string_lossy().to_string())
+      .collect();
+    let mut cur = &mut root;
+    for part in comps {
+      cur = cur.children.entry(part).or_default();
+    }
   }
+
+  // Emit recursively for arbitrary depth
+  let mut prefix: Vec<String> = Vec::new();
+  prefix.push(root_path.strip_prefix(public_path)?.to_string_lossy().into_owned());
+  emit_toc(&root, &mut prefix, &mut toc_str, 0, &encode_path);
   Ok(toc_str)
 }
 
-/// Materialize the TOC as HTML file using templating, overwriting existing target.
-///
-/// WHY: Optional pre-generation when running in static hosting scenarios (e.g. CI build) to avoid
-/// computing TOC at runtime.
-/// 中文：可選的預先產生步驟，適合純靜態部署；非伺服器核心流程。
-pub(crate) fn _make_toc() -> AppResult<()> {
-  let c = crate::cofg::Cofg::new();
-  let pp = &c.public_path;
-
-  let out_path = &Path::new(pp).join(std::ops::Deref::deref(&c.toc.path));
-
-  if out_path.exists() {
-    remove_file(out_path)?;
-  }
-  write(out_path, md2html(get_toc(&c)?, &c, vec!["path:toc".to_string()])?)?;
-
-  Ok(())
+/// Module-level encode helper for links
+fn encode_path(s: &str) -> String {
+  percent_encoding::utf8_percent_encode(&s.replace("\\", "/"), NON_ALPHANUMERIC).to_string()
 }
 
 /// Parse raw markdown into AST using markdown_ppp with default config.

@@ -1,4 +1,4 @@
-use std::sync::{Mutex, OnceLock};
+use std::sync::{ Mutex, OnceLock };
 
 // A global mutex to serialize tests that touch ./meta and env vars.
 pub(crate) fn meta_mutex() -> &'static Mutex<()> {

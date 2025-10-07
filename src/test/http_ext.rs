@@ -1,6 +1,6 @@
-use actix_web::{ test, web, App, HttpRequest, HttpResponse };
+use actix_web::{ App, HttpRequest, HttpResponse, test, web };
 
-use crate::{ http_ext::HttpRequestCachedExt, Cofg };
+use crate::{ Cofg, http_ext::HttpRequestCachedExt };
 
 #[actix_web::test]
 async fn cached_helpers_are_stable() {
@@ -8,10 +8,6 @@ async fn cached_helpers_are_stable() {
     App::new().route(
       "/{filename:.*}",
       web::get().to(|req: HttpRequest| async move {
-        // touch multiple times to exercise cache
-        let _d1 = req.cached_decoded_uri();
-        let _d2 = req.cached_decoded_uri();
-
         let c = Cofg::new();
         let f1 = req.cached_filename_path();
         let f2 = req.cached_filename_path();

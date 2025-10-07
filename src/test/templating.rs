@@ -2,7 +2,7 @@
 
 #[test]
 fn templating_context_parses_basic_types() {
-  use crate::{ cofg, parser::templating };
+  use crate::{ cofg::config, parser::templating };
   let _g = super::common::meta_mutex().lock().unwrap();
 
   // ensure meta folder and a small test template exist
@@ -12,7 +12,7 @@ fn templating_context_parses_basic_types() {
     .expect("write inline template");
 
   // build a config with templating values
-  let mut cfg = cofg::Cofg::default();
+  let mut cfg = config::Cofg::default();
   cfg.templating.value = Some(vec!["a:true".into(), "b:1".into(), "c:txt".into()]);
   cfg.templating.hot_reload = true; // ensure engine sees freshly written templates
 
@@ -32,7 +32,7 @@ fn templating_context_parses_basic_types() {
 
 #[test]
 fn templating_context_handles_quotes_colon_bool_synonyms() {
-  use crate::{ cofg, parser::templating };
+  use crate::{ cofg::config, parser::templating };
   let _g = super::common::meta_mutex().lock().unwrap();
 
   // prepare template dir
@@ -44,7 +44,7 @@ fn templating_context_handles_quotes_colon_bool_synonyms() {
     )
     .expect("write inline template2");
 
-  let mut cfg = cofg::Cofg::default();
+  let mut cfg = config::Cofg::default();
   cfg.templating.hot_reload = true;
   cfg.templating.value = Some(
     vec!["title:\"Hello: World\"".into(), "mode:true".into(), "app:My App".into()]

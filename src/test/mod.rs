@@ -1,7 +1,7 @@
 //! test main
-mod common;
-mod cofg;
 mod cli;
-mod templating;
-mod parser;
+mod cofg;
+mod common;
 mod http_ext;
+mod parser;
+mod templating;
