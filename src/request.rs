@@ -63,14 +63,15 @@
 use std::{ fs::read_to_string, path::Path };
 
 use actix_files::NamedFile;
-use log::{ debug, warn };
+use log::{ debug, error, warn };
 
 use crate::{
-  cofg::Cofg,
+  cofg::config::Cofg,
   http_ext::HttpRequestCachedExt as _,
   parser::{ markdown::get_toc, md2html },
 };
 
+/// return `500 INTERNAL_SERVER_ERROR` with header plaintext utf-8
 fn server_error(err_text: String) -> actix_web::HttpResponse {
   actix_web::HttpResponseBuilder
     ::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR)
@@ -95,11 +96,38 @@ async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
 }
 
 /// Render a markdown file into HTML via `md2html` and return an HTTP response.
-fn render_markdown_to_html_response(req_path: &Path, c: &Cofg) -> actix_web::HttpResponse {
-  use actix_web::{ http::StatusCode, HttpResponseBuilder };
+/// Render a markdown file into HTML via `md2html` and return an HTTP response.
+///
+/// Params:
+/// - `req_path`: absolute canonical path to the markdown file
+/// - `public_root`: absolute canonical root of `public_path` for fast `strip_prefix`
+/// - `c`: read-only server configuration
+///
+/// Note: `public_root` is passed from caller to avoid recomputing `canonicalize()` in hot paths.
+fn render_markdown_to_html_response(
+  req_path: &Path,
+  public_root: &Path,
+  c: &Cofg
+) -> actix_web::HttpResponse {
+  use actix_web::{ HttpResponseBuilder, http::StatusCode };
   match read_to_string(req_path) {
     Ok(file) => {
-      let out = crate::parser::md2html(file, c, vec![format!("path:{}", req_path.display())]);
+      let out = crate::parser::md2html(
+        file,
+        c,
+        vec![
+          format!(
+            "path:{}",
+            req_path
+              .strip_prefix(public_root)
+              .unwrap_or_else(|e| {
+                warn!("{e}");
+                req_path
+              })
+              .display()
+          )
+        ]
+      );
       match out {
         Ok(html) => HttpResponseBuilder::new(StatusCode::OK).body(html),
         Err(err) => {
@@ -134,48 +162,66 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
   debug!("{req:#?}");
 
   let c = &Cofg::new();
+  let public_path = &Path::new(&c.public_path).canonicalize().unwrap();
   // Resolve the target path under the configured public root.
   let req_path = req.cached_public_req_path(c);
+  debug!("req_path: {}", req_path.display());
   if !req_path.exists() {
     debug!("{}:!exists", req_path.display());
     return respond_404(&req).await;
   }
+  let req_path = match req_path.canonicalize() {
+    Ok(p) => p,
+    Err(e) => {
+      warn!("Failed to canonicalize req_path: {e}");
+      req_path
+    }
+  };
+  let req_strip_prefix_path = match req_path.strip_prefix(public_path) {
+    Ok(p) => p,
+    Err(e) => {
+      warn!("{e}");
+      &req_path
+    }
+  };
 
   if req.cached_is_markdown(c) {
     debug!("is md");
     // Render Markdown to HTML and return.
-    render_markdown_to_html_response(&req_path, c)
-  } else {
+    render_markdown_to_html_response(&req_path, public_path, c)
+  } else if req_path.is_file() {
     debug!("no md");
-    if req_path.is_file() {
-      match NamedFile::open_async(req_path).await {
-        Ok(file) => file.into_response(&req),
-        Err(err) => {
-          warn!("{err}: {}", err.kind());
-          server_error(err.to_string())
-        }
-      }
-    } else {
-      let toc = get_toc(&req_path, c, Some(req_path.to_string_lossy().to_string()));
-      if let Ok(v) = toc {
-        let r = md2html(v, c, vec![format!("path:toc:{}", req_path.to_string_lossy()).to_string()]);
-        if let Ok(html) = r {
-          HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(html)
-        } else {
-          let err = r.err().unwrap();
-          warn!("{err}");
-          HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
-            err.to_string()
-          )
-        }
-      } else {
-        let err = toc.err().unwrap();
-        warn!("{err}");
-        HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
-          err.to_string()
-        )
+    match NamedFile::open_async(req_path).await {
+      Ok(file) => file.into_response(&req),
+      Err(err) => {
+        warn!("{err}: {}", err.kind());
+        server_error(err.to_string())
       }
     }
+  } else if req_path.is_dir() {
+    debug!("is dir");
+    let toc = get_toc(&req_path, c, Some(req_strip_prefix_path.to_string_lossy().to_string()));
+    if let Ok(v) = toc {
+      let r = md2html(
+        v,
+        c,
+        vec![format!("path:toc:{}", req_strip_prefix_path.to_string_lossy()).to_string()]
+      );
+      if let Ok(html) = r {
+        HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(html)
+      } else {
+        let err = r.err().unwrap();
+        warn!("{err}");
+        server_error(err.to_string())
+      }
+    } else {
+      let err = toc.err().unwrap();
+      warn!("{err}");
+      server_error(err.to_string())
+    }
+  } else {
+    error!("{}: not file and dir", req_strip_prefix_path.display());
+    server_error(format!("{}: not file and dir", req_strip_prefix_path.display()))
   }
 }
 
@@ -185,11 +231,8 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 /// WHY: Avoid forcing a pre-generated index; dynamic TOC ensures consistency with current files.
 /// Using TOC only when index missing allows users to override with custom landing page.
 /// 中文：若存在自定義 index 則優先；否則即時產生 TOC 提供導覽。
-pub(crate) async fn index(req: actix_web::HttpRequest) -> impl actix_web::Responder {
+pub(crate) async fn index(_: actix_web::HttpRequest) -> impl actix_web::Responder {
   use actix_web::HttpResponseBuilder;
-
-  // Warm and use request-level cached decoded URI for consistent logging/debug
-  debug!("index request uri: {}", req.cached_decoded_uri());
 
   let c = &Cofg::new();
 
@@ -208,21 +251,25 @@ pub(crate) async fn index(req: actix_web::HttpRequest) -> impl actix_web::Respon
     }
   } else {
     debug!("index !exists=>get toc");
-    let toc = get_toc(Path::new(&c.public_path), c, Some("index".to_string()));
+    let toc = get_toc(
+      &Path::new(&c.public_path).canonicalize().unwrap(),
+      c,
+      Some("index".to_string())
+    );
     if let Ok(v) = toc {
       let r = md2html(v, c, vec!["path:toc:index".to_string()]);
       if let Ok(html) = r {
         HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(html)
       } else {
         let err = r.err().unwrap();
-        warn!("{err}");
+        warn!("md2html: {err}");
         HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
           err.to_string()
         )
       }
     } else {
       let err = toc.err().unwrap();
-      warn!("{err}");
+      warn!("get_toc: {err}");
       HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
         err.to_string()
       )

@@ -1,6 +1,6 @@
 addrs:
   # like: 127.0.0.1
-  ip: 127.0.0.1
+  ip: localhost
   # like: 80, 8080
   port: 8080
 middleware:
@@ -21,7 +21,6 @@ templating:
     # value: bool(true/false),num(i64)
     # - "name:env:ENV_VALUE"
 toc:
-  path: index.html
   ext:
     - html
     - md

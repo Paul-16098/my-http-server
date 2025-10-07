@@ -20,7 +20,7 @@ pub(crate) mod templating;
 /// 中文：集中渲染步驟，讓呼叫端只需提供字串與附加變數；擁有字串避免多餘 clone。
 pub(crate) fn md2html(
   md: String,
-  c: &crate::cofg::Cofg,
+  c: &crate::cofg::config::Cofg,
   template_data_list: Vec<String>
 ) -> crate::error::AppResult<String> {
   // let c = &crate::cofg::Cofg::new();

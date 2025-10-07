@@ -5,16 +5,12 @@
 //! decode, path joins, & extension parsing when multiple middleware / handlers need them.
 //!
 //! 中文：使用每請求快取避免重複 percent-decode 與路徑組合，降低日誌或處理流程的重工。
-use actix_web::{ HttpRequest, HttpMessage };
-use percent_encoding::percent_decode;
-use std::borrow::Cow;
+use actix_web::{ HttpMessage, HttpRequest };
 use std::path::{ Path, PathBuf };
 
 use crate::Cofg;
 
 // Newtype keys for extensions cache
-#[derive(Debug)]
-struct DecodedUri(String);
 #[derive(Debug)]
 struct FilenamePath(PathBuf);
 #[derive(Debug)]
@@ -24,10 +20,6 @@ struct IsMarkdown(bool);
 
 /// Cached helpers for HttpRequest
 pub trait HttpRequestCachedExt {
-  /// Percent-decoded request URI as String (leading '/' trimmed to align with logger format).
-  /// WHY: Logger format expects trimmed path; decoding done once.
-  fn cached_decoded_uri(&self) -> String;
-
   /// Router-captured filename path (from match_info "filename"). Path segmentation deferred to
   /// filesystem operations; caching avoids repeating `match_info` lookup.
   fn cached_filename_path(&self) -> PathBuf;
@@ -42,19 +34,6 @@ pub trait HttpRequestCachedExt {
 }
 
 impl HttpRequestCachedExt for HttpRequest {
-  fn cached_decoded_uri(&self) -> String {
-    if let Some(v) = self.extensions().get::<DecodedUri>() {
-      return v.0.clone();
-    }
-    let u = self.uri().to_string();
-    let mut u = percent_decode(u.as_bytes()).decode_utf8().unwrap_or(Cow::Borrowed(&u)).to_string();
-    if u.starts_with('/') {
-      u.remove(0);
-    }
-    self.extensions_mut().insert(DecodedUri(u.clone()));
-    u
-  }
-
   fn cached_filename_path(&self) -> PathBuf {
     if let Some(v) = self.extensions().get::<FilenamePath>() {
       return v.0.clone();
