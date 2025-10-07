@@ -7,7 +7,7 @@
 //! 中文：將模板引擎建構與上下文變數設定集中，讓 `md2html` 保持精簡；常態重用快取以利用
 //! bytecode cache，僅在 hot_reload 啟用時每次重建以反映檔案修改。
 
-use mystical_runic::{ TemplateEngine, TemplateContext };
+use mystical_runic::{ TemplateContext, TemplateEngine };
 use once_cell::sync::OnceCell;
 use std::sync::RwLock;
 
@@ -62,7 +62,7 @@ pub(crate) fn set_context_value(context: &mut TemplateContext, data: &str) {
 /// WHY: Decouple config parsing from render path; context creation is cheap and explicit instead
 /// of sharing mutable state across renders.
 /// 中文：每次渲染建立獨立 context，避免共享可變狀態；同時注入版本資訊與設定變數。
-pub(crate) fn get_context(c: &crate::cofg::Cofg) -> TemplateContext {
+pub(crate) fn get_context(c: &crate::cofg::config::Cofg) -> TemplateContext {
   let mut context = TemplateContext::new();
   context.set_string("server-version", env!("CARGO_PKG_VERSION"));
   if let Some(raw_str) = &c.templating.value {
@@ -83,7 +83,7 @@ static ENGINE: OnceCell<RwLock<TemplateEngine>> = OnceCell::new();
 /// WHY: Development ergonomics—trade small rebuild cost for immediacy when editing templates.
 /// Production (no hot_reload) benefits from stable cached engine with bytecode reuse.
 /// 中文：hot_reload 時每次重建以反映檔案變更；否則重用快取獲得效能與 bytecode 優勢。
-pub(crate) fn get_engine(c: &crate::cofg::Cofg) -> TemplateEngine {
+pub(crate) fn get_engine(c: &crate::cofg::config::Cofg) -> TemplateEngine {
   let cell = ENGINE.get_or_init(|| {
     let mut e = TemplateEngine::new("./meta");
     e.enable_bytecode_cache(true);
