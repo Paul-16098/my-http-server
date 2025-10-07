@@ -1,0 +1,83 @@
+name: release-tag-and-backmerge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  tag-and-backmerge:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from Cargo.toml [package]
+        id: ver
+        shell: bash
+        run: |
+          ver=$(awk '
+            $0 ~ /^\[package\]/ { in_pkg=1; next }
+            in_pkg && $0 ~ /^\[/ { in_pkg=0 }
+            in_pkg && $0 ~ /^\s*version\s*=\s*\"/ {
+              if (match($0, /version\s*=\s*\"([^\"]+)\"/, a)) { print a[1]; exit }
+            }
+          ' Cargo.toml)
+          if [ -z "$ver" ]; then
+            echo "Unable to parse version from Cargo.toml [package]" >&2
+            exit 1
+          fi
+          echo "version=$ver" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        shell: bash
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          tag="v${VERSION}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists, skipping."
+          else
+            echo "Creating tag $tag"
+            git tag -a "$tag" -m "Release $VERSION"
+            git push origin "$tag"
+          fi
+
+      - name: Open back-merge PR main → dev (if not exists)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const head = 'main';
+            const base = 'dev';
+            const version = process.env.VERSION || '${{ steps.ver.outputs.version }}';
+            const title = `chore: back-merge v${version} into dev`;
+            const list = await github.rest.pulls.list({ owner, repo, state: 'open', head: `${owner}:${head}`, base });
+            if (list.data.length > 0) {
+              core.info('Back-merge PR already exists.');
+            } else {
+              const pr = await github.rest.pulls.create({ owner, repo, head, base, title, body: `Automated back-merge after releasing v${version} to main.` });
+              core.info(`Created PR #${pr.data.number}`);
+            }
+
+      - name: Close release → dev PR (if exists)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const releaseHead = context.payload.pull_request.head.ref; // e.g., release-3.0.3
+            const prs = await github.rest.pulls.list({ owner, repo, state: 'open', head: `${owner}:${releaseHead}`, base: 'dev' });
+            for (const pr of prs.data) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: 'Closing in favor of automatic main → dev back-merge after release.' });
+              await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
+              core.info(`Closed PR #${pr.number}`);
+            }
