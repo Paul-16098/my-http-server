@@ -115,7 +115,18 @@ fn render_markdown_to_html_response(
       let out = crate::parser::md2html(
         file,
         c,
-        vec![format!("path:{}", req_path.strip_prefix(public_root).unwrap_or(req_path).display())]
+        vec![
+          format!(
+            "path:{}",
+            req_path
+              .strip_prefix(public_root)
+              .unwrap_or_else(|e| {
+                warn!("{e}");
+                req_path
+              })
+              .display()
+          )
+        ]
       );
       match out {
         Ok(html) => HttpResponseBuilder::new(StatusCode::OK).body(html),
@@ -209,8 +220,8 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
       server_error(err.to_string())
     }
   } else {
-    error!("{}: not file and dir", req_path.display());
-    server_error(format!("{}: not file and dir", req_path.display()))
+    error!("{}: not file and dir", req_strip_prefix_path.display());
+    server_error(format!("{}: not file and dir", req_strip_prefix_path.display()))
   }
 }
 
