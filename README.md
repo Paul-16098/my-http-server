@@ -2,6 +2,8 @@
 
 [![Build&release](https://github.com/Paul-16098/my-http-server/actions/workflows/cli.yml/badge.svg?branch=main)](https://github.com/Paul-16098/my-http-server/actions/workflows/cli.yml) [![Security audit](https://github.com/Paul-16098/my-http-server/actions/workflows/Security-audit.yml/badge.svg)](https://github.com/Paul-16098/my-http-server/actions/workflows/Security-audit.yml) [![Docker](https://github.com/Paul-16098/my-http-server/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/Paul-16098/my-http-server/actions/workflows/docker-publish.yml) [![Docker-test](https://github.com/Paul-16098/my-http-server/actions/workflows/docker-test.yml/badge.svg?branch=dev)](https://github.com/Paul-16098/my-http-server/actions/workflows/docker-test.yml)
 
+## Project Name and Description
+
 輕量級的「Markdown → HTML」伺服器（Rust + actix-web）。請求 `.md` 會即時渲染為 HTML（以 `meta/html-t.templating` 為外殼），其餘路徑走靜態檔；提供可選 Hot Reload 的模板與配置，低入侵中介層（NormalizePath/Compress/Logger）。
 
 ## Technology Stack
@@ -131,6 +133,22 @@ public/        # 網站內容（自行建立）
 ```pwsh
 cargo nextest run --no-fail-fast
 ```
+
+## Contributing
+
+歡迎貢獻！請遵循以下流程與規範：
+
+- 從預設分支 `dev` 建立功能分支，提交 PR 前請同步最新 `dev`。
+- 測試：新增/更新對應測試（`src/test/*.rs`），並執行 `cargo test` 確認通過。
+- 品質：執行 `cargo clippy -- -D warnings`（若 CI 尚未強制）。
+- 原則：
+  - 保持 `md2html` 純函式；批次工具用 `_md2html_all()`，勿耦合啟動流程。
+  - 熱路徑避免 `Cofg::get(true)`；僅在測試/管理操作使用。
+  - 新增設定需同步：`src/cofg/cofg.yaml`、`Cofg` 結構、`BUILD_COFG` 內嵌預設。
+  - 中介層採 `.wrap(Condition::new(flag, M::new()))` 模式。
+- 參考文件：
+  - `developer-guide.md`（開發流程、測試策略、常見工作）
+  - `key-functions.md`（關鍵函式與設計理由；作為實作風格範例）
 
 ## Docker
 

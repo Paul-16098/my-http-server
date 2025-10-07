@@ -16,13 +16,14 @@
 - `GET /{filename:.*}`：解析到 `public_path` 下實體路徑；
   - 不存在 → 優先回 `meta/404.html`，否則純文字 404。
   - `.md` → `read_to_string` → `md2html(file, &cfg, vec![format!("path:{}", path)])`。
-  - 其他 → `NamedFile::open_async` 靜態回應。
+  - 目錄 → 對該目錄 `get_toc(dir)` 產生清單，並以 `path:toc:<相對目錄>` 渲染。
+  - 其他檔案 → `NamedFile::open_async` 靜態回應。
 
 3. 熱路徑與快取（務必遵守）
 
 - 設定：`Cofg::new()` 使用 `OnceCell<RwLock<_>>` 快取；`get(true)` 只有在 `templating.hot_reload=true` 才會重讀磁碟。
 - 模板引擎：`get_engine` 首次建立並啟用 bytecode cache；`hot_reload=true` 時每次重建（僅建議於開發）。
-- 每請求 Extension 快取：`cached_decoded_uri`、`cached_public_req_path`、`cached_is_markdown`，避免重複解碼/拼路徑。
+- 每請求 Extension 快取：`cached_filename_path`、`cached_public_req_path`、`cached_is_markdown`，避免重複查詢/拼路徑。
 
 4. 模板 Context 規則（`parser/templating.rs`）
 
@@ -37,8 +38,10 @@
 6. 開發工作流（本倉庫具體做法）
 
 - 執行：`cargo run`（會自動建立 `public_path`；若缺 `meta/html-t.templating` 會寫入預設並結束，需重跑）。
-- 測試：偏好 nextest（VS Code 任務：`cargo: nextest`）或 `cargo nextest run --no-fail-fast`；測試在 `src/test/`。
+- 測試：偏好 nextest（VS Code 任務）或 `cargo nextest run --no-fail-fast`；測試在 `src/test/`。
 - 發佈：`cargo build --release`；Docker 與 Compose 皆提供（容器中請將 `ip=0.0.0.0`）。
+- CLI 覆寫：啟動時以 `build_config_from_cli(Cofg::new(), &cli::Args::parse())` 合成設定（僅支援 `--ip/--port`）。
+- 附註：工作區提供 ast-grep 任務（`sg scan` / `sg test --interactive`）可作靜態規則掃描（非必要）。
 
 7. 變更守則（最小侵入）
 
