@@ -1,6 +1,6 @@
-use std::process::Command;
-use std::path::Path;
 use std::env::var;
+use std::path::Path;
+use std::process::Command;
 
 fn main() {
   #[allow(clippy::single_element_loop)]
