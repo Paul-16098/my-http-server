@@ -18,7 +18,7 @@ pub(crate) enum AppError {
   #[error("Markdown parse error: {0}")] MarkdownParse(String),
   #[error("Config error: {0}")] Config(#[from] config::ConfigError),
   #[error("StripPrefixError: {0}")] StripPrefixError(#[from] std::path::StripPrefixError),
-  #[error("Other error: {0}")] _Other(String),
+  #[error("Other error: {0}")] Other(String),
 }
 
 impl actix_web::Responder for AppError {

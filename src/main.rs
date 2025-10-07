@@ -14,7 +14,7 @@ use crate::request::{ index, main_req };
 
 use actix_web::{ App, HttpServer, dev::Server, http::KeepAlive, middleware };
 use clap::Parser as _;
-use log::{ debug, error, info };
+use log::{ debug, error, info, warn };
 use std::fs::create_dir_all;
 use std::path::Path;
 
@@ -97,8 +97,15 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
 
 #[actix_web::main]
 async fn main() -> AppResult<()> {
-  let mut s = cofg::build_config_from_cli(Cofg::new(), &cli::Args::parse());
-  s.public_path = Path::new(&s.public_path).canonicalize().unwrap().to_string_lossy().to_string();
+  let mut s = cofg::build_config_from_cli(Cofg::new(), &cli::Args::parse())?;
+  s.public_path = Path::new(&s.public_path)
+    .canonicalize()
+    .unwrap_or_else(|e| {
+      warn!("Failed to canonicalize public_path '{}': {}", &s.public_path, e);
+      (&s.public_path).into()
+    })
+    .to_string_lossy()
+    .to_string();
 
   init(&s)?;
   info!("VERSION: {}", option_env!("VERSION").unwrap_or("?"));

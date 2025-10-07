@@ -114,7 +114,7 @@ fn render_markdown_to_html_response(
       let out = crate::parser::md2html(
         file,
         c,
-        vec![format!("path:{}", req_path.strip_prefix(public_root).unwrap().display())]
+        vec![format!("path:{}", req_path.strip_prefix(public_root).unwrap_or(req_path).display())]
       );
       match out {
         Ok(html) => HttpResponseBuilder::new(StatusCode::OK).body(html),
@@ -158,7 +158,20 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     debug!("{}:!exists", req_path.display());
     return respond_404(&req).await;
   }
-  let req_path = req_path.canonicalize().unwrap();
+  let req_path = match req_path.canonicalize() {
+    Ok(p) => p,
+    Err(e) => {
+      warn!("Failed to canonicalize req_path: {e}");
+      req_path
+    }
+  };
+  let req_strip_prefix_path = match req_path.strip_prefix(public_path) {
+    Ok(p) => p,
+    Err(e) => {
+      warn!("{e}");
+      &req_path
+    }
+  };
 
   if req.cached_is_markdown(c) {
     debug!("is md");
@@ -175,21 +188,12 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     }
   } else {
     debug!("is dir");
-    let toc = get_toc(
-      &req_path,
-      c,
-      Some(req_path.strip_prefix(public_path).unwrap().to_string_lossy().to_string())
-    );
+    let toc = get_toc(&req_path, c, Some(req_strip_prefix_path.to_string_lossy().to_string()));
     if let Ok(v) = toc {
       let r = md2html(
         v,
         c,
-        vec![
-          format!(
-            "path:toc:{}",
-            req_path.strip_prefix(public_path).unwrap().to_string_lossy()
-          ).to_string()
-        ]
+        vec![format!("path:toc:{}", req_strip_prefix_path.to_string_lossy()).to_string()]
       );
       if let Ok(html) = r {
         HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(html)

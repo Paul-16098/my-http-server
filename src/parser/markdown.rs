@@ -87,7 +87,7 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
 
   // Emit recursively for arbitrary depth
   let mut prefix: Vec<String> = Vec::new();
-  prefix.push(root_path.strip_prefix(public_path)?.to_string_lossy().to_string());
+  prefix.push(root_path.strip_prefix(public_path)?.to_string_lossy().into_owned());
   emit_toc(&root, &mut prefix, &mut toc_str, 0, &encode_path);
   Ok(toc_str)
 }

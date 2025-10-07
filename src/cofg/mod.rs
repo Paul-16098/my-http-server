@@ -1,3 +1,5 @@
+use crate::error::AppResult;
+
 pub(crate) mod cli;
 pub(crate) mod config;
 
@@ -5,7 +7,10 @@ pub(crate) mod config;
 ///
 /// WHY: Preserve file-based config as baseline; explicit CLI flags have higher precedence.
 /// 中文：以設定檔為基礎，命令列參數覆寫對應欄位。
-pub(crate) fn build_config_from_cli(mut s: config::Cofg, cli: &cli::Args) -> config::Cofg {
+pub(crate) fn build_config_from_cli(
+  mut s: config::Cofg,
+  cli: &cli::Args
+) -> AppResult<config::Cofg> {
   match (&cli.ip, cli.port) {
     (None, None) => (),
     (None, Some(port)) => {
@@ -15,8 +20,8 @@ pub(crate) fn build_config_from_cli(mut s: config::Cofg, cli: &cli::Args) -> con
       s.addrs.ip = ip.to_string();
     }
     (Some(_), Some(_)) => {
-      s.addrs = cli.into();
+      s.addrs = cli.try_into()?;
     }
   }
-  s
+  Ok(s)
 }

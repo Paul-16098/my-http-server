@@ -3,12 +3,12 @@ use crate::cofg::{ cli::Args, config::{ Cofg, CofgAddrs } };
 #[test]
 fn form_test() {
   assert_eq!(
-    CofgAddrs::from(
-      &(Args {
+    std::convert::TryInto::<CofgAddrs>
+      ::try_into(Args {
         ip: Some("127.0.0.1".to_string()),
         port: Some(6426),
       })
-    ),
+      .unwrap(),
     CofgAddrs {
       ip: "127.0.0.1".to_string(),
       port: 6426,
@@ -27,7 +27,7 @@ fn build_config_from_cli_test() {
         ip: Some("127.0.0.1".to_string()),
         port: Some(6426),
       })
-    ),
+    ).unwrap(),
     Cofg {
       addrs: CofgAddrs {
         ip: "127.0.0.1".to_string(),
