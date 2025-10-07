@@ -63,7 +63,7 @@
 use std::{ fs::read_to_string, path::Path };
 
 use actix_files::NamedFile;
-use log::{ debug, warn };
+use log::{ debug, error, warn };
 
 use crate::{
   cofg::config::Cofg,
@@ -71,6 +71,7 @@ use crate::{
   parser::{ markdown::get_toc, md2html },
 };
 
+/// return `500 INTERNAL_SERVER_ERROR` with header plaintext utf-8
 fn server_error(err_text: String) -> actix_web::HttpResponse {
   actix_web::HttpResponseBuilder
     ::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR)
@@ -186,7 +187,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         server_error(err.to_string())
       }
     }
-  } else {
+  } else if req_path.is_dir() {
     debug!("is dir");
     let toc = get_toc(&req_path, c, Some(req_strip_prefix_path.to_string_lossy().to_string()));
     if let Ok(v) = toc {
@@ -200,17 +201,16 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
       } else {
         let err = r.err().unwrap();
         warn!("{err}");
-        HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
-          err.to_string()
-        )
+        server_error(err.to_string())
       }
     } else {
       let err = toc.err().unwrap();
       warn!("{err}");
-      HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
-        err.to_string()
-      )
+      server_error(err.to_string())
     }
+  } else {
+    error!("{}: not file and dir", req_path.display());
+    server_error(format!("{}: not file and dir", req_path.display()))
   }
 }
 
