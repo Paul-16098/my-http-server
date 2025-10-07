@@ -1,12 +1,12 @@
 //! test for cofg.rs
 
-use crate::cofg;
+use crate::cofg::config;
 
 #[test]
 /// test for CofgAddrs Display
 fn cofg_addrs_to_string() {
   assert_eq!(
-    (cofg::CofgAddrs {
+    (config::CofgAddrs {
       ip: "127.0.0.1".to_string(),
       port: 8080,
     }).to_string(),
@@ -15,5 +15,5 @@ fn cofg_addrs_to_string() {
 }
 #[test]
 fn cofg_default() {
-  cofg::Cofg::default();
+  config::Cofg::default();
 }
