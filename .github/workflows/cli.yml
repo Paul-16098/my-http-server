@@ -25,9 +25,10 @@ jobs:
 
       - name: install httpyac
         run: npm install -g httpyac
+
       - name: test
         id: test
-        run: httpyac send --bail -a test/test.http
+        run: httpyac send -a test/test.http
 
   test:
     runs-on: ubuntu-latest
