@@ -30,7 +30,7 @@ fn init(c: &Cofg) -> AppResult<()> {
   create_dir_all("./meta")?;
   if !Path::new("./meta/html-t.templating").exists() {
     error!("missing required template: meta/html-t.templating\nuse default");
-    std::fs::write("./meta/html-t.templating", include_str!("../docker/meta/html-t.templating"))?;
+    std::fs::write("./meta/html-t.templating", include_str!("../meta/html-t.templating"))?;
     // exit and make user re-run to re-init
     std::process::exit(1);
   }

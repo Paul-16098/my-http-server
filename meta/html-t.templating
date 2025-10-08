@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-hk">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="/css/main.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="/css/github.css"
+    />
+    <title>{{path}}</title>
+  </head>
+  <body class="markdown-body">
+    {{& body}}
+
+    <hr />
+    <a href="/">goto root</a>
+    <footer style="text-align: center">
+      <a
+        style="color: rgba(0, 0, 0, 0.489)"
+        href="https://github.com/Paul-16098/my-http-server/"
+        >my-http-server v{{server-version}}</a
+      >
+    </footer>
+  </body>
+</html>

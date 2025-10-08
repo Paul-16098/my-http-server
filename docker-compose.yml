@@ -11,7 +11,7 @@ services:
     volumes:
       # Serve your markdown content from the host
       - ./public:/app/public
-      - ./docker/meta:/app/meta
+      - ./meta:/app/meta
       # Provide container-tuned config (bind 0.0.0.0, disable watch/hot_reload if desired)
       - ./src/cofg/cofg.yaml:/app/cofg.yaml
     restart: unless-stopped

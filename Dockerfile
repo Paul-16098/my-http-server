@@ -18,7 +18,7 @@ RUN cargo fetch --locked
 
 # Copy source
 COPY src ./src
-COPY docker ./docker
+COPY meta ./meta
 
 # Build with BuildKit cache mounts
 # Enable BuildKit before building: DOCKER_BUILDKIT=1

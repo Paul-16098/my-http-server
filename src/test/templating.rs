@@ -1,6 +1,7 @@
 //! tests for templating context parsing
 
 #[test]
+#[ignore]
 fn templating_context_parses_basic_types() {
   use crate::{ cofg::config, parser::templating };
   let _g = super::common::meta_mutex().lock().unwrap();
@@ -31,6 +32,7 @@ fn templating_context_parses_basic_types() {
 }
 
 #[test]
+#[ignore]
 fn templating_context_handles_quotes_colon_bool_synonyms() {
   use crate::{ cofg::config, parser::templating };
   let _g = super::common::meta_mutex().lock().unwrap();

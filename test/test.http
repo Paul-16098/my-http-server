@@ -1,0 +1,64 @@
+/*
+install [this](https://httpyac.github.io/guide/) and run test
+*/
+@host=http://localhost:8080
+?? status == 200
+?? header content-type exists
+###
+# test index
+GET /
+?? header content-type == text/html; charset=utf-8
+
+>>! index.html
+
+HTTP/1.1 200  - OK
+transfer-encoding: chunked
+connection: close
+vary: accept-encoding
+content-type: text/html; charset=utf-8
+content-encoding: br
+date: Wed, 08 Oct 2025 11:33:26 GMT
+###
+# test /dir toc
+GET /dir
+?? header content-type == text/html; charset=utf-8
+
+>>! dir.html
+
+HTTP/1.1 200  - OK
+transfer-encoding: chunked
+connection: close
+content-encoding: br
+vary: accept-encoding
+content-type: text/html; charset=utf-8
+date: Wed, 08 Oct 2025 11:33:26 GMT
+###
+GET /dir/test.md
+?? header content-type == text/html; charset=utf-8
+
+>>! ./dir/test.md.html
+
+HTTP/1.1 200  - OK
+transfer-encoding: chunked
+connection: close
+content-type: text/html; charset=utf-8
+vary: accept-encoding
+content-encoding: br
+date: Wed, 08 Oct 2025 11:33:26 GMT
+###
+GET /dir/test.txt
+?? header content-type == text/plain; charset=utf-8
+
+>>! ./dir/test.txt.html
+
+HTTP/1.1 200  - OK
+transfer-encoding: chunked
+connection: close
+vary: accept-encoding
+content-disposition: inline; filename="test.txt"
+etag: "0:22:68e64a28:b5fe3c0"
+last-modified: Wed, 08 Oct 2025 11:25:28 GMT
+accept-ranges: bytes
+content-type: text/plain; charset=utf-8
+content-encoding: br
+date: Wed, 08 Oct 2025 11:33:26 GMT
