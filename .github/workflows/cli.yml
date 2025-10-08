@@ -21,10 +21,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - run: cargo run &
-
       - name: install httpyac
         run: npm install -g httpyac
+
+      - run: cargo run &
+
+      - name: Wait for server to be ready
+        run: |
+          for i in {1..10}; do
+            if nc -z localhost 8080; then
+              echo "Server is up!"
+              break
+            else
+              echo "Waiting for server..."
+              sleep 1
+            fi
+          done
 
       - name: test
         id: test
