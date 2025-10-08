@@ -24,6 +24,7 @@ jobs:
       - name: install httpyac
         run: npm install -g httpyac
 
+      - run: cargo b
       - run: cargo run &
 
       - name: Wait for server to be ready
