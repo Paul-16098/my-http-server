@@ -7,6 +7,7 @@ fn main() {
   for path in ["build.rs"] {
     println!("cargo:rerun-if-changed={path}");
   }
+  let in_docker: bool = var("IN_DOCKER").is_ok();
 
   let commit_hash = {
     if Path::new("./.git").exists() {
@@ -23,22 +24,30 @@ fn main() {
         println!("cargo::warning=build.rs: Git command failed with output: {output:#?}");
         String::from("unknown")
       }
-    } else {
+    } else if !in_docker {
       println!("cargo::warning=build.rs: No .git directory found, skipping git versioning");
       String::from("unknown")
+    } else {
+      "".to_string()
     }
   };
 
   println!(
-    "cargo:rustc-env=VERSION={}({} Profile)-{commit_hash}({})",
+    "cargo:rustc-env=VERSION={}({} Profile)-{commit_hash}{}",
     var("CARGO_PKG_VERSION").unwrap(),
     var("PROFILE").unwrap(),
     match var("ACTIONS_ID") {
-      Ok(id) => format!("actions/runs/{id}"),
-      Err(std::env::VarError::NotPresent) => "Local".to_string(),
+      Ok(id) => format!("(actions/runs/{id})"),
       Err(e) => {
-        println!("cargo::error=build.rs: {e}");
-        "unknown".to_string()
+        if !in_docker {
+          if e == std::env::VarError::NotPresent {
+            "(Local)".to_string()
+          } else {
+            "(unknown)".to_string()
+          }
+        } else {
+          "(Docker)".to_string()
+        }
       }
     }
   );

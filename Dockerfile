@@ -11,13 +11,16 @@ WORKDIR /app
 
 # Speed up release build without requiring strip in runtime
 ENV RUSTFLAGS="-C strip=symbols"
+ENV IN_DOCKER=true
 
 # Pre-fetch deps for better layer cache
 COPY Cargo.toml Cargo.lock ./
+COPY build.rs build.rs ./
 RUN cargo fetch --locked
 
 # Copy source
 COPY src ./src
+
 COPY meta ./meta
 
 # Build with BuildKit cache mounts
@@ -41,7 +44,7 @@ RUN apt-get update \
 # Copy binary
 COPY --from=builder /app/bin/my-http-server /usr/local/bin/my-http-server
 # Copy default runtime templates
-# COPY docker/meta /app/meta
+COPY meta /app/meta
 
 
 # Ensure ownership so appuser can write generated HTML
@@ -58,4 +61,4 @@ VOLUME ["/app/public","/app/meta"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget -qO- http://127.0.0.1:8080/ > /dev/null || exit 1
 
-ENTRYPOINT ["/usr/local/bin/my-http-server"]
+ENTRYPOINT ["/usr/local/bin/my-http-server", "--ip", "0.0.0.0"]
