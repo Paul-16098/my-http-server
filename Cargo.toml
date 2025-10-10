@@ -26,7 +26,7 @@
     clap = { version = "4.5.48", features = [
         "derive",
     ] }
-    rustls = "0.23"
+    rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std", "tls12"] }
     rustls-pemfile = "2.2.0"
 
 [[bin]]

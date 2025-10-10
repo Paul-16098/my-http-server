@@ -10,7 +10,7 @@
 
 - Language: Rust (edition 2024) · Crate version: 3.0.2
 - Web: actix-web 4.11.0, actix-files 0.6.8
-- TLS: rustls 0.23, rustls-pemfile 2.2.0 (optional HTTPS support)
+- TLS: rustls 0.23 (with ring crypto backend), rustls-pemfile 2.2.0 (optional HTTPS support)
 - Templating: mystical-runic 0.5.3（啟用 bytecode cache；可 hot reload）
 - Markdown: markdown-ppp 2.7.1（AST → HTML fragment）
 - Config & Utils: config 0.15.x, once_cell 1.x, serde 1.x, clap 4.5.x, env_logger 0.11.x, log 0.4.x, percent-encoding 2.3.x, wax 0.6.x, thiserror 2.x, nom 8.x, nest_struct 0.5.x
