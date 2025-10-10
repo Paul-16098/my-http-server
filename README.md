@@ -8,13 +8,11 @@
 
 ## Technology Stack
 
-- Language: Rust (edition 2024) · Crate version: 3.0.3
-- Web: actix-web 4.11.0 · actix-files 0.6.8
-- Templating: handlebars 6.3.2（可 hot reload；引擎快取於全域 OnceCell）
-- Markdown: markdown-ppp 2.7.1（啟用 ast-serde；Markdown → HTML 片段）
-- Config & Utils: config 0.15.x · once_cell 1.x · serde 1.x · clap 4.5.x · env_logger 0.11.x · log 0.4.x · percent-encoding 2.3.x · wax 0.6.x · thiserror 2.x · nom 8.x · nest_struct 0.5.x
-
-（來源：`Cargo.toml` 與 `.github/copilot-instructions.md`）
+- Language: Rust (edition 2024) · Crate version: 3.0.2
+- Web: actix-web 4.11.0, actix-files 0.6.8
+- Templating: mystical-runic 0.5.3（啟用 bytecode cache；可 hot reload）
+- Markdown: markdown-ppp 2.7.1（AST → HTML fragment）
+- Config & Utils: config 0.15.x, once_cell 1.x, serde 1.x, clap 4.5.x, env_logger 0.11.x, log 0.4.x, percent-encoding 2.3.x, wax 0.6.x, thiserror 2.x, nom 8.x, nest_struct 0.5.x
 
 ## Project Architecture
 
@@ -53,17 +51,11 @@ flowchart TB
 cargo run
 ```
 
-1. 瀏覽預設位址：`http://127.0.0.1:8080/`
+預設位址：`http://127.0.0.1:8080/`。首次若缺模板，程式會寫入預設並退出，請再執行一次。
 
-1. 自訂內容：
+### Configuration（cofg.yaml）
 
-- 模板外殼：`meta/html-t.hbs`
-- 404 頁面（可選）：`meta/404.html`
-- 網站內容根目錄：`public/`
-
-設定檔：`cofg.yaml`（倉庫根目錄；預設值亦可參考 `src/cofg/cofg.yaml`）。
-
-CLI 覆寫：啟動時以 `build_config_from_cli(Cofg::new(), &cli::Args::parse())` 合成設定（支援 `--ip / --port`）。
+[cofg.yaml](src/cofg/cofg.yaml)
 
 ## Project Structure
 
@@ -108,6 +100,17 @@ docker run --rm -p 8080:8080 `
   -v ${PWD}/public:/app/public `
   -v ${PWD}/cofg.yaml:/app/cofg.yaml `
   my-http-server
+```
+
+**With TLS/HTTPS:**
+
+```pwsh
+docker run --rm -p 8443:8443 `
+  -v ${PWD}/public:/app/public `
+  -v ${PWD}/cofg.yaml:/app/cofg.yaml `
+  -v ${PWD}/cert.pem:/app/cert.pem:ro `
+  -v ${PWD}/key.pem:/app/key.pem:ro `
+  my-http-server --ip 0.0.0.0 --port 8443 --tls-cert /app/cert.pem --tls-key /app/key.pem
 ```
 
 或使用 Compose（倉庫已提供）：

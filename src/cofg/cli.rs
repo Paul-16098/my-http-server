@@ -16,6 +16,10 @@ pub(crate) struct Args {
   pub(crate) ip: Option<String>,
   #[arg(long)]
   pub(crate) port: Option<u16>,
+  #[arg(long)]
+  pub(crate) tls_cert: Option<String>,
+  #[arg(long)]
+  pub(crate) tls_key: Option<String>,
 }
 
 impl TryFrom<&Args> for super::config::CofgAddrs {

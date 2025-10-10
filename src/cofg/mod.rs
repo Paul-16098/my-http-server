@@ -23,5 +23,13 @@ pub(crate) fn build_config_from_cli(
       s.addrs = cli.try_into()?;
     }
   }
+  
+  // Only enable TLS when both cert and key are provided
+  if let (Some(cert), Some(key)) = (&cli.tls_cert, &cli.tls_key) {
+    s.tls.cert = cert.to_string();
+    s.tls.key = key.to_string();
+    s.tls.enable = true;
+  }
+  
   Ok(s)
 }
