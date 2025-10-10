@@ -10,6 +10,7 @@
 
 - Language: Rust (edition 2024) · Crate version: 3.0.2
 - Web: actix-web 4.11.0, actix-files 0.6.8
+- TLS: rustls 0.23, rustls-pemfile 2.2.0 (optional HTTPS support)
 - Templating: mystical-runic 0.5.3（啟用 bytecode cache；可 hot reload）
 - Markdown: markdown-ppp 2.7.1（AST → HTML fragment）
 - Config & Utils: config 0.15.x, once_cell 1.x, serde 1.x, clap 4.5.x, env_logger 0.11.x, log 0.4.x, percent-encoding 2.3.x, wax 0.6.x, thiserror 2.x, nom 8.x, nest_struct 0.5.x
@@ -88,6 +89,38 @@ cargo run
 ### Configuration（cofg.yaml）
 
 [cofg.yaml](src/cofg/cofg.yaml)
+
+### TLS/HTTPS Support
+
+TLS/HTTPS is supported using rustls. Configure in `cofg.yaml`:
+
+```yaml
+tls:
+  enable: true
+  cert: ./cert.pem
+  key: ./key.pem
+```
+
+Or use CLI arguments:
+
+```bash
+cargo run -- --tls-cert ./cert.pem --tls-key ./key.pem
+```
+
+**Generate self-signed certificate for testing:**
+
+```bash
+# Using OpenSSL
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
+
+# Using mkcert (recommended for local development)
+mkcert -install
+mkcert localhost 127.0.0.1 ::1
+mv localhost+2.pem cert.pem
+mv localhost+2-key.pem key.pem
+```
+
+When TLS is enabled, the server will bind to HTTPS instead of HTTP. The server logs will indicate `https://` instead of `http://`.
 
 ## Project Structure
 

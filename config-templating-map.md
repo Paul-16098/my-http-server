@@ -9,6 +9,9 @@
 | ---------------------------- | ----------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `addrs.ip`                   | string            | `main.rs:build_server` via `CofgAddrs`                   | Bind listen IP                                                             |
 | `addrs.port`                 | u16               | `main.rs:build_server`                                   | Bind listen port                                                           |
+| `tls.enable`                 | bool              | `main.rs:build_server`                                   | Enable TLS/HTTPS; when true, uses `bind_rustls_0_23` instead of `bind`    |
+| `tls.cert`                   | string            | `main.rs:load_tls_config`                                | Path to TLS certificate file (PEM format)                                  |
+| `tls.key`                    | string            | `main.rs:load_tls_config`                                | Path to TLS private key file (PEM format)                                  |
 | `middleware.normalize_path`  | bool              | `main.rs:build_server`                                   | Conditionally wraps `NormalizePath(Trim)`                                  |
 | `middleware.compress`        | bool              | `main.rs:build_server`                                   | Conditionally wraps `Compress` middleware                                  |
 | `middleware.logger.enabling` | bool              | `main.rs:build_server`                                   | Enables `middleware::Logger`                                               |
