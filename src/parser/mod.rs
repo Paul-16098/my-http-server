@@ -43,7 +43,6 @@ pub(crate) fn md2html(
   );
 
   context.data_mut()["body"] = handlebars::JsonValue::String(html);
-  debug!("{:#?}", engine.get_templates());
   match engine.render_with_context("html-t", &context) {
     Ok(o) => Ok(o),
     Err(o) => {
