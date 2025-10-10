@@ -23,6 +23,14 @@ pub(crate) struct Cofg {
       /// like: 80, 8080
       pub(crate) port: u16,
     },
+  pub(crate) tls: nest! {
+      /// enable TLS/HTTPS
+      pub(crate) enable: bool,
+      /// path to TLS certificate file (PEM format)
+      pub(crate) cert: String,
+      /// path to TLS private key file (PEM format)
+      pub(crate) key: String,
+    },
   pub(crate) middleware: nest! {
       /// enabling NormalizePath
       pub(crate) normalize_path: bool,

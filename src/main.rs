@@ -47,6 +47,36 @@ fn logger_init() {
     .init();
 }
 
+/// Load TLS configuration from certificate and key files.
+///
+/// WHY: Encapsulate TLS setup logic; read PEM files and construct rustls ServerConfig.
+/// 中文：封裝 TLS 設定邏輯，載入憑證與私鑰建立 rustls 設定。
+fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::ServerConfig> {
+  use rustls::pki_types::{ CertificateDer, PrivateKeyDer };
+  use std::io::BufReader;
+
+  let cert_file = &mut BufReader::new(std::fs::File::open(cert_path)?);
+  let key_file = &mut BufReader::new(std::fs::File::open(key_path)?);
+
+  let cert_chain = rustls_pemfile::certs(cert_file)
+    .collect::<Result<Vec<CertificateDer>, _>>()?;
+  let mut keys = rustls_pemfile::pkcs8_private_keys(key_file)
+    .map(|key| key.map(PrivateKeyDer::from))
+    .collect::<Result<Vec<_>, _>>()?;
+
+  let key = keys
+    .pop()
+    .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "no private key found"))?;
+
+  let config = rustls::ServerConfig
+    ::builder()
+    .with_no_client_auth()
+    .with_single_cert(cert_chain, key)
+    .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e))?;
+
+  Ok(config)
+}
+
 /// Construct Actix `HttpServer` with conditional middleware based on config flags.
 ///
 /// WHY: Keeps `main` concise; middleware toggles (path normalize, compress, logger) are applied
@@ -55,7 +85,13 @@ fn logger_init() {
 fn build_server(s: &Cofg) -> std::io::Result<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
-  info!("run in http://{}/", addrs);
+  let tls_enabled = s.tls.enable;
+  
+  if tls_enabled {
+    info!("run in https://{}/", addrs);
+  } else {
+    info!("run in http://{}/", addrs);
+  }
 
   let server = HttpServer::new(move || {
     App::new()
@@ -88,11 +124,16 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
       .service(index)
       .service(main_req)
   })
-    .keep_alive(KeepAlive::Os)
-    .bind(addrs)?
-    .run();
+    .keep_alive(KeepAlive::Os);
 
-  Ok(server)
+  let server = if tls_enabled {
+    let tls_config = load_tls_config(&s.tls.cert, &s.tls.key)?;
+    server.bind_rustls_0_23(addrs, tls_config)?
+  } else {
+    server.bind(addrs)?
+  };
+
+  Ok(server.run())
 }
 
 #[actix_web::main]

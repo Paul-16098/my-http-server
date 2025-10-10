@@ -23,5 +23,15 @@ pub(crate) fn build_config_from_cli(
       s.addrs = cli.try_into()?;
     }
   }
+  
+  if let Some(cert) = &cli.tls_cert {
+    s.tls.cert = cert.to_string();
+    s.tls.enable = true;
+  }
+  if let Some(key) = &cli.tls_key {
+    s.tls.key = key.to_string();
+    s.tls.enable = true;
+  }
+  
   Ok(s)
 }
