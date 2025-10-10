@@ -195,6 +195,17 @@ docker run --rm -p 8080:8080 `
   my-http-server
 ```
 
+**With TLS/HTTPS:**
+
+```pwsh
+docker run --rm -p 8443:8443 `
+  -v ${PWD}/public:/app/public `
+  -v ${PWD}/cofg.yaml:/app/cofg.yaml `
+  -v ${PWD}/cert.pem:/app/cert.pem:ro `
+  -v ${PWD}/key.pem:/app/key.pem:ro `
+  my-http-server --ip 0.0.0.0 --port 8443 --tls-cert /app/cert.pem --tls-key /app/key.pem
+```
+
 docker-compose（推薦）：
 
 ```pwsh
