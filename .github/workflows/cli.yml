@@ -5,6 +5,9 @@ on:
     paths:
       - "**/*.rs"
       - ".github/workflows/cli.yml"
+    branches:
+      - main
+      - dev
   pull_request:
   workflow_dispatch:
 
