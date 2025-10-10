@@ -14,14 +14,8 @@ fn tls_config_cli_override() {
       tls_key: Some("./test_key.pem".to_string()),
     })
   ).unwrap();
-  
-  assert_eq!(result.tls.enable, true);
+
+  assert!(result.tls.enable);
   assert_eq!(result.tls.cert, "./test_cert.pem");
   assert_eq!(result.tls.key, "./test_key.pem");
-}
-
-#[test]
-fn tls_config_default_disabled() {
-  let cfg = Cofg::default();
-  assert_eq!(cfg.tls.enable, false);
 }

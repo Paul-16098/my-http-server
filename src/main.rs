@@ -58,9 +58,9 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::S
   let cert_file = &mut BufReader::new(std::fs::File::open(cert_path)?);
   let key_file = &mut BufReader::new(std::fs::File::open(key_path)?);
 
-  let cert_chain = rustls_pemfile::certs(cert_file)
-    .collect::<Result<Vec<CertificateDer>, _>>()?;
-  let mut keys = rustls_pemfile::pkcs8_private_keys(key_file)
+  let cert_chain = rustls_pemfile::certs(cert_file).collect::<Result<Vec<CertificateDer>, _>>()?;
+  let mut keys = rustls_pemfile
+    ::pkcs8_private_keys(key_file)
     .map(|key| key.map(PrivateKeyDer::from))
     .collect::<Result<Vec<_>, _>>()?;
 
@@ -85,9 +85,8 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::S
 fn build_server(s: &Cofg) -> std::io::Result<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
-  let tls_enabled = s.tls.enable;
-  
-  if tls_enabled {
+
+  if s.tls.enable {
     info!("run in https://{}/", addrs);
   } else {
     info!("run in http://{}/", addrs);
@@ -123,10 +122,9 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
       )
       .service(index)
       .service(main_req)
-  })
-    .keep_alive(KeepAlive::Os);
+  }).keep_alive(KeepAlive::Os);
 
-  let server = if tls_enabled {
+  let server = if s.tls.enable {
     let tls_config = load_tls_config(&s.tls.cert, &s.tls.key)?;
     server.bind_rustls_0_23(addrs, tls_config)?
   } else {
