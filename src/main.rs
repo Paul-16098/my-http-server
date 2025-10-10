@@ -90,11 +90,7 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
 
-  if s.tls.enable {
-    info!("run in https://{}/", addrs);
-  } else {
-    info!("run in http://{}/", addrs);
-  }
+  info!("run in {}://{}/", if s.tls.enable { "https" } else { "http" }, addrs);
 
   let server = HttpServer::new(move || {
     App::new()
