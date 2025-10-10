@@ -6,7 +6,7 @@
 # - HEALTHCHECK using wget
 # - Default templates baked in; mount volumes to override
 
-FROM rust:1.90.0-slim AS builder
+FROM rust:slim AS builder
 WORKDIR /app
 
 # Speed up release build without requiring strip in runtime
