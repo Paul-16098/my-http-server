@@ -12,7 +12,6 @@
     markdown-ppp = { version = "2.7.1", features = [
         "ast-serde",
     ] }
-    mystical-runic = "0.5.3"
     nest_struct = "0.5.5"
     nom = "8.0.0"
     percent-encoding = "2.3.2"
@@ -26,6 +25,8 @@
     clap = { version = "4.5.48", features = [
         "derive",
     ] }
+    handlebars = "6.3.2"
+    serde_json = "1.0.145"
 
 [[bin]]
     name = "my-http-server"
