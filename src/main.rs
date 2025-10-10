@@ -59,13 +59,15 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::S
   let key_file = &mut BufReader::new(std::fs::File::open(key_path)?);
 
   let cert_chain = rustls_pemfile::certs(cert_file).collect::<Result<Vec<CertificateDer>, _>>()?;
-  let mut keys = rustls_pemfile
+  let keys = rustls_pemfile
     ::pkcs8_private_keys(key_file)
     .map(|key| key.map(PrivateKeyDer::from))
     .collect::<Result<Vec<_>, _>>()?;
 
+  // Use the first key from the file
   let key = keys
-    .pop()
+    .into_iter()
+    .next()
     .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "no private key found"))?;
 
   let config = rustls::ServerConfig
