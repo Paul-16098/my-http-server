@@ -24,11 +24,9 @@ pub(crate) fn build_config_from_cli(
     }
   }
   
-  if let Some(cert) = &cli.tls_cert {
+  // Only enable TLS when both cert and key are provided
+  if let (Some(cert), Some(key)) = (&cli.tls_cert, &cli.tls_key) {
     s.tls.cert = cert.to_string();
-    s.tls.enable = true;
-  }
-  if let Some(key) = &cli.tls_key {
     s.tls.key = key.to_string();
     s.tls.enable = true;
   }
