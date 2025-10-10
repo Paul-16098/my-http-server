@@ -17,7 +17,7 @@ connection: close
 vary: accept-encoding
 content-type: text/html; charset=utf-8
 content-encoding: br
-date: Wed, 08 Oct 2025 11:33:26 GMT
+date: Fri, 10 Oct 2025 08:51:54 GMT
 ###
 # test /dir toc
 GET /dir
@@ -28,10 +28,10 @@ GET /dir
 HTTP/1.1 200  - OK
 transfer-encoding: chunked
 connection: close
-content-encoding: br
-vary: accept-encoding
 content-type: text/html; charset=utf-8
-date: Wed, 08 Oct 2025 11:33:26 GMT
+vary: accept-encoding
+content-encoding: br
+date: Fri, 10 Oct 2025 08:51:55 GMT
 ###
 GET /dir/test.md
 ?? header content-type == text/html; charset=utf-8
@@ -41,10 +41,10 @@ GET /dir/test.md
 HTTP/1.1 200  - OK
 transfer-encoding: chunked
 connection: close
+content-encoding: br
 content-type: text/html; charset=utf-8
 vary: accept-encoding
-content-encoding: br
-date: Wed, 08 Oct 2025 11:33:26 GMT
+date: Fri, 10 Oct 2025 08:51:55 GMT
 ###
 GET /dir/test.txt
 ?? header content-type == text/plain; charset=utf-8
@@ -54,11 +54,11 @@ GET /dir/test.txt
 HTTP/1.1 200  - OK
 transfer-encoding: chunked
 connection: close
+content-encoding: br
+last-modified: Wed, 08 Oct 2025 11:25:28 GMT
+content-type: text/plain; charset=utf-8
+etag: "0:22:68e64a28:b5fe3c0"
 vary: accept-encoding
 content-disposition: inline; filename="test.txt"
-etag: "0:22:68e64a28:b5fe3c0"
-last-modified: Wed, 08 Oct 2025 11:25:28 GMT
 accept-ranges: bytes
-content-type: text/plain; charset=utf-8
-content-encoding: br
-date: Wed, 08 Oct 2025 11:33:26 GMT
+date: Fri, 10 Oct 2025 08:51:56 GMT

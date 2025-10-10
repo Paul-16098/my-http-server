@@ -7,7 +7,7 @@
 # - Default templates baked in; mount volumes to override
 # - TLS support: mount certificate and key files, use --tls-cert and --tls-key args
 
-FROM rust:1.90.0-slim AS builder
+FROM rust:slim AS builder
 WORKDIR /app
 
 # Speed up release build without requiring strip in runtime

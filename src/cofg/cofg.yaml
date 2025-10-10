@@ -22,7 +22,7 @@ middleware:
     format: '"%{url}xi" %s "%{Referer}i" "%{User-Agent}i"'
 # watch: true
 templating:
-  hot_reload: true
+  hot_reload: false
   value:
     # - "name:value"
     # value: bool(true/false),num(i64)

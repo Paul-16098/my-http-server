@@ -28,23 +28,25 @@ fn init(c: &Cofg) -> AppResult<()> {
 
   create_dir_all(c.public_path.clone())?;
   create_dir_all("./meta")?;
-  if !Path::new("./meta/html-t.templating").exists() {
-    error!("missing required template: meta/html-t.templating\nuse default");
-    std::fs::write("./meta/html-t.templating", include_str!("../meta/html-t.templating"))?;
+  if !Path::new("./meta/html-t.hbs").exists() {
+    error!("missing required template: meta/html-t.hbs\nuse default");
+    std::fs::write("./meta/html-t.hbs", include_str!("../meta/html-t.hbs"))?;
     // exit and make user re-run to re-init
     std::process::exit(1);
   }
   Ok(())
 }
 fn logger_init() {
-  env_logger
-    ::builder()
-    .default_format()
+  let mut l = env_logger::builder();
+  l.default_format()
     .format_timestamp(None)
-    .format_source_path(true)
     .filter_level(log::LevelFilter::Info)
-    .parse_default_env()
-    .init();
+    .parse_default_env();
+
+  #[cfg(debug_assertions)]
+  l.format_source_path(true);
+
+  l.init();
 }
 
 /// Load TLS configuration from certificate and key files.
@@ -118,6 +120,7 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
               }
               u
             })
+            .log_target("http-log")
         )
       )
       .service(index)

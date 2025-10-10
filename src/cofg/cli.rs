@@ -29,7 +29,7 @@ impl TryFrom<&Args> for super::config::CofgAddrs {
     if let (Some(ip), Some(port)) = (&val.ip, val.port) {
       Ok(Self { ip: ip.clone(), port })
     } else {
-      Err(AppError::Other("ip or port is none".to_string()))
+      Err(AppError::OtherError("ip or port is none".to_string()))
     }
   }
 }
@@ -40,7 +40,7 @@ impl TryFrom<Args> for super::config::CofgAddrs {
     if let (Some(ip), Some(port)) = (&val.ip, val.port) {
       Ok(Self { ip: ip.clone(), port })
     } else {
-      Err(AppError::Other("ip or port is none".to_string()))
+      Err(AppError::OtherError("ip or port is none".to_string()))
     }
   }
 }
