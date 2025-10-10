@@ -1,8 +1,15 @@
 addrs:
   # like: 127.0.0.1
-  ip: 127.0.0.1
+  ip: localhost
   # like: 80, 8080
   port: 8080
+tls:
+  # enable TLS/HTTPS
+  enable: false
+  # path to TLS certificate file (PEM format)
+  cert: ./cert.pem
+  # path to TLS private key file (PEM format)
+  key: ./key.pem
 middleware:
   # enabling NormalizePath
   normalize_path: true
@@ -12,7 +19,7 @@ middleware:
     # enabling logger
     enabling: true
     # logger format
-    format: '%{url}xi %s "%{Referer}i" "%{User-Agent}i"'
+    format: '"%{url}xi" %s "%{Referer}i" "%{User-Agent}i"'
 # watch: true
 templating:
   hot_reload: true
@@ -21,12 +28,11 @@ templating:
     # value: bool(true/false),num(i64)
     # - "name:env:ENV_VALUE"
 toc:
-  # make_toc: true
-  path: index.html
   ext:
     - html
     - md
     - pdf
+    - txt
   ig:
     - node_modules
 public_path: ./public/

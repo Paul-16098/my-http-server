@@ -7,6 +7,8 @@ fn form_test() {
       ::try_into(Args {
         ip: Some("127.0.0.1".to_string()),
         port: Some(6426),
+        tls_cert: None,
+        tls_key: None,
       })
       .unwrap(),
     CofgAddrs {
@@ -26,6 +28,8 @@ fn build_config_from_cli_test() {
       &(Args {
         ip: Some("127.0.0.1".to_string()),
         port: Some(6426),
+        tls_cert: None,
+        tls_key: None,
       })
     ).unwrap(),
     Cofg {

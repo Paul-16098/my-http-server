@@ -5,6 +5,9 @@ on:
     paths:
       - "**/*.rs"
       - ".github/workflows/cli.yml"
+    branches:
+      - main
+      - dev
   pull_request:
   workflow_dispatch:
 
@@ -14,6 +17,43 @@ env:
 permissions: write-all
 
 jobs:
+  test-with-httpyac:
+    runs-on: ubuntu-latest
+    name: test with httpyac
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: install httpyac
+        run: npm install -g httpyac
+
+      - run: cargo b
+      - run: cargo run &
+
+      - name: Wait for server to be ready
+        run: |
+          for i in {1..10}; do
+            if nc -z localhost 8080; then
+              echo "Server is up!"
+              break
+            else
+              echo "Waiting for server..."
+              sleep 1
+            fi
+          done
+
+      - name: test
+        id: test
+        run: httpyac send -a test/test.http
+
+  test:
+    runs-on: ubuntu-latest
+    name: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - run: cargo test
+
   release:
     name: Release - ${{ matrix.platform.os-name }}
     strategy:
@@ -63,9 +103,6 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-      - shell: bash
-        run: ls -laR
 
       - name: GPG sign release artifacts
         if: ${{ contains(runner.os, 'Windows') }}

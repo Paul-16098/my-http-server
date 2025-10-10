@@ -14,9 +14,13 @@ target/
 # Logs
 **/*.log
 
-# Local content/templates are usually mounted at runtime
+# Local content is usually mounted at runtime
+# Keep public/ out of build context by default (can be large)
 public/
-meta/
+
+# IMPORTANT: include meta/ so the image has default templates baked in
+# (compose still mounts ./meta to override at runtime)
+!meta/
 
 # Other
 .dockerignore

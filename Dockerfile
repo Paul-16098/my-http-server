@@ -1,24 +1,28 @@
 # syntax=docker/dockerfile:1.19
 # Multi-stage Dockerfile for my-http-server (Rust + actix-web)
-# - Builder: rust:1.89.0-slim (bookworm)
+# - Builder: rust:1.90.0-slim (bookworm)
 # - Runtime: debian:bookworm-slim (non-root)
 # - BuildKit cache mounts for faster cargo builds
 # - HEALTHCHECK using wget
 # - Default templates baked in; mount volumes to override
+# - TLS support: mount certificate and key files, use --tls-cert and --tls-key args
 
-FROM rust:1.90.0-slim AS builder
+FROM rust:slim AS builder
 WORKDIR /app
 
 # Speed up release build without requiring strip in runtime
 ENV RUSTFLAGS="-C strip=symbols"
+ENV IN_DOCKER=true
 
 # Pre-fetch deps for better layer cache
 COPY Cargo.toml Cargo.lock ./
+COPY build.rs build.rs ./
 RUN cargo fetch --locked
 
 # Copy source
 COPY src ./src
-COPY docker ./docker
+
+COPY meta ./meta
 
 # Build with BuildKit cache mounts
 # Enable BuildKit before building: DOCKER_BUILDKIT=1
@@ -41,7 +45,7 @@ RUN apt-get update \
 # Copy binary
 COPY --from=builder /app/bin/my-http-server /usr/local/bin/my-http-server
 # Copy default runtime templates
-# COPY docker/meta /app/meta
+COPY meta /app/meta
 
 
 # Ensure ownership so appuser can write generated HTML
@@ -50,12 +54,14 @@ USER appuser
 
 ENV RUST_LOG=info
 EXPOSE 8080
+EXPOSE 8443
 
 # Persist content directory if users want to mount their own
+# Mount TLS certificates if needed: -v /path/to/cert.pem:/app/cert.pem:ro -v /path/to/key.pem:/app/key.pem:ro
 VOLUME ["/app/public","/app/meta"]
 
 # Container-internal healthcheck (requires server bind to 0.0.0.0)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget -qO- http://127.0.0.1:8080/ > /dev/null || exit 1
 
-ENTRYPOINT ["/usr/local/bin/my-http-server"]
+ENTRYPOINT ["/usr/local/bin/my-http-server", "--ip", "0.0.0.0"]

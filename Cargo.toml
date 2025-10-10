@@ -1,18 +1,19 @@
 [package]
     name    = "my-http-server"
-    version = "3.0.3"
+    version = "3.1.0"
     edition = "2024"
 
 [dependencies]
     actix-files = "0.6.8"
-    actix-web = "4.11.0"
+    actix-web = { version = "4.11.0", features = [
+        "rustls-0_23",
+    ] }
     config = "0.15.18"
     env_logger = "0.11.8"
     log = "0.4.28"
     markdown-ppp = { version = "2.7.1", features = [
         "ast-serde",
     ] }
-    mystical-runic = "0.5.3"
     nest_struct = "0.5.5"
     nom = "8.0.0"
     percent-encoding = "2.3.2"
@@ -26,6 +27,15 @@
     clap = { version = "4.5.48", features = [
         "derive",
     ] }
+    handlebars = "6.3.2"
+    serde_json = "1.0.145"
+    rustls = { version = "0.23", default-features = false, features = [
+        "ring",
+        "logging",
+        "std",
+        "tls12",
+    ] }
+    rustls-pemfile = "2.2.0"
 
 [[bin]]
     name = "my-http-server"

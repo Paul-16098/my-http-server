@@ -63,6 +63,7 @@
 use std::{ fs::read_to_string, path::Path };
 
 use actix_files::NamedFile;
+use actix_web::{ http::header, mime, Responder };
 use log::{ debug, error, warn };
 
 use crate::{
@@ -85,7 +86,12 @@ async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
   match actix_files::NamedFile::open_async("./meta/404.html").await {
     Ok(file) => {
       let mut res = file.into_response(req);
-      *res.status_mut() = StatusCode::NOT_FOUND;
+      res = res
+        .customize()
+        .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+        .with_status(StatusCode::NOT_FOUND)
+        .respond_to(req)
+        .map_into_boxed_body();
       res
     }
     Err(e) => {
@@ -129,7 +135,10 @@ fn render_markdown_to_html_response(
         ]
       );
       match out {
-        Ok(html) => HttpResponseBuilder::new(StatusCode::OK).body(html),
+        Ok(html) =>
+          HttpResponseBuilder::new(StatusCode::OK)
+            .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+            .body(html),
         Err(err) => {
           warn!("{err}");
           server_error(err.to_string())
@@ -170,25 +179,25 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     debug!("{}:!exists", req_path.display());
     return respond_404(&req).await;
   }
-  let req_path = match req_path.canonicalize() {
+  let req_path = &(match req_path.canonicalize() {
     Ok(p) => p,
     Err(e) => {
       warn!("Failed to canonicalize req_path: {e}");
       req_path
     }
-  };
+  });
   let req_strip_prefix_path = match req_path.strip_prefix(public_path) {
     Ok(p) => p,
     Err(e) => {
       warn!("{e}");
-      &req_path
+      req_path
     }
   };
 
   if req.cached_is_markdown(c) {
     debug!("is md");
     // Render Markdown to HTML and return.
-    render_markdown_to_html_response(&req_path, public_path, c)
+    render_markdown_to_html_response(req_path, public_path, c)
   } else if req_path.is_file() {
     debug!("no md");
     match NamedFile::open_async(req_path).await {
@@ -200,7 +209,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     }
   } else if req_path.is_dir() {
     debug!("is dir");
-    let toc = get_toc(&req_path, c, Some(req_strip_prefix_path.to_string_lossy().to_string()));
+    let toc = get_toc(req_path, c, Some(req_strip_prefix_path.to_string_lossy().to_string()));
     if let Ok(v) = toc {
       let r = md2html(
         v,
@@ -208,7 +217,9 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         vec![format!("path:toc:{}", req_strip_prefix_path.to_string_lossy()).to_string()]
       );
       if let Ok(html) = r {
-        HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(html)
+        HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
+          .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+          .body(html)
       } else {
         let err = r.err().unwrap();
         warn!("{err}");
@@ -241,13 +252,13 @@ pub(crate) async fn index(_: actix_web::HttpRequest) -> impl actix_web::Responde
     let f = read_to_string(index_file);
     if let Ok(value) = f {
       debug!("index exists=>show file");
-      HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(value)
+      HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
+        .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+        .body(value)
     } else {
       let err = f.err().unwrap();
       warn!("{err}");
-      HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
-        err.to_string()
-      )
+      server_error(err.to_string())
     }
   } else {
     debug!("index !exists=>get toc");
@@ -259,20 +270,18 @@ pub(crate) async fn index(_: actix_web::HttpRequest) -> impl actix_web::Responde
     if let Ok(v) = toc {
       let r = md2html(v, c, vec!["path:toc:index".to_string()]);
       if let Ok(html) = r {
-        HttpResponseBuilder::new(actix_web::http::StatusCode::OK).body(html)
+        HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
+          .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+          .body(html)
       } else {
         let err = r.err().unwrap();
         warn!("md2html: {err}");
-        HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
-          err.to_string()
-        )
+        server_error(err.to_string())
       }
     } else {
       let err = toc.err().unwrap();
       warn!("get_toc: {err}");
-      HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR).body(
-        err.to_string()
-      )
+      server_error(err.to_string())
     }
   }
 }
