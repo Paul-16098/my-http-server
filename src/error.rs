@@ -12,13 +12,14 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub(crate) enum AppError {
   #[error("IO error: {0}")] Io(#[from] std::io::Error),
-  #[error("Glob pattern error: {0}")] GlobPattern(#[from] wax::BuildError),
-  #[error("Glob walk error: {0}")] GlobWalk(#[from] wax::WalkError),
-  #[error("Template error: {0}")] Template(#[from] mystical_runic::RuneError),
-  #[error("Markdown parse error: {0}")] MarkdownParse(String),
-  #[error("Config error: {0}")] Config(#[from] config::ConfigError),
+  #[error("Glob pattern error: {0}")] GlobPatternError(#[from] wax::BuildError),
+  #[error("Glob walk error: {0}")] GlobWalkError(#[from] wax::WalkError),
+  #[error("Template error: {0}")] TemplateError(#[from] handlebars::TemplateError),
+  #[error("Render error: {0}")] RenderError(#[from] handlebars::RenderError),
+  #[error("Markdown parse error: {0}")] MarkdownParseError(String),
+  #[error("Config error: {0}")] ConfigError(#[from] config::ConfigError),
   #[error("StripPrefixError: {0}")] StripPrefixError(#[from] std::path::StripPrefixError),
-  #[error("Other error: {0}")] Other(String),
+  #[error("Other error: {0}")] OtherError(String),
 }
 
 impl actix_web::Responder for AppError {
@@ -34,7 +35,7 @@ impl actix_web::Responder for AppError {
 
 impl From<nom::Err<nom::error::Error<&str>>> for AppError {
   fn from(e: nom::Err<nom::error::Error<&str>>) -> Self {
-    AppError::MarkdownParse(e.to_string())
+    AppError::MarkdownParseError(e.to_string())
   }
 }
 
