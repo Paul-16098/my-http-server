@@ -24,13 +24,7 @@ struct TocNode {
   children: BTreeMap<String, TocNode>,
 }
 
-fn emit_toc(
-  node: &TocNode,
-  prefix: &mut Vec<String>,
-  out: &mut String,
-  depth: usize,
-  encode: &dyn Fn(&str) -> String
-) {
+fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: usize) {
   for (name, child) in &node.children {
     let path = if prefix.is_empty() {
       name.clone()
@@ -39,10 +33,16 @@ fn emit_toc(
     };
     let indent = " ".repeat(depth * 4);
     debug!("emit_toc: node={node:?};prefix={prefix:#?};out={out};depth={depth}");
-    out.push_str(&format!("{indent}- [{}]({})\n", name, encode(&path)));
+    out.push_str(
+      &format!(
+        "{indent}- [{}]({})\n",
+        name,
+        percent_encoding::utf8_percent_encode(&path.replace("\\", "/"), NON_ALPHANUMERIC)
+      )
+    );
 
     prefix.push(name.clone());
-    emit_toc(child, prefix, out, depth + 1, encode);
+    emit_toc(child, prefix, out, depth + 1);
     prefix.pop();
   }
 }
@@ -88,13 +88,8 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
   // Emit recursively for arbitrary depth
   let mut prefix: Vec<String> = Vec::new();
   prefix.push(root_path.strip_prefix(public_path)?.to_string_lossy().into_owned());
-  emit_toc(&root, &mut prefix, &mut toc_str, 0, &encode_path);
+  emit_toc(&root, &mut prefix, &mut toc_str, 0);
   Ok(toc_str)
-}
-
-/// Module-level encode helper for links
-fn encode_path(s: &str) -> String {
-  percent_encoding::utf8_percent_encode(&s.replace("\\", "/"), NON_ALPHANUMERIC).to_string()
 }
 
 /// Parse raw markdown into AST using markdown_ppp with default config.
