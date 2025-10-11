@@ -62,13 +62,12 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
   diff == 0
 }
 
-// 對 Option<&str> 進行常數時間比較；當一邊為 None 時以空切片比對以維持時序一致性。
+// 對 Option<&str> 進行常數時間比較；只有兩者皆為 Some 時才進行常數時間比較，否則直接返回 false（或 true 若皆為 None）。
 fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
   match (a, b) {
     (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
-    (Some(a), None) => constant_time_eq(a.as_bytes(), &[]),
-    (None, Some(b)) => constant_time_eq(&[], b.as_bytes()),
-    (None, None) => constant_time_eq(&[], &[]),
+    (None, None) => true,
+    _ => false,
   }
 }
 
