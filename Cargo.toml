@@ -35,7 +35,8 @@
         "std",
         "tls12",
     ] }
-    rustls-pemfile = "2.2.0"
+    actix-web-httpauth = "0.8.2"
+    rustls-pki-types = "1.12.0"
 
 [[bin]]
     name = "my-http-server"

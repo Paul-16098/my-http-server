@@ -53,16 +53,19 @@ fn logger_init() {
 ///
 /// WHY: Encapsulate TLS setup logic; read PEM files and construct rustls ServerConfig.
 /// 中文：封裝 TLS 設定邏輯，載入憑證與私鑰建立 rustls 設定。
-fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::ServerConfig> {
-  use rustls::pki_types::{ CertificateDer, PrivateKeyDer };
+fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerConfig> {
+  use rustls::pki_types::{ CertificateDer, pem::PemObject as _, PrivateKeyDer };
+  use rustls_pki_types::PrivatePkcs8KeyDer;
   use std::io::BufReader;
 
   let cert_file = &mut BufReader::new(std::fs::File::open(cert_path)?);
   let key_file = &mut BufReader::new(std::fs::File::open(key_path)?);
 
-  let cert_chain = rustls_pemfile::certs(cert_file).collect::<Result<Vec<CertificateDer>, _>>()?;
-  let keys = rustls_pemfile
-    ::pkcs8_private_keys(key_file)
+  let cert_chain = CertificateDer::pem_reader_iter(cert_file).collect::<
+    Result<Vec<CertificateDer>, _>
+  >()?;
+
+  let keys = PrivatePkcs8KeyDer::pem_reader_iter(key_file)
     .map(|key| key.map(PrivateKeyDer::from))
     .collect::<Result<Vec<_>, _>>()?;
 
@@ -86,7 +89,7 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::S
 /// WHY: Keeps `main` concise; middleware toggles (path normalize, compress, logger) are applied
 /// only when enabled to avoid unnecessary overhead.
 /// 中文：依設定按需加掛 middleware，減少未使用功能的開銷。
-fn build_server(s: &Cofg) -> std::io::Result<Server> {
+fn build_server(s: &Cofg) -> AppResult<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
 
@@ -126,8 +129,13 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
   }).keep_alive(KeepAlive::Os);
 
   let server = if s.tls.enable {
-    let tls_config = load_tls_config(&s.tls.cert, &s.tls.key)?;
-    server.bind_rustls_0_23(addrs, tls_config)?
+    let tls_config = load_tls_config(&s.tls.cert, &s.tls.key);
+    if let Ok(tls_config) = tls_config {
+      server.bind_rustls_0_23(addrs, tls_config)?
+    } else {
+      warn!("{}, back to no-tls", tls_config.err().unwrap());
+      server.bind(addrs)?
+    }
   } else {
     server.bind(addrs)?
   };

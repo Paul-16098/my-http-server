@@ -19,6 +19,7 @@ pub(crate) enum AppError {
   #[error("Markdown parse error: {0}")] MarkdownParseError(String),
   #[error("Config error: {0}")] ConfigError(#[from] config::ConfigError),
   #[error("StripPrefixError: {0}")] StripPrefixError(#[from] std::path::StripPrefixError),
+  #[error("TLS Error: {0}")] TLSError(#[from] rustls_pki_types::pem::Error),
   #[error("Other error: {0}")] OtherError(String),
 }
 
