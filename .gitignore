@@ -58,3 +58,5 @@ $RECYCLE.BIN/
 *.key
 *.crt
 *.cert
+
+cofg.yaml

@@ -49,6 +49,28 @@ fn logger_init() {
   l.init();
 }
 
+// SECURITY: 常數時間比較，減少密碼比對的時序攻擊面。
+/// 比較長度差與逐位 XOR，避免資料相等時提早返回造成時間差異。
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+  let max_len = a.len().max(b.len());
+  let mut diff: u8 = (a.len() ^ b.len()) as u8;
+  for i in 0..max_len {
+    let ai = *a.get(i).unwrap_or(&0);
+    let bi = *b.get(i).unwrap_or(&0);
+    diff |= ai ^ bi;
+  }
+  diff == 0
+}
+
+// 對 Option<&str> 進行常數時間比較；只有兩者皆為 Some 時才進行常數時間比較，否則直接返回 false（或 true 若皆為 None）。
+fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
+  match (a, b) {
+    (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
+    (None, None) => true,
+    _ => false,
+  }
+}
+
 /// Load TLS configuration from certificate and key files.
 ///
 /// WHY: Encapsulate TLS setup logic; read PEM files and construct rustls ServerConfig.
@@ -123,6 +145,77 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
             })
             .log_target("http-log")
         )
+      )
+      .wrap(
+        middleware::Condition::new(middleware_cofg.http_base_authentication.enable, {
+          use std::sync::Arc;
+          let users_arc = Arc::new(middleware_cofg.http_base_authentication.users.clone());
+          actix_web_httpauth::middleware::HttpAuthentication::basic({
+            let users_arc = users_arc.clone();
+            move |
+              req: actix_web::dev::ServiceRequest,
+              credentials: actix_web_httpauth::extractors::basic::BasicAuth
+            | {
+              let users_arc = users_arc.clone();
+              async move {
+                let name = credentials.user_id();
+                let password = credentials.password();
+                let path = req.uri().path();
+
+                if let Some(users) = users_arc.as_ref() {
+                  if let Some(user) = users.iter().find(|u| u.name == name) {
+                    debug!("http_base_authentication: username match");
+                    if ct_eq_str_opt(user.passwords.as_deref(), password) {
+                      info!("http_base_authentication: password correct");
+
+                      // allow: 未設定時預設允許所有路徑
+                      let in_allow = match user.allow.as_deref() {
+                        Some(allow) => allow.iter().any(|allow_path| path.starts_with(allow_path)),
+                        None => true,
+                      };
+                      info!("http_base_authentication: in_allow={}", in_allow);
+
+                      // disallow: 未設定時預設不封鎖任何路徑
+                      let not_in_disallow = match user.disallow.as_deref() {
+                        Some(disallow) => disallow.iter().all(|p| !path.starts_with(p)),
+                        None => true,
+                      };
+                      info!("http_base_authentication: not_in_disallow={}", not_in_disallow);
+
+                      if in_allow && not_in_disallow {
+                        info!("http_base_authentication: ok");
+                        return Ok(req);
+                      } else {
+                        return Err((
+                          actix_web::error::ErrorUnauthorized("Unauthorized: path not allowed"),
+                          req,
+                        ));
+                      }
+                    } else {
+                      // 密碼不符時立即返回，避免落入「無此使用者」訊息
+                      return Err((
+                        actix_web::error::ErrorUnauthorized(
+                          "Unauthorized: no such user name or passwords"
+                        ),
+                        req,
+                      ));
+                    }
+                  } else {
+                    // 沒有任何使用者名稱匹配 → 早退
+                    return Err((
+                      actix_web::error::ErrorUnauthorized("Unauthorized: no such user name or passwords"),
+                      req,
+                    ));
+                  }
+                } else {
+                  // NOTE: 未配置任何使用者時一律拒絕，避免無意間全開。
+                  warn!("no user data configured");
+                }
+                Err((actix_web::error::ErrorUnauthorized("Unauthorized: access denied"), req))
+              }
+            }
+          })
+        })
       )
       .service(index)
       .service(main_req)

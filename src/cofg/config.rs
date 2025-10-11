@@ -41,7 +41,16 @@ pub(crate) struct Cofg {
         pub(crate) enabling: bool,
         /// logger format
         pub(crate) format: String
-      }
+      },
+      pub(crate) http_base_authentication: nest! {
+        pub(crate) enable: bool,
+        pub(crate) users: Option<Vec<nest! {
+          pub(crate) name: String,
+          pub(crate) passwords: Option<String>,
+          pub(crate) allow: Option<Vec<String>>,
+          pub(crate) disallow: Option<Vec<String>>
+        }>>
+    },
     },
   /// watch file changes
   // pub(crate) watch: bool,
