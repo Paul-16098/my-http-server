@@ -15,13 +15,16 @@ tls:
 middleware:
   # enabling NormalizePath
   normalize_path: true
+
   # enabling Compress
   compress: true
+
   logger:
     # enabling logger
     enabling: true
     # logger format
     format: '"%{url}xi" %s "%{Referer}i" "%{User-Agent}i"'
+
   http_base_authentication:
     enable: false
     users:
@@ -31,6 +34,7 @@ middleware:
       #     - /
       #   disallow: # (Option)
       #     - /disallow/
+
   ip_filter:
     enable: false
     # (Option) Allow specific IPs/ranges (whitelist mode)
@@ -40,6 +44,11 @@ middleware:
     # (Option) Block specific IPs/ranges (blacklist mode)
     block:
       # - 10.0.0.*
+
+  rate_limiting:
+    enable: false
+    seconds_per_request: 0.5
+    burst_size: 8
 
 templating:
   hot_reload: false

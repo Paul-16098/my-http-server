@@ -50,12 +50,17 @@ pub(crate) struct Cofg {
           pub(crate) allow: Option<Vec<String>>,
           pub(crate) disallow: Option<Vec<String>>
         }>>
-    },
+      },
       pub(crate) ip_filter: nest! {
         pub(crate) enable: bool,
         pub(crate) allow: Option<Vec<String>>,
         pub(crate) block: Option<Vec<String>>
-    },
+      },
+      pub(crate) rate_limiting: nest! {
+        pub(crate) enable: bool,
+        pub(crate) seconds_per_request: u64,
+        pub(crate) burst_size: u32
+      }
     },
   /// watch file changes
   // pub(crate) watch: bool,

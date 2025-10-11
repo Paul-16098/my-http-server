@@ -120,12 +120,17 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
   let server = HttpServer::new(move || {
     App::new()
       .wrap(
-        middleware::Condition::new(
-          middleware_cofg.normalize_path,
-          middleware::NormalizePath::new(middleware::TrailingSlash::Trim)
-        )
+        middleware::Condition::new(middleware_cofg.rate_limiting.enable, {
+          // 構建 Governor 設定並回傳 Governor Transform
+          let cfg = actix_governor::GovernorConfigBuilder
+            ::default()
+            .seconds_per_request(middleware_cofg.rate_limiting.seconds_per_request)
+            .burst_size(middleware_cofg.rate_limiting.burst_size)
+            .finish()
+            .unwrap();
+          actix_governor::Governor::new(&cfg)
+        })
       )
-      .wrap(middleware::Condition::new(middleware_cofg.compress, middleware::Compress::default()))
       .wrap(
         middleware::Condition::new(
           middleware_cofg.logger.enabling,
@@ -146,6 +151,13 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
             .log_target("http-log")
         )
       )
+      .wrap(
+        middleware::Condition::new(
+          middleware_cofg.normalize_path,
+          middleware::NormalizePath::new(middleware::TrailingSlash::Trim)
+        )
+      )
+      .wrap(middleware::Condition::new(middleware_cofg.compress, middleware::Compress::default()))
       .wrap(
         middleware::Condition::new(middleware_cofg.http_base_authentication.enable, {
           use std::sync::Arc;
@@ -203,7 +215,9 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                   } else {
                     // 沒有任何使用者名稱匹配 → 早退
                     return Err((
-                      actix_web::error::ErrorUnauthorized("Unauthorized: no such user name or passwords"),
+                      actix_web::error::ErrorUnauthorized(
+                        "Unauthorized: no such user name or passwords"
+                      ),
                       req,
                     ));
                   }
@@ -221,22 +235,29 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
         middleware::Condition::new(middleware_cofg.ip_filter.enable, {
           use actix_ip_filter::IPFilter;
           let mut filter = IPFilter::new();
-          
+
           // If allow list is specified, use whitelist mode
           if let Some(allow_list) = middleware_cofg.ip_filter.allow.as_ref() {
-            let allow_refs: Vec<&str> = allow_list.iter().map(|s| s.as_str()).collect();
+            let allow_refs: Vec<&str> = allow_list
+              .iter()
+              .map(|s| s.as_str())
+              .collect();
             filter = filter.allow(allow_refs);
           }
-          
+
           // If block list is specified, add to blocklist
           if let Some(block_list) = middleware_cofg.ip_filter.block.as_ref() {
-            let block_refs: Vec<&str> = block_list.iter().map(|s| s.as_str()).collect();
+            let block_refs: Vec<&str> = block_list
+              .iter()
+              .map(|s| s.as_str())
+              .collect();
             filter = filter.block(block_refs);
           }
-          
+
           filter
         })
       )
+
       .service(index)
       .service(main_req)
   }).keep_alive(KeepAlive::Os);
