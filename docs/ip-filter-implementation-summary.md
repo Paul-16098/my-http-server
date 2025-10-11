@@ -7,10 +7,12 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
 ## Changes Made
 
 ### 1. Dependency Addition
+
 - **File**: `Cargo.toml`
 - **Change**: Added `actix-ip-filter = "0.3.2"` dependency
 
 ### 2. Configuration Structure
+
 - **File**: `src/cofg/config.rs`
 - **Change**: Added `ip_filter` nested structure to the `Cofg` middleware section:
   ```rust
@@ -22,21 +24,23 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
   ```
 
 ### 3. Default Configuration
-- **Files**: 
+
+- **Files**:
   - `cofg.yaml` (root)
   - `src/cofg/cofg.yaml` (embedded default)
 - **Change**: Added IP filter configuration section with examples:
   ```yaml
   ip_filter:
     enable: false
-    allow: # (Option) Allow specific IPs/ranges (whitelist mode)
+    allow:# (Option) Allow specific IPs/ranges (whitelist mode)
       # - 127.0.0.1
       # - 192.168.1.*
-    block: # (Option) Block specific IPs/ranges (blacklist mode)
+    block:# (Option) Block specific IPs/ranges (blacklist mode)
       # - 10.0.0.*
   ```
 
 ### 4. Middleware Integration
+
 - **File**: `src/main.rs`
 - **Change**: Added IP filter middleware to the `build_server` function:
   ```rust
@@ -44,23 +48,24 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
     middleware::Condition::new(middleware_cofg.ip_filter.enable, {
       use actix_ip_filter::IPFilter;
       let mut filter = IPFilter::new();
-      
+
       if let Some(allow_list) = middleware_cofg.ip_filter.allow.as_ref() {
         let allow_refs: Vec<&str> = allow_list.iter().map(|s| s.as_str()).collect();
         filter = filter.allow(allow_refs);
       }
-      
+
       if let Some(block_list) = middleware_cofg.ip_filter.block.as_ref() {
         let block_refs: Vec<&str> = block_list.iter().map(|s| s.as_str()).collect();
         filter = filter.block(block_refs);
       }
-      
+
       filter
     })
   )
   ```
 
 ### 5. Testing
+
 - **File**: `src/test/cofg.rs`
 - **Change**: Added test to verify IP filter configuration structure:
   ```rust
@@ -74,8 +79,10 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
   ```
 
 ### 6. Documentation
+
 - **File**: `docs/ip-filter.md` (new)
 - **Content**: Comprehensive bilingual (Chinese/English) documentation covering:
+
   - Overview and configuration
   - Whitelist, blacklist, and mixed mode usage
   - Glob pattern syntax and examples
@@ -83,13 +90,14 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
   - Testing instructions
 
 - **File**: `README.md`
-- **Changes**: 
+- **Changes**:
   - Added IP filter to Technology Stack section
   - Added IP filter to Key Features section with link to documentation
 
 ## Features
 
 ### Whitelist Mode (Allow List)
+
 - Specify allowed IP addresses or patterns
 - All other IPs are automatically blocked
 - Example: Only allow localhost and local network
@@ -102,6 +110,7 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
   ```
 
 ### Blacklist Mode (Block List)
+
 - Specify blocked IP addresses or patterns
 - All other IPs are automatically allowed
 - Example: Block a specific subnet
@@ -113,10 +122,12 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
   ```
 
 ### Mixed Mode
+
 - Can use both allow and block lists together
 - Allow has precedence, then block rules are applied
 
 ### Glob Pattern Support
+
 - `*`: Matches any number of characters (0 or more)
 - `?`: Matches exactly one character
 - Examples:
@@ -127,6 +138,7 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
 ## Middleware Order
 
 The IP filter runs after HTTP basic authentication in the middleware chain:
+
 1. NormalizePath (if enabled)
 2. Compress (if enabled)
 3. Logger (if enabled)
@@ -146,8 +158,9 @@ This ensures layered security where authentication happens first, then IP-based 
 ## Testing Results
 
 All existing tests pass (19/19):
+
 - Configuration tests
-- HTTP request handling tests  
+- HTTP request handling tests
 - Templating tests
 - TLS configuration tests
 - **New IP filter configuration test**
@@ -159,17 +172,19 @@ Build succeeds in both debug and release modes.
 To enable IP filtering for production:
 
 1. Edit `cofg.yaml`:
+
    ```yaml
    middleware:
      ip_filter:
        enable: true
        allow:
-         - 127.0.0.1      # localhost
-         - 192.168.*      # local network
+         - 127.0.0.1 # localhost
+         - 192.168.* # local network
          - your.office.ip # office IP
    ```
 
 2. Restart the server:
+
    ```bash
    cargo run
    # or

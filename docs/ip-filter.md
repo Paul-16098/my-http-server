@@ -15,11 +15,11 @@ Configure the IP filter in `cofg.yaml`:
 ```yaml
 middleware:
   ip_filter:
-    enable: false  # 啟用/停用 IP 過濾器 / Enable/disable IP filter
-    allow:  # 允許清單（白名單模式）/ Allow list (whitelist mode)
+    enable: false # 啟用/停用 IP 過濾器 / Enable/disable IP filter
+    allow:# 允許清單（白名單模式）/ Allow list (whitelist mode)
       # - 127.0.0.1
       # - 192.168.1.*
-    block:  # 封鎖清單（黑名單模式）/ Block list (blacklist mode)
+    block:# 封鎖清單（黑名單模式）/ Block list (blacklist mode)
       # - 10.0.0.*
 ```
 
@@ -36,9 +36,9 @@ middleware:
   ip_filter:
     enable: true
     allow:
-      - 127.0.0.1        # 允許本機存取 / Allow localhost
-      - 192.168.1.*      # 允許區域網路 192.168.1.x / Allow LAN 192.168.1.x
-      - 172.??.6*.12     # glob 模式匹配 / glob pattern matching
+      - 127.0.0.1 # 允許本機存取 / Allow localhost
+      - 192.168.1.* # 允許區域網路 192.168.1.x / Allow LAN 192.168.1.x
+      - 172.??.6*.12 # glob 模式匹配 / glob pattern matching
 ```
 
 ### 黑名單模式 / Blacklist Mode
@@ -52,8 +52,8 @@ middleware:
   ip_filter:
     enable: true
     block:
-      - 10.0.0.*         # 封鎖整個 10.0.0.x 網段 / Block entire 10.0.0.x subnet
-      - 192.168.1.100    # 封鎖特定 IP / Block specific IP
+      - 10.0.0.* # 封鎖整個 10.0.0.x 網段 / Block entire 10.0.0.x subnet
+      - 192.168.1.100 # 封鎖特定 IP / Block specific IP
 ```
 
 ### 混合模式 / Mixed Mode
@@ -67,18 +67,20 @@ middleware:
   ip_filter:
     enable: true
     allow:
-      - 192.168.*        # 允許所有 192.168.x.x
+      - 192.168.* # 允許所有 192.168.x.x
     block:
-      - 192.168.1.100    # 但封鎖 192.168.1.100
+      - 192.168.1.100 # 但封鎖 192.168.1.100
 ```
 
 ## Glob 模式 / Glob Patterns
 
 支援的萬用字元 / Supported wildcards:
+
 - `*`: 匹配任意數量的字元 / Match any number of characters
 - `?`: 匹配單一字元 / Match a single character
 
 範例 / Examples:
+
 - `192.168.1.*` - 匹配 192.168.1.0 到 192.168.1.255
 - `192.168.?.1` - 匹配 192.168.0.1, 192.168.1.1, 192.168.2.1 等
 - `172.??.6*.12` - 匹配複雜模式
@@ -86,11 +88,13 @@ middleware:
 ## 注意事項 / Notes
 
 1. **預設行為** / Default Behavior:
+
    - 當 `enable: false` 時，不進行任何過濾 / No filtering when `enable: false`
    - 當僅設定 `allow` 時，未列出的 IP 將被拒絕 / When only `allow` is set, unlisted IPs are rejected
    - 當僅設定 `block` 時，未列出的 IP 將被允許 / When only `block` is set, unlisted IPs are allowed
 
 2. **中介軟體順序** / Middleware Order:
+
    - IP 過濾器在 HTTP 基本認證之後執行 / IP filter runs after HTTP basic authentication
    - 確保安全性檢查的層次性 / Ensures layered security checks
 
