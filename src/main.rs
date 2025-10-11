@@ -76,8 +76,7 @@ fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
 /// WHY: Encapsulate TLS setup logic; read PEM files and construct rustls ServerConfig.
 /// 中文：封裝 TLS 設定邏輯，載入憑證與私鑰建立 rustls 設定。
 fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerConfig> {
-  use rustls::pki_types::{ CertificateDer, pem::PemObject as _, PrivateKeyDer };
-  use rustls_pki_types::PrivatePkcs8KeyDer;
+  use rustls::pki_types::{ CertificateDer, pem::PemObject as _, PrivateKeyDer, PrivatePkcs8KeyDer };
   use std::io::BufReader;
 
   let cert_file = &mut BufReader::new(std::fs::File::open(cert_path)?);
@@ -263,12 +262,12 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
   }).keep_alive(KeepAlive::Os);
 
   let server = if s.tls.enable {
-    let tls_config = load_tls_config(&s.tls.cert, &s.tls.key);
-    if let Ok(tls_config) = tls_config {
-      server.bind_rustls_0_23(addrs, tls_config)?
-    } else {
-      warn!("{}, back to no-tls", tls_config.err().unwrap());
-      server.bind(addrs)?
+    match load_tls_config(&s.tls.cert, &s.tls.key) {
+      Ok(tls_config) => server.bind_rustls_0_23(addrs, tls_config)?,
+      Err(e) => {
+        warn!("{}, back to no-tls", e);
+        server.bind(addrs)?
+      }
     }
   } else {
     server.bind(addrs)?
