@@ -51,6 +51,11 @@ pub(crate) struct Cofg {
           pub(crate) disallow: Option<Vec<String>>
         }>>
     },
+      pub(crate) ip_filter: nest! {
+        pub(crate) enable: bool,
+        pub(crate) allow: Option<Vec<String>>,
+        pub(crate) block: Option<Vec<String>>
+    },
     },
   /// watch file changes
   // pub(crate) watch: bool,

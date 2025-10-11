@@ -217,6 +217,26 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
           })
         })
       )
+      .wrap(
+        middleware::Condition::new(middleware_cofg.ip_filter.enable, {
+          use actix_ip_filter::IPFilter;
+          let mut filter = IPFilter::new();
+          
+          // If allow list is specified, use whitelist mode
+          if let Some(allow_list) = middleware_cofg.ip_filter.allow.as_ref() {
+            let allow_refs: Vec<&str> = allow_list.iter().map(|s| s.as_str()).collect();
+            filter = filter.allow(allow_refs);
+          }
+          
+          // If block list is specified, add to blocklist
+          if let Some(block_list) = middleware_cofg.ip_filter.block.as_ref() {
+            let block_refs: Vec<&str> = block_list.iter().map(|s| s.as_str()).collect();
+            filter = filter.block(block_refs);
+          }
+          
+          filter
+        })
+      )
       .service(index)
       .service(main_req)
   }).keep_alive(KeepAlive::Os);
