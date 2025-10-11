@@ -19,26 +19,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract version from Cargo.toml [package]
-        id: ver
-        shell: bash
-        run: |
-          ver=$(awk '
-            $0 ~ /^\[package\]/ { in_pkg=1; next }
-            in_pkg && $0 ~ /^\[/ { in_pkg=0 }
-            in_pkg && $0 ~ /^\s*version\s*=\s*\"/ {
-              if (match($0, /version\s*=\s*\"([^\"]+)\"/, a)) { print a[1]; exit }
-            }
-          ' Cargo.toml)
-          if [ -z "$ver" ]; then
-            echo "Unable to parse version from Cargo.toml [package]" >&2
-            exit 1
-          fi
-          echo "version=$ver" >> $GITHUB_OUTPUT
+      - name: TOML Reader
+        id: read_toml
+        uses: SebRollen/toml-action@v1.2.0
+        with:
+          file: Cargo.toml
+          field: package.version
 
       - name: Create and push tag
         env:
-          VERSION: ${{ steps.ver.outputs.version }}
+          VERSION: ${{ steps.read_toml.outputs.value }}
         shell: bash
         run: |
           git config user.name "${GITHUB_ACTOR}"
@@ -59,7 +49,7 @@ jobs:
             const { owner, repo } = context.repo;
             const head = 'main';
             const base = 'dev';
-            const version = process.env.VERSION || '${{ steps.ver.outputs.version }}';
+            const version = process.env.VERSION || '${{ steps.read_toml.outputs.value }}';
             const title = `chore: back-merge v${version} into dev`;
             const list = await github.rest.pulls.list({ owner, repo, state: 'open', head: `${owner}:${head}`, base });
             if (list.data.length > 0) {

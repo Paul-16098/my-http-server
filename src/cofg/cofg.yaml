@@ -3,6 +3,7 @@ addrs:
   ip: localhost
   # like: 80, 8080
   port: 8080
+
 tls:
   # enable TLS/HTTPS
   enable: false
@@ -10,23 +11,52 @@ tls:
   cert: ./cert.pem
   # path to TLS private key file (PEM format)
   key: ./key.pem
+
 middleware:
   # enabling NormalizePath
   normalize_path: true
+
   # enabling Compress
   compress: true
+
   logger:
     # enabling logger
     enabling: true
     # logger format
     format: '"%{url}xi" %s "%{Referer}i" "%{User-Agent}i"'
-# watch: true
+
+  http_base_authentication:
+    enable: false
+    users:
+      # - name: user-name
+      #   passwords: passwords # (Option)
+      #   allow: # (Option)
+      #     - /
+      #   disallow: # (Option)
+      #     - /disallow/
+
+  ip_filter:
+    enable: false
+    # (Option) Allow specific IPs/ranges (whitelist mode)
+    allow:
+      # - 127.0.0.1
+      # - 192.168.1.*
+    # (Option) Block specific IPs/ranges (blacklist mode)
+    block:
+      # - 10.0.0.*
+
+  rate_limiting:
+    enable: false
+    seconds_per_request: 0.5
+    burst_size: 8
+
 templating:
   hot_reload: false
   value:
     # - "name:value"
     # value: bool(true/false),num(i64)
     # - "name:env:ENV_VALUE"
+
 toc:
   ext:
     - html

@@ -10,6 +10,7 @@
 
 - Language: Rust (edition 2024) · Crate version: 3.0.2
 - Web: actix-web 4.11.0, actix-files 0.6.8
+- Security: actix-ip-filter 0.3.2 (IP filtering with glob pattern support)
 - Templating: mystical-runic 0.5.3（啟用 bytecode cache；可 hot reload）
 - Markdown: markdown-ppp 2.7.1（AST → HTML fragment）
 - Config & Utils: config 0.15.x, once_cell 1.x, serde 1.x, clap 4.5.x, env_logger 0.11.x, log 0.4.x, percent-encoding 2.3.x, wax 0.6.x, thiserror 2.x, nom 8.x, nest_struct 0.5.x
@@ -80,6 +81,7 @@ public/        # 網站內容（本倉庫提供範例，可自行替換）
 - 模板熱重載（可選）：`templating.hot_reload=true` 時每次重建引擎；設定強制重讀需顯式 `Cofg::get(true)`
 - 靜態檔快速回應：非 `.md` 直接 `NamedFile::open_async`
 - 可自訂 `meta/404.html`
+- **IP 過濾器**：支援白名單/黑名單模式，使用 glob 模式匹配 IP 位址（詳見 [docs/ip-filter.md](docs/ip-filter.md)）
 
 ## Development Workflow
 

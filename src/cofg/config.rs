@@ -41,6 +41,25 @@ pub(crate) struct Cofg {
         pub(crate) enabling: bool,
         /// logger format
         pub(crate) format: String
+      },
+      pub(crate) http_base_authentication: nest! {
+        pub(crate) enable: bool,
+        pub(crate) users: Option<Vec<nest! {
+          pub(crate) name: String,
+          pub(crate) passwords: Option<String>,
+          pub(crate) allow: Option<Vec<String>>,
+          pub(crate) disallow: Option<Vec<String>>
+        }>>
+      },
+      pub(crate) ip_filter: nest! {
+        pub(crate) enable: bool,
+        pub(crate) allow: Option<Vec<String>>,
+        pub(crate) block: Option<Vec<String>>
+      },
+      pub(crate) rate_limiting: nest! {
+        pub(crate) enable: bool,
+        pub(crate) seconds_per_request: u64,
+        pub(crate) burst_size: u32
       }
     },
   /// watch file changes

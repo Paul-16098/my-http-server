@@ -49,20 +49,44 @@ fn logger_init() {
   l.init();
 }
 
+// SECURITY: 常數時間比較，減少密碼比對的時序攻擊面。
+/// 比較長度差與逐位 XOR，避免資料相等時提早返回造成時間差異。
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+  let max_len = a.len().max(b.len());
+  let mut diff: u8 = (a.len() ^ b.len()) as u8;
+  for i in 0..max_len {
+    let ai = *a.get(i).unwrap_or(&0);
+    let bi = *b.get(i).unwrap_or(&0);
+    diff |= ai ^ bi;
+  }
+  diff == 0
+}
+
+// 對 Option<&str> 進行常數時間比較；只有兩者皆為 Some 時才進行常數時間比較，否則直接返回 false（或 true 若皆為 None）。
+fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
+  match (a, b) {
+    (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
+    (None, None) => true,
+    _ => false,
+  }
+}
+
 /// Load TLS configuration from certificate and key files.
 ///
 /// WHY: Encapsulate TLS setup logic; read PEM files and construct rustls ServerConfig.
 /// 中文：封裝 TLS 設定邏輯，載入憑證與私鑰建立 rustls 設定。
-fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::ServerConfig> {
-  use rustls::pki_types::{ CertificateDer, PrivateKeyDer };
+fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerConfig> {
+  use rustls::pki_types::{ CertificateDer, pem::PemObject as _, PrivateKeyDer, PrivatePkcs8KeyDer };
   use std::io::BufReader;
 
   let cert_file = &mut BufReader::new(std::fs::File::open(cert_path)?);
   let key_file = &mut BufReader::new(std::fs::File::open(key_path)?);
 
-  let cert_chain = rustls_pemfile::certs(cert_file).collect::<Result<Vec<CertificateDer>, _>>()?;
-  let keys = rustls_pemfile
-    ::pkcs8_private_keys(key_file)
+  let cert_chain = CertificateDer::pem_reader_iter(cert_file).collect::<
+    Result<Vec<CertificateDer>, _>
+  >()?;
+
+  let keys = PrivatePkcs8KeyDer::pem_reader_iter(key_file)
     .map(|key| key.map(PrivateKeyDer::from))
     .collect::<Result<Vec<_>, _>>()?;
 
@@ -86,7 +110,7 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> std::io::Result<rustls::S
 /// WHY: Keeps `main` concise; middleware toggles (path normalize, compress, logger) are applied
 /// only when enabled to avoid unnecessary overhead.
 /// 中文：依設定按需加掛 middleware，減少未使用功能的開銷。
-fn build_server(s: &Cofg) -> std::io::Result<Server> {
+fn build_server(s: &Cofg) -> AppResult<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
 
@@ -95,12 +119,17 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
   let server = HttpServer::new(move || {
     App::new()
       .wrap(
-        middleware::Condition::new(
-          middleware_cofg.normalize_path,
-          middleware::NormalizePath::new(middleware::TrailingSlash::Trim)
-        )
+        middleware::Condition::new(middleware_cofg.rate_limiting.enable, {
+          // 構建 Governor 設定並回傳 Governor Transform
+          let cfg = actix_governor::GovernorConfigBuilder
+            ::default()
+            .seconds_per_request(middleware_cofg.rate_limiting.seconds_per_request)
+            .burst_size(middleware_cofg.rate_limiting.burst_size)
+            .finish()
+            .unwrap();
+          actix_governor::Governor::new(&cfg)
+        })
       )
-      .wrap(middleware::Condition::new(middleware_cofg.compress, middleware::Compress::default()))
       .wrap(
         middleware::Condition::new(
           middleware_cofg.logger.enabling,
@@ -121,13 +150,125 @@ fn build_server(s: &Cofg) -> std::io::Result<Server> {
             .log_target("http-log")
         )
       )
+      .wrap(
+        middleware::Condition::new(
+          middleware_cofg.normalize_path,
+          middleware::NormalizePath::new(middleware::TrailingSlash::Trim)
+        )
+      )
+      .wrap(middleware::Condition::new(middleware_cofg.compress, middleware::Compress::default()))
+      .wrap(
+        middleware::Condition::new(middleware_cofg.http_base_authentication.enable, {
+          use std::sync::Arc;
+          let users_arc = Arc::new(middleware_cofg.http_base_authentication.users.clone());
+          actix_web_httpauth::middleware::HttpAuthentication::basic({
+            let users_arc = users_arc.clone();
+            move |
+              req: actix_web::dev::ServiceRequest,
+              credentials: actix_web_httpauth::extractors::basic::BasicAuth
+            | {
+              let users_arc = users_arc.clone();
+              async move {
+                let name = credentials.user_id();
+                let password = credentials.password();
+                let path = req.uri().path();
+
+                if let Some(users) = users_arc.as_ref() {
+                  if let Some(user) = users.iter().find(|u| u.name == name) {
+                    debug!("http_base_authentication: username match");
+                    if ct_eq_str_opt(user.passwords.as_deref(), password) {
+                      info!("http_base_authentication: password correct");
+
+                      // allow: 未設定時預設允許所有路徑
+                      let in_allow = match user.allow.as_deref() {
+                        Some(allow) => allow.iter().any(|allow_path| path.starts_with(allow_path)),
+                        None => true,
+                      };
+                      info!("http_base_authentication: in_allow={}", in_allow);
+
+                      // disallow: 未設定時預設不封鎖任何路徑
+                      let not_in_disallow = match user.disallow.as_deref() {
+                        Some(disallow) => disallow.iter().all(|p| !path.starts_with(p)),
+                        None => true,
+                      };
+                      info!("http_base_authentication: not_in_disallow={}", not_in_disallow);
+
+                      if in_allow && not_in_disallow {
+                        info!("http_base_authentication: ok");
+                        return Ok(req);
+                      } else {
+                        return Err((
+                          actix_web::error::ErrorUnauthorized("Unauthorized: path not allowed"),
+                          req,
+                        ));
+                      }
+                    } else {
+                      // 密碼不符時立即返回，避免落入「無此使用者」訊息
+                      return Err((
+                        actix_web::error::ErrorUnauthorized(
+                          "Unauthorized: no such user name or passwords"
+                        ),
+                        req,
+                      ));
+                    }
+                  } else {
+                    // 沒有任何使用者名稱匹配 → 早退
+                    return Err((
+                      actix_web::error::ErrorUnauthorized(
+                        "Unauthorized: no such user name or passwords"
+                      ),
+                      req,
+                    ));
+                  }
+                } else {
+                  // NOTE: 未配置任何使用者時一律拒絕，避免無意間全開。
+                  warn!("no user data configured");
+                }
+                Err((actix_web::error::ErrorUnauthorized("Unauthorized: access denied"), req))
+              }
+            }
+          })
+        })
+      )
+      .wrap(
+        middleware::Condition::new(middleware_cofg.ip_filter.enable, {
+          use actix_ip_filter::IPFilter;
+          let mut filter = IPFilter::new();
+
+          // If allow list is specified, use whitelist mode
+          if let Some(allow_list) = middleware_cofg.ip_filter.allow.as_ref() {
+            let allow_refs: Vec<&str> = allow_list
+              .iter()
+              .map(|s| s.as_str())
+              .collect();
+            filter = filter.allow(allow_refs);
+          }
+
+          // If block list is specified, add to blocklist
+          if let Some(block_list) = middleware_cofg.ip_filter.block.as_ref() {
+            let block_refs: Vec<&str> = block_list
+              .iter()
+              .map(|s| s.as_str())
+              .collect();
+            filter = filter.block(block_refs);
+          }
+
+          filter
+        })
+      )
+
       .service(index)
       .service(main_req)
   }).keep_alive(KeepAlive::Os);
 
   let server = if s.tls.enable {
-    let tls_config = load_tls_config(&s.tls.cert, &s.tls.key)?;
-    server.bind_rustls_0_23(addrs, tls_config)?
+    match load_tls_config(&s.tls.cert, &s.tls.key) {
+      Ok(tls_config) => server.bind_rustls_0_23(addrs, tls_config)?,
+      Err(e) => {
+        warn!("{}, back to no-tls", e);
+        server.bind(addrs)?
+      }
+    }
   } else {
     server.bind(addrs)?
   };
