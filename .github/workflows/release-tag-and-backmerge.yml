@@ -42,7 +42,35 @@ jobs:
             git push origin "$tag"
           fi
 
+      - name: Back-merge main → dev via git merge
+        id: backmerge
+        shell: bash
+        run: |
+          set -e
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          # Ensure we have up-to-date refs
+          git fetch origin dev main
+          # Create/update local dev branch tracking origin/dev
+          git checkout -B dev origin/dev
+          # Try merging origin/main into dev; on conflict, abort and expose output without failing the job
+          set +e
+          git merge --no-ff --no-edit origin/main
+          status=$?
+          if [ $status -ne 0 ]; then
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            git merge --abort || true
+            exit 0
+          fi
+          set -e
+          # Push only if there are new commits compared to origin/dev
+          if ! git diff --quiet origin/dev..HEAD; then
+            git push origin dev
+          fi
+          echo "merged=true" >> "$GITHUB_OUTPUT"
+
       - name: Open back-merge PR main → dev (if not exists)
+        if: steps.backmerge.outputs.merged != 'true'
         uses: actions/github-script@v8
         with:
           script: |
@@ -60,6 +88,7 @@ jobs:
             }
 
       - name: Close release → dev PR (if exists)
+        if: steps.backmerge.outputs.merged != 'true'
         uses: actions/github-script@v8
         with:
           script: |
