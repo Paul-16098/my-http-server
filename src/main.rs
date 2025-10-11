@@ -49,6 +49,29 @@ fn logger_init() {
   l.init();
 }
 
+// SECURITY: 常數時間比較，減少密碼比對的時序攻擊面。
+/// 比較長度差與逐位 XOR，避免資料相等時提早返回造成時間差異。
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+  let max_len = a.len().max(b.len());
+  let mut diff: u8 = (a.len() ^ b.len()) as u8;
+  for i in 0..max_len {
+    let ai = *a.get(i).unwrap_or(&0);
+    let bi = *b.get(i).unwrap_or(&0);
+    diff |= ai ^ bi;
+  }
+  diff == 0
+}
+
+// 對 Option<&str> 進行常數時間比較；當一邊為 None 時以空切片比對以維持時序一致性。
+fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
+  match (a, b) {
+    (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
+    (Some(a), None) => constant_time_eq(a.as_bytes(), &[]),
+    (None, Some(b)) => constant_time_eq(&[], b.as_bytes()),
+    (None, None) => constant_time_eq(&[], &[]),
+  }
+}
+
 /// Load TLS configuration from certificate and key files.
 ///
 /// WHY: Encapsulate TLS setup logic; read PEM files and construct rustls ServerConfig.
@@ -142,8 +165,8 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 
                 if let Some(users) = users_arc.as_ref() {
                   if let Some(user) = users.iter().find(|u| u.name == name) {
-                    info!("http_base_authentication: username={};correct", name);
-                    if user.passwords.as_deref() == password {
+                    debug!("http_base_authentication: username match");
+                    if ct_eq_str_opt(user.passwords.as_deref(), password) {
                       info!("http_base_authentication: password correct");
 
                       // allow: 未設定時預設允許所有路徑
@@ -170,6 +193,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                         ));
                       }
                     } else {
+                      // 密碼不符時立即返回，避免落入「無此使用者」訊息
                       return Err((
                         actix_web::error::ErrorUnauthorized(
                           "Unauthorized: password does not match"
@@ -177,14 +201,15 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                         req,
                       ));
                     }
+                  } else {
+                    // 沒有任何使用者名稱匹配 → 早退
+                    return Err((
+                      actix_web::error::ErrorUnauthorized(
+                        format!("Unauthorized: no such user name: {name}")
+                      ),
+                      req,
+                    ));
                   }
-                  // 沒有任何使用者名稱匹配
-                  return Err((
-                    actix_web::error::ErrorUnauthorized(
-                      format!("Unauthorized: no such user name: {name}")
-                    ),
-                    req,
-                  ));
                 } else {
                   // NOTE: 未配置任何使用者時一律拒絕，避免無意間全開。
                   warn!("no user data configured");
