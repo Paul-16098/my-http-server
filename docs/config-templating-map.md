@@ -9,7 +9,7 @@
 | ---------------------------- | ----------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `addrs.ip`                   | string            | `main.rs:build_server` via `CofgAddrs`                   | Bind listen IP                                                             |
 | `addrs.port`                 | u16               | `main.rs:build_server`                                   | Bind listen port                                                           |
-| `tls.enable`                 | bool              | `main.rs:build_server`                                   | Enable TLS/HTTPS; when true, uses `bind_rustls_0_23` instead of `bind`    |
+| `tls.enable`                 | bool              | `main.rs:build_server`                                   | Enable TLS/HTTPS; when true, uses `bind_rustls_0_23` instead of `bind`     |
 | `tls.cert`                   | string            | `main.rs:load_tls_config`                                | Path to TLS certificate file (PEM format)                                  |
 | `tls.key`                    | string            | `main.rs:load_tls_config`                                | Path to TLS private key file (PEM format)                                  |
 | `middleware.normalize_path`  | bool              | `main.rs:build_server`                                   | Conditionally wraps `NormalizePath(Trim)`                                  |
@@ -86,3 +86,14 @@ cofg::get / new --> (read cofg.yaml once; optional reload)
 | Schema     | Optional explicit types (YAML map) for templating values to allow richer numeric support |
 | Validation | Add startup validation pass logging warnings for impossible paths / duplicates           |
 | Security   | Enforce `public_path` canonical prefix on resolved request paths to mitigate traversal   |
+
+## Middleware notes
+
+- Order (when enabled): NormalizePath → Compress → Logger → BasicAuth → IP Filter → Handlers
+- Rate limiting: configurable via `middleware.rate_limiting.{seconds_per_request, burst_size}`（若專案啟用）
+
+## See also
+
+- Developer guide: ./developer-guide.md
+- Request flow: ./request-flow.md
+- Performance & caching: ./performance-cache.md

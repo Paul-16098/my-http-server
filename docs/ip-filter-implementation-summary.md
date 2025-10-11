@@ -43,6 +43,7 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
 
 - **File**: `src/main.rs`
 - **Change**: Added IP filter middleware to the `build_server` function:
+
   ```rust
   .wrap(
     middleware::Condition::new(middleware_cofg.ip_filter.enable, {
@@ -216,3 +217,8 @@ To enable IP filtering for production:
 
 - [actix-ip-filter GitHub Repository](https://github.com/jhen0409/actix-ip-filter)
 - [actix-ip-filter Documentation](https://docs.rs/actix-ip-filter/)
+
+## See also
+
+- IP filter usage doc: ./ip-filter.md
+- Request flow: ./request-flow.md

@@ -71,3 +71,9 @@ To evaluate improvements, measure:
 ## 9. Summary
 
 Current design intentionally minimal: rely on OS page cache + lightweight global objects. Only implement additional caching once real workloads demonstrate need.
+
+## See also
+
+- Request flow: ./request-flow.md
+- Key functions: ./key-functions.md
+- Config ↔ Template map: ./config-templating-map.md

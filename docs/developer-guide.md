@@ -41,6 +41,8 @@ If it's a dynamic toggle better as `templating.value`. Only add new struct field
 .wrap(middleware::Condition::new(cfg_flag, middleware::SomeMiddleware::new()))
 ```
 
+Middleware order（啟用時）：NormalizePath → Compress → Logger → BasicAuth → IP Filter → Handlers。若有啟用，Rate limiting 設於 `middleware.rate_limiting.{seconds_per_request, burst_size}`。
+
 ### Batch Convert Markdown (static export)
 
 Call tooling helpers (manually or via future CLI command):
@@ -176,3 +178,9 @@ Upgrade Guidance:
 - No action required; rebuild to benefit from caching & updated deps.
 - Optionally review new docs sections for mental model refresh.
 
+## See also
+
+- Request flow: ./request-flow.md
+- Config ↔ Template map: ./config-templating-map.md
+- Performance & caching: ./performance-cache.md
+- IP filter: ./ip-filter.md
