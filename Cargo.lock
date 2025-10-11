@@ -83,6 +83,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-ip-filter"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6034ba9bf9c361d72f658a1a7bce29ae2da6597100743ad722a625e803fbcacc"
+dependencies = [
+ "actix-service",
+ "actix-web",
+ "futures-util",
+ "glob",
+]
+
+[[package]]
 name = "actix-macros"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -919,6 +931,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 
 [[package]]
+name = "glob"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
+
+[[package]]
 name = "h2"
 version = "0.3.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1366,6 +1384,7 @@ name = "my-http-server"
 version = "3.1.0"
 dependencies = [
  "actix-files",
+ "actix-ip-filter",
  "actix-web",
  "actix-web-httpauth",
  "clap",

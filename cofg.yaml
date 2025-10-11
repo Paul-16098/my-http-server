@@ -31,6 +31,13 @@ middleware:
       #     - /
       #   disallow: # (Option)
       #     - /disallow/
+  ip_filter:
+    enable: false
+    allow: # (Option) Allow specific IPs/ranges (whitelist mode)
+      # - 127.0.0.1
+      # - 192.168.1.*
+    block: # (Option) Block specific IPs/ranges (blacklist mode)
+      # - 10.0.0.*
 
 templating:
   hot_reload: false
