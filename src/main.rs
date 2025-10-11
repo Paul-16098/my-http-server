@@ -195,7 +195,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                       // 密碼不符時立即返回，避免落入「無此使用者」訊息
                       return Err((
                         actix_web::error::ErrorUnauthorized(
-                          "Unauthorized: password does not match"
+                          "Unauthorized: no such user name or passwords"
                         ),
                         req,
                       ));
@@ -203,9 +203,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                   } else {
                     // 沒有任何使用者名稱匹配 → 早退
                     return Err((
-                      actix_web::error::ErrorUnauthorized(
-                        format!("Unauthorized: no such user name: {name}")
-                      ),
+                      actix_web::error::ErrorUnauthorized("Unauthorized: no such user name or passwords"),
                       req,
                     ));
                   }
