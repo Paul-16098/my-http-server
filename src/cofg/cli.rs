@@ -10,7 +10,7 @@ use clap::Parser;
 use crate::error::AppError;
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about)]
+#[command(version = option_env!("VERSION").unwrap_or("?"))]
 pub(crate) struct Args {
   #[arg(long)]
   pub(crate) ip: Option<String>,

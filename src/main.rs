@@ -124,6 +124,77 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
             .log_target("http-log")
         )
       )
+      .wrap(
+        middleware::Condition::new(middleware_cofg.http_base_authentication.enable, {
+          use std::sync::Arc;
+          let users_arc = Arc::new(middleware_cofg.http_base_authentication.users.clone());
+          actix_web_httpauth::middleware::HttpAuthentication::basic({
+            let users_arc = users_arc.clone();
+            move |
+              req: actix_web::dev::ServiceRequest,
+              credentials: actix_web_httpauth::extractors::basic::BasicAuth
+            | {
+              let users_arc = users_arc.clone();
+              async move {
+                let name = credentials.user_id();
+                let password = credentials.password();
+                let path = req.uri().path();
+
+                if let Some(users) = users_arc.as_ref() {
+                  if let Some(user) = users.iter().find(|u| u.name == name) {
+                    info!("http_base_authentication: username={};correct", name);
+                    if user.passwords.as_deref() == password {
+                      info!("http_base_authentication: password correct");
+
+                      // allow: 未設定時預設允許所有路徑
+                      let in_allow = match user.allow.as_deref() {
+                        Some(allow) => allow.iter().any(|allow_path| path.starts_with(allow_path)),
+                        None => true,
+                      };
+                      info!("http_base_authentication: in_allow={}", in_allow);
+
+                      // disallow: 未設定時預設不封鎖任何路徑
+                      let not_in_disallow = match user.disallow.as_deref() {
+                        Some(disallow) => disallow.iter().all(|p| !path.starts_with(p)),
+                        None => true,
+                      };
+                      info!("http_base_authentication: not_in_disallow={}", not_in_disallow);
+
+                      if in_allow && not_in_disallow {
+                        info!("http_base_authentication: ok");
+                        return Ok(req);
+                      } else {
+                        return Err((
+                          actix_web::error::ErrorUnauthorized("Unauthorized: path not allowed"),
+                          req,
+                        ));
+                      }
+                    } else {
+                      return Err((
+                        actix_web::error::ErrorUnauthorized(
+                          "Unauthorized: password does not match"
+                        ),
+                        req,
+                      ));
+                    }
+                  }
+                  // 沒有任何使用者名稱匹配
+                  return Err((
+                    actix_web::error::ErrorUnauthorized(
+                      format!("Unauthorized: no such user name: {name}")
+                    ),
+                    req,
+                  ));
+                } else {
+                  // NOTE: 未配置任何使用者時一律拒絕，避免無意間全開。
+                  warn!("no user data configured");
+                }
+                Err((actix_web::error::ErrorUnauthorized("Unauthorized: access denied"), req))
+              }
+            }
+          })
+        })
+      )
       .service(index)
       .service(main_req)
   }).keep_alive(KeepAlive::Os);
