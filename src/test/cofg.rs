@@ -21,7 +21,7 @@ fn cofg_default() {
 #[test]
 fn ip_filter_config_structure() {
   let cofg = config::Cofg::default();
-  assert_eq!(cofg.middleware.ip_filter.enable, false);
+  assert!(!cofg.middleware.ip_filter.enable);
   assert_eq!(cofg.middleware.ip_filter.allow, None);
   assert_eq!(cofg.middleware.ip_filter.block, None);
 }
