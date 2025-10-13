@@ -29,6 +29,7 @@
     ] }
     handlebars = "6.3.2"
     serde_json = "1.0.145"
+    # https://github.com/Paul-16098/my-http-server/pull/21#issuecomment-3388671499
     rustls = { version = "0.23", default-features = false, features = [
         "ring",
         "logging",
