@@ -9,29 +9,30 @@
 
 
 
-FROM rust:slim AS planner
+FROM lukemathwalker/cargo-chef:latest-rust-slim AS chef
 
 WORKDIR /app
 
-RUN cargo install cargo-chef
+FROM chef AS planner
+
+# Only copy manifests to generate dependency recipe (better cache stability)
 COPY Cargo.toml Cargo.lock ./
-RUN cargo chef prepare  --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json
 
-FROM rust:slim AS builder
-WORKDIR /app
-COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+FROM chef AS builder
 
 ENV IN_DOCKER=true
 
-# Pre-fetch deps for better layer cache
-COPY Cargo.toml Cargo.lock ./
-COPY build.rs build.rs ./
-RUN cargo fetch --locked
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+
+# Pre-fetch deps for better layer cache & add build.rs
+COPY Cargo.toml Cargo.lock build.rs ./
 
 # Copy source
 COPY src ./src
-
+# in build use `include_str!("../meta/html-t.hbs")`
 COPY meta ./meta
 
 # Build with BuildKit cache mounts
@@ -74,4 +75,5 @@ VOLUME ["/app/public","/app/meta"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget -qO- http://127.0.0.1:8080/ > /dev/null || exit 1
 
-ENTRYPOINT ["/usr/local/bin/my-http-server", "--ip", "0.0.0.0"]
+ENTRYPOINT ["/usr/local/bin/my-http-server"]
+CMD [ "--ip", "0.0.0.0" ]
