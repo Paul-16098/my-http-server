@@ -9,34 +9,34 @@ install [this](https://httpyac.github.io/guide/) and run test
 GET /
 ?? header content-type == text/html; charset=utf-8
 
->>! index.html
+?? body == {{< ./index.html}}
 
 HTTP/1.1 200  - OK
 transfer-encoding: chunked
 connection: close
-vary: accept-encoding
-content-type: text/html; charset=utf-8
 content-encoding: br
-date: Fri, 10 Oct 2025 08:51:54 GMT
+content-type: text/html; charset=utf-8
+vary: accept-encoding
+date: Mon, 13 Oct 2025 01:51:50 GMT
 ###
 # test /dir toc
 GET /dir
 ?? header content-type == text/html; charset=utf-8
 
->>! dir.html
+?? body == {{< ./dir.html}}
 
 HTTP/1.1 200  - OK
 transfer-encoding: chunked
 connection: close
-content-type: text/html; charset=utf-8
 vary: accept-encoding
+content-type: text/html; charset=utf-8
 content-encoding: br
-date: Fri, 10 Oct 2025 08:51:55 GMT
+date: Mon, 13 Oct 2025 01:51:51 GMT
 ###
 GET /dir/test.md
 ?? header content-type == text/html; charset=utf-8
 
->>! ./dir/test.md.html
+?? body == {{< ./dir/test.md.html}}
 
 HTTP/1.1 200  - OK
 transfer-encoding: chunked
@@ -44,21 +44,21 @@ connection: close
 content-encoding: br
 content-type: text/html; charset=utf-8
 vary: accept-encoding
-date: Fri, 10 Oct 2025 08:51:55 GMT
+date: Mon, 13 Oct 2025 01:51:51 GMT
 ###
 GET /dir/test.txt
 ?? header content-type == text/plain; charset=utf-8
 
->>! ./dir/test.txt.html
+?? body == {{< ./dir/test.txt.html}}
 
 HTTP/1.1 200  - OK
 transfer-encoding: chunked
 connection: close
-content-encoding: br
-last-modified: Wed, 08 Oct 2025 11:25:28 GMT
-content-type: text/plain; charset=utf-8
-etag: "0:22:68e64a28:b5fe3c0"
-vary: accept-encoding
+etag: "0:22:68ea1130:218714c0"
 content-disposition: inline; filename="test.txt"
+vary: accept-encoding
 accept-ranges: bytes
-date: Fri, 10 Oct 2025 08:51:56 GMT
+content-type: text/plain; charset=utf-8
+content-encoding: br
+last-modified: Sat, 11 Oct 2025 08:11:28 GMT
+date: Mon, 13 Oct 2025 01:51:52 GMT
