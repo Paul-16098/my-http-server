@@ -7,11 +7,21 @@
 # - Default templates baked in; mount volumes to override
 # - TLS support: mount certificate and key files, use --tls-cert and --tls-key args
 
-FROM rust:slim AS builder
+
+
+FROM rust:slim AS planner
+
 WORKDIR /app
 
-# Speed up release build without requiring strip in runtime
-ENV RUSTFLAGS="-C strip=symbols"
+RUN cargo install cargo-chef
+COPY Cargo.toml Cargo.lock ./
+RUN cargo chef prepare  --recipe-path recipe.json
+
+FROM rust:slim AS builder
+WORKDIR /app
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
 ENV IN_DOCKER=true
 
 # Pre-fetch deps for better layer cache
