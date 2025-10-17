@@ -1,3 +1,4 @@
 [target.x86_64-pc-windows-msvc]
     # 使用 lld-link 取代 MSVC link.exe，避開 PDB LNK1318 問題
-    linker = "rust-lld.exe"
+    # ? it ok
+    # linker = "rust-lld.exe"

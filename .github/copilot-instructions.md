@@ -35,6 +35,11 @@
 - 設定：`Cofg::new()` 走全域快取；勿在請求熱路徑強制重讀。
 - 每請求快取鍵：`cached_filename_path`、`cached_public_req_path`、`cached_is_markdown`。
 - 渲染入口：維持 `md2html` 為唯一入口（模板/Context 副作用已封裝）。
+- 交叉請求快取：
+  - HTML 快取（LRU）：啟用由 `cache.enable_html` 控制；容量 `cache.html_capacity`。命中鍵 = `(abs_path, file_mtime, file_size, template_hbs_mtime, template_ctx_hash)`。
+  - 使用限制：僅當 Context 含 `path:<rel>` 且非 `path:toc:*` 才會啟用 HTML 快取。
+  - TOC 快取（LRU）：啟用由 `cache.enable_toc` 控制；容量 `cache.toc_capacity`。命中鍵 = `(dir_abs, dir_mtime, title)`。
+  - 設定位置：`cofg.yaml`（內建預設於 `src/cofg/cofg.yaml`）。無持久化；重啟即清空。
 
 6. 工作流/陷阱
 
@@ -42,6 +47,7 @@
 - 測試：`src/test/*.rs`；可用任務：`ast-grep: scan` / `ast-grep: test`；發佈：`cargo build --release`（Docker/Compose 可用，容器內設 `ip=0.0.0.0`）。
 - CLI 覆寫：`build_config_from_cli(Cofg::new(), &cli::Args::parse())`（如 `--ip/--port`）。
 - FAQ：模板不生效 → 開 `templating.hot_reload=true` 或重啟；404 純文字 → 缺 `meta/404.html`；BasicAuth 以 `allow`/`disallow` 判序；日誌 URL 已解碼。
+  - 快取相關：變更 Markdown/模板後仍見舊頁 → 檢查 `cache.enable_html` 是否開啟；HTML 快取鍵含 mtime/size 與模板 mtime，正常會自動失效。TOC 依賴目錄 mtime，極端檔案系統行為需重啟或關閉 `cache.enable_toc`。
 
 7. 快速定位
 

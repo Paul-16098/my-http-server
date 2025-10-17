@@ -33,7 +33,7 @@ Always returns a fresh context (stateless). Ensures no cross-request contaminati
 
 ### `get_engine(cfg)`
 
-Single global engine reused unless `hot_reload`. Rebuild trade-off is deliberate: dev immediacy > raw throughput in that mode.
+Single global Handlebars engine reused unless `hot_reload`. Rebuild trade-off is deliberate: dev immediacy > raw throughput in that mode.
 
 ## Markdown & TOC
 
@@ -43,7 +43,7 @@ Encapsulates third-party crate usage & config. Future changes (e.g. enabling ext
 
 ### `get_toc(cfg)`
 
-On-demand walk each time index fallback is requested. Simplicity over caching; frequency expected low relative to individual page hits. Percent-encodes except '/'; ensures link stability across OS path separators.
+On-demand walk each time index fallback is requested; memoized via bounded LRU keyed by directory mtime + title. Percent-encodes except '/'; ensures link stability across OS path separators.
 
 ### `_md2html_all()` / `_make_toc()` (underscored)
 
@@ -53,7 +53,7 @@ Tooling helpers. Not part of server initialization to keep startup constant time
 
 ### `md2html(md, cfg, extra_vars)`
 
-Orchestrates: engine retrieval → context creation → AST parse → HTML body injection → template render.
+Orchestrates: engine retrieval → context creation → AST parse → HTML body injection → template render. Includes an optional HTML output cache keyed by `(abs_path, file_mtime, file_size, template_hbs_mtime, template_ctx_hash)` when `extra_vars` contains a `path:<rel>` that is not a TOC path.
 
 - Accepts owned `md` to avoid clone cost from file read
 - Extra variables appended after config-driven ones so request-scoped keys (e.g. path) can override if needed

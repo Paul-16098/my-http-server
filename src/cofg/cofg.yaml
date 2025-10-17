@@ -63,6 +63,17 @@ toc:
     - md
     - pdf
     - txt
+    - png
   ig:
     - node_modules
 public_path: ./public/
+
+cache:
+  # Enable/disable HTML render cache for markdown files
+  enable_html: true
+  # Max cached pages (LRU). Typical small sites: 128~512
+  html_capacity: 256
+  # Enable/disable TOC memoization cache
+  enable_toc: true
+  # Max cached TOCs by directory/title (LRU)
+  toc_capacity: 64

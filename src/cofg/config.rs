@@ -72,6 +72,12 @@ pub(crate) struct Cofg {
       pub(crate) ext: Vec<String>,
       pub(crate) ig: Vec<String>
     },
+  pub(crate) cache: nest! {
+      pub(crate) enable_html: bool,
+      pub(crate) html_capacity: usize,
+      pub(crate) enable_toc: bool,
+      pub(crate) toc_capacity: usize
+    },
   pub(crate) public_path: String,
 }
 

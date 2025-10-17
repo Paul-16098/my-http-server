@@ -31,8 +31,9 @@
 //!
 //! Performance notes
 //! - Use `Cofg::new()` (cached config) in hot paths; avoid forcing reloads here.
-//! - Markdown files are parsed on each request. For large/unchanged files, consider a future
-//!   (path, mtime) HTML cache (see `performance-cache.md`).
+//! - Markdown files are parsed on each request unless the rendered-HTML LRU cache hits.
+//!   Cache key includes path, mtime, size, template mtime, and a template context hash.
+//!   Toggle via `cache.enable_html`; see docs/performance-cache.md for details.
 //!
 //! Path resolution & security
 //! - Disk paths come from `req.cached_public_req_path(&Cofg::new())` and are based on

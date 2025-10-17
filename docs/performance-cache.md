@@ -4,12 +4,13 @@
 
 ## 1. Existing Caches
 
-| Layer                  | Mechanism                          | Scope        | Hit Path                           | Miss Cost                  |
-| ---------------------- | ---------------------------------- | ------------ | ---------------------------------- | -------------------------- |
-| Config                 | `OnceCell<RwLock<Cofg>`            | Global       | Almost every request (Cofg::new)   | Disk read + deserialize    |
-| Template Engine        | `OnceCell<RwLock<TemplateEngine>>` | Global       | Each markdown render               | Engine construction        |
-| Request Derived Values | `HttpRequest.extensions`           | Per-request  | Multiple handler branches + logger | Recompute path decode/join |
-| Bytecode Cache         | mystical_runic internal flag       | Engine-level | Template compile                   | Parse + compile template   |
+| Layer                  | Mechanism                           | Scope       | Hit Path                           | Miss Cost                  |
+| ---------------------- | ----------------------------------- | ----------- | ---------------------------------- | -------------------------- |
+| Config                 | `OnceCell<RwLock<Cofg>`             | Global      | Almost every request (Cofg::new)   | Disk read + deserialize    |
+| Template Engine        | `OnceCell<RwLock<Handlebars>>`      | Global      | Each markdown render               | Engine construction        |
+| Request Derived Values | `HttpRequest.extensions`            | Per-request | Multiple handler branches + logger | Recompute path decode/join |
+| HTML Output (Markdown) | `lru::LruCache<MdCacheKey,String>`  | Cross-req   | `parser::md2html`                  | Read + parse + render      |
+| TOC Markdown           | `lru::LruCache<TocCacheKey,String>` | Cross-req   | `parser::markdown::get_toc`        | Walk filesystem + build    |
 
 ## 2. Hot Reload Costs
 
@@ -22,21 +23,21 @@
 
 ## 3. Potential Bottlenecks
 
-| Area                          | Symptom                               | Profiling Signal                   |
-| ----------------------------- | ------------------------------------- | ---------------------------------- |
-| Large markdown parse          | High CPU time in `markdown_ppp`       | Flamegraph heavy parse stack       |
-| Frequent identical md renders | Repeated parse & render for same file | High count of identical file reads |
-| Huge public tree TOC          | Slow `/` when index absent            | Long glob walk time                |
+| Area                          | Symptom                               | Profiling Signal                                             |
+| ----------------------------- | ------------------------------------- | ------------------------------------------------------------ |
+| Large markdown parse          | High CPU time in `markdown_ppp`       | Flamegraph heavy parse stack                                 |
+| Frequent identical md renders | Repeated parse & render for same file | High count of identical file reads (mitigated by HTML cache) |
+| Huge public tree TOC          | Slow `/` when index absent            | Long glob walk time                                          |
 
 ## 4. Improvement Options (Incremental)
 
-| Option                                          | Type             | Effort | Risk                            | Expected Gain                             |
-| ----------------------------------------------- | ---------------- | ------ | ------------------------------- | ----------------------------------------- |
-| HTML output cache keyed by (abs path, mtime)    | Runtime feature  | Medium | Need invalidation correctness   | Avoid repeat parse for popular docs       |
-| Async pre-warm cache on startup (scan recent N) | Optional feature | Medium | Startup delay                   | Faster first hits                         |
-| TOC memoize with directory mtime hash           | Runtime feature  | Low    | Stale if partial changes missed | Faster `/` under big trees                |
-| Config validation pass (log warnings)           | Startup          | Low    | Minimal                         | Early detection of misconfig              |
-| Rate limit engine rebuild logging               | Dev UX           | Low    | None                            | Cleaner logs when saving template rapidly |
+| Option                                                                                | Type             | Effort | Risk                             | Expected Gain                             |
+| ------------------------------------------------------------------------------------- | ---------------- | ------ | -------------------------------- | ----------------------------------------- |
+| HTML output cache keyed by (abs path, mtime, size, template_mtime, template_ctx_hash) | Implemented      | —      | Key includes template + ctx hash | Avoid repeat parse for popular docs       |
+| Async pre-warm cache on startup (scan recent N)                                       | Optional feature | Medium | Startup delay                    | Faster first hits                         |
+| TOC memoize with directory mtime hash                                                 | Implemented      | —      | Directory mtime used as guard    | Faster `/` under big trees                |
+| Config validation pass (log warnings)                                                 | Startup          | Low    | Minimal                          | Early detection of misconfig              |
+| Rate limit engine rebuild logging                                                     | Dev UX           | Low    | None                             | Cleaner logs when saving template rapidly |
 
 ## 5. Suggested Roadmap
 
@@ -70,7 +71,7 @@ To evaluate improvements, measure:
 
 ## 9. Summary
 
-Current design intentionally minimal: rely on OS page cache + lightweight global objects. Only implement additional caching once real workloads demonstrate need.
+Current design remains minimal but includes bounded LRU caches for HTML rendering and TOC generation. Disable via `cache.enable_html=false` or `cache.enable_toc=false` if not needed.
 
 ## See also
 

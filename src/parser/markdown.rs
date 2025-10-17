@@ -7,7 +7,9 @@
 //! 中文：將批次轉換/TOC 邏輯與線上請求分離，保持主流程簡潔；底線開頭為工具函式。
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{ Path, PathBuf };
+use std::sync::{ Mutex, OnceLock };
+use std::time::SystemTime;
 
 use log::debug;
 use wax::Glob;
@@ -60,6 +62,25 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
   let public_path = &Path::new(&c.public_path).canonicalize()?;
   let root_path = &root_path.canonicalize()?;
 
+  // Simple TOC memoization: key by (abs_dir, last_modified, title)
+  // Invalidation risk is minimized by using directory metadata modified time when available.
+  // If retrieval fails, we skip cache and compute fresh.
+  let title_key = title.clone();
+  if c.cache.enable_toc {
+    let cap = std::num::NonZeroUsize::new(c.cache.toc_capacity.max(1)).unwrap();
+    let cache = TOC_CACHE.get_or_init(|| { Mutex::new(lru::LruCache::new(cap)) });
+    if
+      let Some(hit) = cache
+        .lock()
+        .ok()
+        .and_then(|mut cache| {
+          TocCacheKey::from_dir(root_path, title_key.clone()).and_then(|k| cache.get(&k).cloned())
+        })
+    {
+      return Ok(hit);
+    }
+  }
+
   let mut toc_str = format!("# {}\n\n", title.unwrap_or("toc".to_string()));
   // Build a tree of path components for stable, de-duplicated recursive output
   let mut root: TocNode = TocNode::default();
@@ -89,6 +110,14 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
   let mut prefix: Vec<String> = Vec::new();
   prefix.push(root_path.strip_prefix(public_path)?.to_string_lossy().into_owned());
   emit_toc(&root, &mut prefix, &mut toc_str, 0);
+  // Store into cache on success
+  if
+    c.cache.enable_toc &&
+    let (Some(cell), Some(k)) = (TOC_CACHE.get(), TocCacheKey::from_dir(root_path, title_key)) &&
+    let Ok(mut cache) = cell.lock()
+  {
+    cache.put(k, toc_str.clone());
+  }
   Ok(toc_str)
 }
 
@@ -109,3 +138,31 @@ pub(crate) fn parser_md(input: String) -> error::AppResult<markdown_ppp::ast::Do
     )?
   )
 }
+
+// --------------------
+// Lightweight caches
+// --------------------
+
+// TOC cache keyed by (dir, dir_modified_ts, title). Bounded via LRU to prevent unbounded growth.
+#[derive(Hash, Eq, PartialEq, Clone, Debug)]
+struct TocCacheKey {
+  dir: PathBuf,
+  // coarse invalidation guard; fallback to 0 when metadata not available
+  modified_unix_secs: u64,
+  title: Option<String>,
+}
+
+impl TocCacheKey {
+  fn from_dir(dir: &Path, title: Option<String>) -> Option<Self> {
+    let modified_unix_secs = std::fs
+      ::metadata(dir)
+      .and_then(|m| m.modified())
+      .ok()
+      .and_then(|t| t.duration_since(SystemTime::UNIX_EPOCH).ok())
+      .map(|d| d.as_secs())
+      .unwrap_or(0);
+    Some(Self { dir: dir.to_path_buf(), modified_unix_secs, title })
+  }
+}
+
+static TOC_CACHE: OnceLock<Mutex<lru::LruCache<TocCacheKey, String>>> = OnceLock::new();

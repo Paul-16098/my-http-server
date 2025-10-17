@@ -50,7 +50,9 @@ template = compile_to_bytecode(html-t.templating)
 final_html = render_compiled(template, ctx)
 ```
 
-## 4. Per-Request Cache Keys
+## 4. Cache Keys
+
+Per-request (extensions):
 
 | Key           | Source Function          | Purpose                                     |
 | ------------- | ------------------------ | ------------------------------------------- |
@@ -58,6 +60,11 @@ final_html = render_compiled(template, ctx)
 | FilenamePath  | `cached_filename_path`   | Reusable path param as `PathBuf`            |
 | PublicReqPath | `cached_public_req_path` | Disk resolution anchor under `public_path`  |
 | IsMarkdown    | `cached_is_markdown`     | Branch predicate for dynamic vs static path |
+
+Cross-request:
+
+- HTML render cache in `parser::md2html` (enabled by `cache.enable_html`) keyed by `(abs_path, file_mtime, file_size, template_hbs_mtime, template_ctx_hash)`
+- TOC cache in `parser::markdown::get_toc` (enabled by `cache.enable_toc`) keyed by `(dir_abs, dir_mtime, title)`
 
 ## 5. Error Points & Types
 

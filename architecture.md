@@ -8,10 +8,10 @@
 
 Pipeline (dynamic markdown request):
 
-```
+```text
 HTTP Request --> actix-web route --> path resolution (http_ext)
   -> if .md => read file (fs) -> md2html(parser) -> markdown_ppp (AST -> HTML fragment)
-      -> templating.get_engine + get_context -> inject body + extras -> mystical_runic render
+  -> templating.get_engine + get_context -> inject body + extras -> Handlebars render
   -> respond HTML
 ```
 
@@ -40,14 +40,14 @@ Static file path is identical until the extension check branches into `NamedFile
 
 ## Template Engine Lifecycle
 
-- Single global `OnceCell<RwLock<TemplateEngine>>`.
+- Single global `OnceCell<RwLock<Handlebars>>`.
 - Normal mode: first build enables bytecode cache; subsequent calls reuse.
 - Hot reload mode: every `get_engine` call rebuilds engine (cost accepted for dev ergonomics).
 - Context is always fresh (stateless); dynamic variables are re-parsed each request.
 
 ## Markdown Rendering Flow
 
-```
+```rust
 md2html(md, cfg, extra_vars)
   engine = get_engine(cfg)
   ctx = get_context(cfg)
@@ -55,8 +55,8 @@ md2html(md, cfg, extra_vars)
   ast = parser_md(md)
   fragment = markdown_ppp::render_html(ast)
   ctx.body = fragment
-  template = engine.compile_to_bytecode("html-t.templating") // cached in engine layer
-  output = engine.render(template, ctx)
+  // `html-t` is lazily registered from ./meta/html-t.hbs
+  output = engine.render_with_context("html-t", ctx)
 ```
 
 Errors during compile or render are converted into `AppError::Template` and bubbled up.
@@ -111,7 +111,7 @@ Deep functions return `AppResult<T>`; route handlers pattern-match and translate
 | ------------- | -------------------------------------------------------- | ---------------------------------------- |
 | Watcher       | Optional file watcher triggering `Cofg::force_refresh()` | Add feature flag to avoid runtime cost   |
 | Pre-render    | CLI command to batch md→html for static hosting          | Reuse `_md2html_all()`                   |
-| Caching layer | Add rendered HTML cache keyed by file mtime              | Avoid repeated parsing for popular pages |
+| Caching layer | (done) HTML render LRU keyed by path/mtime/size/template | Avoid repeated parsing for popular pages |
 | Streaming     | Output chunked HTML while rendering large docs           | Requires incremental printer support     |
 | Metrics       | Add request/render timing histogram                      | Expose via /metrics (Prometheus)         |
 

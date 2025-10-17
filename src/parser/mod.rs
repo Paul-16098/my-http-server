@@ -5,6 +5,9 @@
 //! 呼叫端只需關注輸入字串與可選的模板變數清單。
 
 use crate::parser::templating::set_context_value;
+use std::hash::{ Hash, Hasher };
+use std::path::{ Path, PathBuf };
+use std::sync::{ Mutex, OnceLock };
 
 pub(crate) mod markdown;
 pub(crate) mod templating;
@@ -48,6 +51,58 @@ pub(crate) fn md2html(
   c: &crate::cofg::config::Cofg,
   template_data_list: Vec<String>
 ) -> crate::error::AppResult<String> {
+  // Compute a small, stable hash of the extra template data to separate cache entries
+  // when callers inject different variables (e.g., theming flags). This prevents
+  // incorrect reuse across differing contexts.
+  let mut ctx_hasher = std::collections::hash_map::DefaultHasher::new();
+  for s in template_data_list.iter() {
+    s.hash(&mut ctx_hasher);
+  }
+  let template_ctx_hash = ctx_hasher.finish();
+
+  // Attempt to extract a disk-relative path from template data: expects a key "path:<rel>"
+  // or "path:toc:<dir>". Only file paths (non-TOC) participate in the HTML cache.
+  let rel_path_opt: Option<String> = template_data_list
+    .iter()
+    .find_map(|s| s.strip_prefix("path:"))
+    .map(|v| v.to_string());
+
+  let is_toc_context = rel_path_opt
+    .as_deref()
+    .map(|v| v.starts_with("toc:"))
+    .unwrap_or(false);
+
+  let mut maybe_cache_key: Option<MdCacheKey> = None;
+  if !is_toc_context && let Some(rel) = rel_path_opt.as_ref() {
+    // Build absolute path under public root
+    let abs = Path::new(&c.public_path).join(rel);
+    if let Ok(meta) = std::fs::metadata(&abs) {
+      let mtime = meta
+        .modified()
+        .ok()
+        .and_then(|t| t.duration_since(std::time::SystemTime::UNIX_EPOCH).ok())
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+      let size = meta.len();
+      let template_mtime = template_file_mtime();
+      maybe_cache_key = Some(MdCacheKey {
+        abs_path: abs,
+        mtime_secs: mtime,
+        size,
+        template_mtime_secs: template_mtime,
+        template_ctx_hash,
+      });
+    }
+  }
+
+  if c.cache.enable_html && let Some(key) = maybe_cache_key.as_ref() {
+    let cap = std::num::NonZeroUsize::new(c.cache.html_capacity.max(1)).unwrap();
+    let cache = MD_CACHE.get_or_init(|| { Mutex::new(lru::LruCache::new(cap)) });
+    if let Ok(mut guard) = cache.lock() && let Some(html) = guard.get(key) {
+      return Ok(html.clone());
+    }
+  }
+
   // let c = &crate::cofg::Cofg::new();
   let mut engine = templating::get_engine(c)?;
   let mut context = templating::get_context(c);
@@ -71,10 +126,44 @@ pub(crate) fn md2html(
   // Contract: 模板預期取得 `body` 作為主要內容插槽。
   context.data_mut()["body"] = handlebars::JsonValue::String(html);
   match engine.render_with_context("html-t", &context) {
-    Ok(o) => Ok(o),
+    Ok(o) => {
+      if
+        c.cache.enable_html &&
+        let Some(key) = maybe_cache_key &&
+        let Some(cell) = MD_CACHE.get() &&
+        let Ok(mut guard) = cell.lock()
+      {
+        guard.put(key, o.clone());
+      }
+      Ok(o)
+    }
     Err(o) => {
       log::error!("md2html:{}", o);
       Err(crate::error::AppError::RenderError(o))
     }
   }
 }
+
+// --------------------
+// Rendered HTML cache for Markdown files
+// --------------------
+#[derive(Hash, Eq, PartialEq, Clone, Debug)]
+struct MdCacheKey {
+  abs_path: PathBuf,
+  mtime_secs: u64,
+  size: u64,
+  template_mtime_secs: u64,
+  template_ctx_hash: u64,
+}
+
+fn template_file_mtime() -> u64 {
+  std::fs
+    ::metadata("./meta/html-t.hbs")
+    .and_then(|m| m.modified())
+    .ok()
+    .and_then(|t| t.duration_since(std::time::SystemTime::UNIX_EPOCH).ok())
+    .map(|d| d.as_secs())
+    .unwrap_or(0)
+}
+
+static MD_CACHE: OnceLock<Mutex<lru::LruCache<MdCacheKey, String>>> = OnceLock::new();

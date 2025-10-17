@@ -17,10 +17,14 @@
 | `middleware.logger.enabling` | bool              | `main.rs:build_server`                                   | Enables `middleware::Logger`                                               |
 | `middleware.logger.format`   | string            | `main.rs:build_server`                                   | Passed to `Logger::new` (adds custom url replacement)                      |
 | `templating.value`           | list<string>      | `parser/templating.rs:get_context` & `set_context_value` | Provides dynamic template variables (`name:value`)                         |
-| `templating.hot_reload`      | bool              | `cofg::get` (reload gate), `templating::get_engine`      | Allows disk reload of config / per-request rebuild of template engine      |
+| `templating.hot_reload`      | bool              | `cofg::get` (reload gate), `templating::get_engine`      | Allows disk reload of config / per-request rebuild of Handlebars engine    |
 | `toc.path`                   | string (relative) | `markdown.rs:get_toc`, `_make_toc`, `main.rs:index`      | Location (within public) for generated TOC HTML target & base dir for scan |
 | `toc.ext`                    | list<string>      | `markdown.rs:get_toc`                                    | File extensions considered for TOC entries                                 |
 | `public_path`                | string            | many: `http_ext`, `markdown`, `main`                     | Root directory for content lookup                                          |
+| `cache.enable_html`          | bool              | `parser::md2html`                                        | Enable rendered-HTML LRU cache                                             |
+| `cache.html_capacity`        | usize             | `parser::md2html`                                        | LRU capacity for HTML cache                                                |
+| `cache.enable_toc`           | bool              | `parser::markdown::get_toc`                              | Enable TOC LRU cache                                                       |
+| `cache.toc_capacity`         | usize             | `parser::markdown::get_toc`                              | LRU capacity for TOC cache                                                 |
 
 ## `templating.value` Mini DSL
 
