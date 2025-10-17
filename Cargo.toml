@@ -42,7 +42,7 @@
     actix-governor = { version = "0.10.0", features = [
         "log",
     ] }
-    lru = "0.12.5"
+    lru = "0.16.0"
 
 [[bin]]
     name = "my-http-server"
