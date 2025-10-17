@@ -11,7 +11,7 @@ use std::path::{ Path, PathBuf };
 use std::sync::{ Mutex, OnceLock };
 use std::time::SystemTime;
 
-use log::debug;
+use log::{ debug, trace };
 use wax::Glob;
 
 use crate::error::AppResult;
@@ -34,7 +34,7 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
       format!("{}/{}", prefix.join("/"), name)
     };
     let indent = " ".repeat(depth * 4);
-    debug!("emit_toc: node={node:?};prefix={prefix:#?};out={out};depth={depth}");
+    trace!("emit_toc: node={node:?};prefix={prefix:#?};out={out};depth={depth}");
     out.push_str(
       &format!(
         "{indent}- [{}]({})\n",
@@ -86,13 +86,13 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
   let mut root: TocNode = TocNode::default();
   for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(root_path) {
     let entry = entry?;
-    debug!("entry: {entry:#?}");
     let path = entry.path().canonicalize()?.strip_prefix(root_path)?.to_path_buf();
     debug!("path: {}", path.display());
 
     // Skip entries matching any ignore token
     let path_str = path.to_string_lossy();
     if c.toc.ig.iter().any(|ele| path_str.contains(ele)) {
+      debug!("continue");
       continue;
     }
 

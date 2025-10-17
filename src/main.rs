@@ -10,7 +10,7 @@ mod error;
 use crate::error::AppResult;
 mod http_ext;
 mod request;
-use crate::request::{ index, main_req };
+use crate::request::{ main_req };
 
 use actix_web::{ App, HttpServer, dev::Server, http::KeepAlive, middleware };
 use clap::Parser as _;
@@ -257,7 +257,6 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
         })
       )
 
-      .service(index)
       .service(main_req)
   }).keep_alive(KeepAlive::Os);
 

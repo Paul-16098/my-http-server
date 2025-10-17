@@ -1,12 +1,12 @@
-use actix_web::{ test, App };
+use actix_web::{ body::to_bytes, http::{ header::CONTENT_TYPE, StatusCode }, test, App };
 
-use crate::request::{ index, main_req };
+use crate::request::{ main_req, server_error };
 
 // Integration tests covering the main routing behavior
 
 #[actix_web::test]
 async fn get_root_renders_toc_when_index_missing() {
-  let app = test::init_service(App::new().service(index).service(main_req)).await;
+  let app = test::init_service(App::new().service(main_req).service(main_req)).await;
 
   let req = test::TestRequest::get().uri("/").to_request();
   let resp = test::call_service(&app, req).await;
@@ -21,7 +21,7 @@ async fn get_root_renders_toc_when_index_missing() {
 
 #[actix_web::test]
 async fn get_markdown_file_is_rendered() {
-  let app = test::init_service(App::new().service(index).service(main_req)).await;
+  let app = test::init_service(App::new().service(main_req).service(main_req)).await;
 
   let req = test::TestRequest::get().uri("/dir/test.md").to_request();
   let resp = test::call_service(&app, req).await;
@@ -42,7 +42,7 @@ async fn get_markdown_file_is_rendered() {
 
 #[actix_web::test]
 async fn get_static_file_is_streamed() {
-  let app = test::init_service(App::new().service(index).service(main_req)).await;
+  let app = test::init_service(App::new().service(main_req).service(main_req)).await;
 
   let req = test::TestRequest::get().uri("/dir/test.txt").to_request();
   let resp = test::call_service(&app, req).await;
@@ -58,7 +58,7 @@ async fn get_static_file_is_streamed() {
 
 #[actix_web::test]
 async fn get_directory_renders_toc_page() {
-  let app = test::init_service(App::new().service(index).service(main_req)).await;
+  let app = test::init_service(App::new().service(main_req).service(main_req)).await;
 
   let req = test::TestRequest::get().uri("/dir/").to_request();
   let resp = test::call_service(&app, req).await;
@@ -76,7 +76,7 @@ async fn get_directory_renders_toc_page() {
 
 #[actix_web::test]
 async fn not_found_uses_custom_404_if_present() {
-  let app = test::init_service(App::new().service(index).service(main_req)).await;
+  let app = test::init_service(App::new().service(main_req).service(main_req)).await;
 
   let req = test::TestRequest::get().uri("/no-such-file").to_request();
   let resp = test::call_service(&app, req).await;
@@ -88,4 +88,23 @@ async fn not_found_uses_custom_404_if_present() {
   ).await;
   let body = String::from_utf8_lossy(&body);
   assert!(body.contains("<h1>404</h1>"));
+}
+
+#[actix_web::test]
+async fn server_error_sets_status_and_content_type_and_body() {
+  let err = "unit test error message".to_string();
+  let resp = server_error(err.clone());
+
+  // 狀態碼為 500
+  assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+  // Content-Type 為 text/plain（允許含 charset）
+  let headers = resp.headers().clone();
+  let ct = headers.get(CONTENT_TYPE).expect("missing content-type");
+  let ct_str = ct.to_str().expect("invalid content-type header");
+  assert!(ct_str.starts_with("text/plain"), "unexpected content-type: {ct_str}");
+
+  // 本文等於輸入字串
+  let bytes = to_bytes(resp.into_body()).await.expect("to_bytes failed");
+  assert_eq!(bytes, err.as_bytes());
 }
