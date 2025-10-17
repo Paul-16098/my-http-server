@@ -32,8 +32,10 @@ COPY Cargo.toml Cargo.lock build.rs ./
 
 # Copy source
 COPY src ./src
-# in build use `include_str!("../meta/html-t.hbs")`
+# in build use `include_str!("...")`
 COPY meta ./meta
+COPY emojis.json ./
+
 
 # Build with BuildKit cache mounts
 # Enable BuildKit before building: DOCKER_BUILDKIT=1
