@@ -115,8 +115,56 @@ pub(crate) fn md2html(
     engine.register_template_file("html-t", "./meta/html-t.hbs")?;
   }
 
-  let ast = markdown::parser_md(md)?;
+  let mut ast = markdown::parser_md(md)?;
   // PERF: 只在 trace 開啟時輸出 AST；大型 Markdown 可能造成龐大日誌量。
+  log::trace!("ast={ast:#?}");
+  if cfg!(feature = "github_emojis") {
+    // 將 emojis.json 解析為 HashMap，並以 OnceLock 快取以避免重複解析
+    static EMOJI_MAP: OnceLock<std::collections::HashMap<String, String>> = OnceLock::new();
+    let emojis = EMOJI_MAP.get_or_init(|| {
+      let data = include_str!("./../../emojis.json");
+      match serde_json::from_str::<std::collections::HashMap<String, String>>(data) {
+        Ok(map) => map,
+        Err(e) => {
+          log::warn!("failed to parse emojis.json: {}", e);
+          std::collections::HashMap::new()
+        }
+      }
+    });
+
+    // 輕量級 :shortcode: 掃描與替換
+    struct ReplaceGithubEmojis<'a> {
+      emojis: &'a std::collections::HashMap<String, String>,
+    }
+    impl<'a> markdown_ppp::ast_transform::Transformer for ReplaceGithubEmojis<'a> {
+      fn transform_inline(
+        &mut self,
+        inline: markdown_ppp::ast::Inline
+      ) -> markdown_ppp::ast::Inline {
+        match inline {
+          markdown_ppp::ast::Inline::Text(code) => {
+            let mut text = code;
+            for (k, v) in self.emojis.iter() {
+              let pat = format!(":{k}:");
+              if text.contains(&pat) {
+                let rep = format!(
+                  r#"<img class="emoji" alt="{pat}" src="{v}" style="width: 1em;">"#
+                );
+                // 以 &str 傳入 replace，並指派回字串
+                text = text.replace(&pat, &rep);
+              }
+            }
+            markdown_ppp::ast::Inline::Html(text)
+          }
+          other => self.walk_transform_inline(other),
+        }
+      }
+    }
+
+    ast = markdown_ppp::ast_transform::Transform::transform_with(ast, ReplaceGithubEmojis {
+      emojis,
+    });
+  }
   log::trace!("ast={ast:#?}");
   let html = markdown_ppp::html_printer::render_html(
     &ast,

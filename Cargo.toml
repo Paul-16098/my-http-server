@@ -13,6 +13,7 @@
     log = "0.4.28"
     markdown-ppp = { version = "2.7.1", features = [
         "ast-serde",
+        "ast-transform",
     ] }
     nest_struct = "0.5.5"
     nom = "8.0.0"
@@ -47,3 +48,9 @@
 [[bin]]
     name = "my-http-server"
     path = "src/main.rs"
+[features]
+    default = [
+        "github_emojis",
+    ]
+    github_emojis = [
+    ]
