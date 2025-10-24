@@ -69,6 +69,7 @@ use log::{ debug, error, warn };
 
 use crate::{
   cofg::config::Cofg,
+  error::AppResult,
   http_ext::HttpRequestCachedExt as _,
   parser::{ markdown::get_toc, md2html },
 };
@@ -103,7 +104,6 @@ async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
 }
 
 /// Render a markdown file into HTML via `md2html` and return an HTTP response.
-/// Render a markdown file into HTML via `md2html` and return an HTTP response.
 ///
 /// Params:
 /// - `req_path`: absolute canonical path to the markdown file
@@ -115,12 +115,15 @@ fn render_markdown_to_html_response(
   req_path: &Path,
   public_root: &Path,
   c: &Cofg
-) -> actix_web::HttpResponse {
+) -> AppResult<actix_web::HttpResponse> {
   use actix_web::{ HttpResponseBuilder, http::StatusCode };
   match read_to_string(req_path) {
     Ok(file) => {
+      let engine = crate::parser::templating::get_engine(c)?;
+      let mut context = crate::parser::templating::get_context(c);
+      context.data_mut()["path"] = req_path.to_string_lossy().to_string().into();
       let out = crate::parser::md2html(
-        file,
+        engine.render_template_with_context(&file, &context)?,
         c,
         vec![
           format!(
@@ -137,18 +140,20 @@ fn render_markdown_to_html_response(
       );
       match out {
         Ok(html) =>
-          HttpResponseBuilder::new(StatusCode::OK)
-            .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-            .body(html),
+          Ok(
+            HttpResponseBuilder::new(StatusCode::OK)
+              .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+              .body(html)
+          ),
         Err(err) => {
           warn!("{err}");
-          server_error(err.to_string())
+          Ok(server_error(err.to_string()))
         }
       }
     }
     Err(err) => {
       warn!("{err}: {}", err.kind());
-      server_error(err.to_string())
+      Ok(server_error(err.to_string()))
     }
   }
 }
@@ -249,7 +254,10 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
   if req.cached_is_markdown(c) {
     debug!("is md");
     // Render Markdown to HTML and return.
-    render_markdown_to_html_response(req_path, public_path, c)
+    match render_markdown_to_html_response(req_path, public_path, c) {
+      Ok(res) => res,
+      Err(err) => server_error(err.to_string()),
+    }
   } else if req_path.is_file() {
     debug!("no md");
     match NamedFile::open_async(req_path).await {
