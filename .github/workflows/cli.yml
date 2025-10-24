@@ -26,9 +26,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: install httpyac
-        run: npm install -g httpyac
-
       - run: cargo b
       - run: cargo run &
 
@@ -46,7 +43,7 @@ jobs:
 
       - name: test
         id: test
-        run: httpyac send -a test/test.http
+        run: npx httpyac send test/test.http -a --bail --insecure --raw
 
   test:
     runs-on: ubuntu-latest
