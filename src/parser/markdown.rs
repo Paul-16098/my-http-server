@@ -84,7 +84,12 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
   let mut toc_str = format!("# {}\n\n", title.unwrap_or("toc".to_string()));
   // Build a tree of path components for stable, de-duplicated recursive output
   let mut root: TocNode = TocNode::default();
-  for entry in Glob::new(&format!("**/*.{{{}}}", c.toc.ext.join(",")))?.walk(root_path) {
+
+  // 將 HashSet 轉為排好序的 Vec 並 join 成 glob 模式（修正原先 Vec::from(c.toc.ext) 編譯錯誤）
+  let mut exts: Vec<String> = c.toc.ext.iter().cloned().collect();
+  let glob_pattern = format!("**/*.{{{}}}", exts.join(","));
+
+  for entry in Glob::new(&glob_pattern)?.walk(root_path) {
     let entry = entry?;
     let path = entry.path().canonicalize()?.strip_prefix(root_path)?.to_path_buf();
     debug!("path: {}", path.display());

@@ -63,8 +63,10 @@
   - 使用 `cargo run` 啟動伺服器。
   - 首次啟動若缺少 `meta/html-t.hbs`，會自動生成預設檔案並退出，需再次執行。
 - **測試**：
-  - 測試檔案位於 `src/test/*.rs`。
-  - 可使用 VS Code 任務「ast-grep: scan / test」。
+  - 測試任務：
+    - 使用 VS Code 任務「ast-grep: test」進行互動式測試。
+    - 使用「ast-grep: scan」快速掃描代碼中的潛在問題。
+    - 測試檔案位於 `src/test/*.rs`，覆蓋了核心模組的功能測試。
 - **發佈**：
   - 使用 `cargo build --release` 進行發佈。
   - 支援 Docker/Compose（建議容器內使用 `--ip 0.0.0.0`）。
@@ -80,6 +82,33 @@
   - TOC 依賴目錄的 mtime，極端情況下需重啟或關閉 `cache.enable_toc`。
 - **404 頁面為純文字**：
   - 確認 `meta/404.html` 是否存在。
+
+### 配置示例
+
+- **cofg.yaml 配置**：
+
+  示例：
+
+  ```yaml
+  server:
+    ip: "127.0.0.1"
+    port: 8080
+  middleware:
+    rate_limiting:
+      seconds_per_request: 1
+      burst_size: 5
+  ```
+
+  使用 `build_config_from_cli` 覆寫 CLI 提供的配置。
+
+### 安全性建議
+
+- **防止目錄遍歷攻擊**：
+  - 確保所有路徑都經過正規化處理，避免使用相對路徑（如 `../`）。
+  - 僅允許訪問 `public/` 目錄內的文件。
+- **中介層安全性**：
+  - 啟用 `middleware.ip_filter`，限制允許的 IP 地址範圍。
+  - 使用 HTTPS 保護敏感數據傳輸，並配置 TLS 回退機制。
 
 ### 快速定位
 
