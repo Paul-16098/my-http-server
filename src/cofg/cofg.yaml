@@ -74,9 +74,8 @@ toc:
   ig:
     - <build-in>
 
-public_path:
-  # 公共目錄的路徑
-  public_path: ./public/
+# 公共目錄的路徑
+public_path: ./public/
 
 cache:
   # 是否啟用 Markdown 檔案的 HTML 渲染快取

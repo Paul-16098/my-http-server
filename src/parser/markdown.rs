@@ -68,7 +68,7 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
   let title_key = title.clone();
   if c.cache.enable_toc {
     let cap = std::num::NonZeroUsize::new(c.cache.toc_capacity.max(1)).unwrap();
-    let cache = TOC_CACHE.get_or_init(|| { Mutex::new(lru::LruCache::new(cap)) });
+    let cache = TOC_CACHE.get_or_init(|| Mutex::new(lru::LruCache::new(cap)));
     if
       let Some(hit) = cache
         .lock()
@@ -86,7 +86,7 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
   let mut root: TocNode = TocNode::default();
 
   // 將 HashSet 轉為排好序的 Vec 並 join 成 glob 模式（修正原先 Vec::from(c.toc.ext) 編譯錯誤）
-  let mut exts: Vec<String> = c.toc.ext.iter().cloned().collect();
+  let exts: Vec<String> = c.toc.ext.iter().cloned().collect();
   let glob_pattern = format!("**/*.{{{}}}", exts.join(","));
 
   for entry in Glob::new(&glob_pattern)?.walk(root_path) {
@@ -150,15 +150,15 @@ pub(crate) fn parser_md(input: String) -> error::AppResult<markdown_ppp::ast::Do
 
 // TOC cache keyed by (dir, dir_modified_ts, title). Bounded via LRU to prevent unbounded growth.
 #[derive(Hash, Eq, PartialEq, Clone, Debug)]
-struct TocCacheKey {
-  dir: PathBuf,
+pub(crate) struct TocCacheKey {
+  pub(crate) dir: PathBuf,
   // coarse invalidation guard; fallback to 0 when metadata not available
-  modified_unix_secs: u64,
-  title: Option<String>,
+  pub(crate) modified_unix_secs: u64,
+  pub(crate) title: Option<String>,
 }
 
 impl TocCacheKey {
-  fn from_dir(dir: &Path, title: Option<String>) -> Option<Self> {
+  pub(crate) fn from_dir(dir: &Path, title: Option<String>) -> Option<Self> {
     let modified_unix_secs = std::fs
       ::metadata(dir)
       .and_then(|m| m.modified())
@@ -166,7 +166,11 @@ impl TocCacheKey {
       .and_then(|t| t.duration_since(SystemTime::UNIX_EPOCH).ok())
       .map(|d| d.as_secs())
       .unwrap_or(0);
-    Some(Self { dir: dir.to_path_buf(), modified_unix_secs, title })
+    Some(Self {
+      dir: dir.to_path_buf(),
+      modified_unix_secs,
+      title,
+    })
   }
 }
 

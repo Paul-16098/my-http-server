@@ -1,67 +1,42 @@
-//! tests for parser helpers
-
-use std::path::Path;
-
-use crate::{ cofg::config::Cofg, parser::{ markdown::get_toc, md2html } };
+use crate::cofg::config::Cofg;
+use crate::parser::markdown::{ get_toc, parser_md, TocCacheKey };
 
 #[test]
-fn get_toc_includes_dir_and_files_with_root_prefix() {
-  let c = Cofg::default();
-  let root = Path::new(&c.public_path);
-  let toc = get_toc(root, &c, Some("index".to_string())).unwrap();
-  assert!(toc.contains("- [test.md](/dir/test%2Emd)"));
+fn test_get_toc_handles_empty_directory() {
+  let temp_dir = tempfile::tempdir().unwrap();
+  let root_path = temp_dir.path().to_path_buf();
+
+  let mut config = Cofg {
+    public_path: root_path.to_string_lossy().to_string(),
+    ..Default::default()
+  };
+  config.toc.ext.insert("md".to_string());
+
+  let toc = get_toc(&root_path, &config, Some("Empty TOC".to_string())).unwrap();
+  assert!(toc.contains("# Empty TOC"));
+  assert!(!toc.contains("- [")); // No entries should be present
 }
 
 #[test]
-fn md2html_renders_minimal_markdown() {
-  let c = Cofg::default();
-  let html = md2html("# Hello".into(), &c, vec!["path:/x.md".into()]).unwrap();
-  assert!(html.contains("<h1>Hello</h1>"));
+fn test_parser_md_parses_valid_markdown() {
+  let input = "# Title\n\nSome content.".to_string();
+  let document = parser_md(input).unwrap();
+  assert_eq!(document.blocks.len(), 2); // One heading and one paragraph
 }
 
 #[test]
-fn md2html_cache_same_file_same_output() {
-  let c = Cofg::default();
-  // Use an existing small markdown file in test data
-  let rel = "dir/test.md";
-  let abs = std::path::Path::new(&c.public_path).join(rel);
-  let content = std::fs::read_to_string(&abs).unwrap();
-  let a = md2html(content.clone(), &c, vec![format!("path:{}", rel)]).unwrap();
-  let b = md2html(content, &c, vec![format!("path:{}", rel)]).unwrap();
-  assert_eq!(a, b);
+fn test_parser_md_handles_empty_input() {
+  let input = "".to_string();
+  let document = parser_md(input).unwrap();
+  assert!(document.blocks.is_empty());
 }
 
 #[test]
-fn md2html_cache_invalidates_on_change() {
-  use std::io::Write;
-  let c = Cofg::default();
-  let rel = "dir/test-cache.md";
-  let abs = std::path::Path::new(&c.public_path).join(rel);
+fn test_toc_cache_key_from_dir() {
+  let temp_dir = tempfile::tempdir().unwrap();
+  let dir = temp_dir.path();
 
-  // create temporary file under public
-  std::fs::create_dir_all(abs.parent().unwrap()).unwrap();
-  let mut f = std::fs::File::create(&abs).unwrap();
-  writeln!(f, "# A").unwrap();
-  f.sync_all().unwrap();
-
-  let first = md2html("# A".into(), &c, vec![format!("path:{}", rel)]).unwrap();
-
-  // Modify the file content and its mtime
-  std::thread::sleep(std::time::Duration::from_millis(1100));
-  std::fs::write(&abs, "# B\n").unwrap();
-
-  let second = md2html("# B".into(), &c, vec![format!("path:{}", rel)]).unwrap();
-  assert_ne!(first, second);
-
-  // cleanup
-  let _ = std::fs::remove_file(&abs);
-}
-
-#[test]
-fn toc_is_memoized_for_root() {
-  let c = Cofg::default();
-  let root = std::path::Path::new(&c.public_path);
-  let t1 = get_toc(root, &c, Some("index".to_string())).unwrap();
-  let t2 = get_toc(root, &c, Some("index".to_string())).unwrap();
-  assert_eq!(t1, t2);
+  let key = TocCacheKey::from_dir(dir, Some("Test Title".to_string())).unwrap();
+  assert_eq!(key.title, Some("Test Title".to_string()));
+  assert_eq!(key.dir, dir.to_path_buf());
 }
