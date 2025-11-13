@@ -26,6 +26,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install netcat
+        run: |
+          if ! command -v nc &> /dev/null; then
+            apt-get update && apt-get install -y netcat-openbsd
+          fi
+
       - run: cargo b
       - run: cargo run &
 
