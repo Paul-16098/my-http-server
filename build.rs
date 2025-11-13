@@ -3,11 +3,8 @@ use std::path::Path;
 use std::process::Command;
 
 fn main() {
-  #[allow(clippy::single_element_loop)]
-  for path in ["build.rs"] {
-    println!("cargo:rerun-if-changed={path}");
-  }
-  let in_docker: bool = var("IN_DOCKER").is_ok();
+  println!("cargo:rerun-if-changed=build.rs");
+  let in_docker = var("IN_DOCKER").is_ok();
 
   let commit_hash = {
     if Path::new("./.git").exists() {
@@ -32,23 +29,16 @@ fn main() {
     }
   };
 
+  let env_suffix = match var("ACTIONS_ID") {
+    Ok(id) => format!("(actions/runs/{id})"),
+    Err(std::env::VarError::NotPresent) if !in_docker => "(Local)".to_string(),
+    Err(_) if in_docker => "(Docker)".to_string(),
+    Err(_) => "(unknown)".to_string(),
+  };
+
   println!(
-    "cargo:rustc-env=VERSION={}({} Profile)-{commit_hash}{}",
+    "cargo:rustc-env=VERSION={}({} Profile)-{commit_hash}{env_suffix}",
     var("CARGO_PKG_VERSION").unwrap(),
-    var("PROFILE").unwrap(),
-    match var("ACTIONS_ID") {
-      Ok(id) => format!("(actions/runs/{id})"),
-      Err(e) => {
-        if !in_docker {
-          if e == std::env::VarError::NotPresent {
-            "(Local)".to_string()
-          } else {
-            "(unknown)".to_string()
-          }
-        } else {
-          "(Docker)".to_string()
-        }
-      }
-    }
+    var("PROFILE").unwrap()
   );
 }

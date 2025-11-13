@@ -1,8 +1,7 @@
 //! parser
 //!
-//! WHY: 提供「Markdown → HTML 片段 → 套模板」的單一進入點（`md2html`），
-//! 把快取、模板熱重載與 Context 組裝細節封裝在內部模組（`templating`, `markdown`）中，
-//! 呼叫端只需關注輸入字串與可選的模板變數清單。
+//! WHY: Provides single entry point for Markdown → HTML → template flow.
+//! Encapsulates caching, hot reload, and context assembly details within internal modules.
 
 use crate::parser::templating::set_context_value;
 use std::hash::{ Hash, Hasher };
@@ -24,7 +23,6 @@ pub(crate) mod templating;
 /// WHY: Keep side effects (engine caching, context assembly) localized while exposing a pure-ish
 /// interface to callers. Accepts owned `md` so upstream can cheaply `read_to_string` and transfer
 /// ownership without clone.
-/// 中文：集中渲染步驟，讓呼叫端只需提供字串與附加變數；擁有字串避免多餘 clone。
 ///
 /// Contract / 契約（重要行為與邊界）
 /// - Inputs:
@@ -119,7 +117,6 @@ pub(crate) fn md2html(
   // PERF: 只在 trace 開啟時輸出 AST；大型 Markdown 可能造成龐大日誌量。
   log::trace!("ast={ast:#?}");
   if cfg!(feature = "github_emojis") {
-    // 將 emojis.json 解析為 HashMap，並以 OnceLock 快取以避免重複解析
     static EMOJI_MAP: OnceLock<std::collections::HashMap<String, String>> = OnceLock::new();
     let emojis = EMOJI_MAP.get_or_init(|| {
       let data = include_str!("./../../emojis.json");
@@ -132,7 +129,6 @@ pub(crate) fn md2html(
       }
     });
 
-    // 輕量級 :shortcode: 掃描與替換
     struct ReplaceGithubEmojis<'a> {
       emojis: &'a std::collections::HashMap<String, String>,
     }
@@ -150,7 +146,6 @@ pub(crate) fn md2html(
                 let rep = format!(
                   r#"<img class="emoji" alt="{pat}" src="{v}" style="width: 1em;">"#
                 );
-                // 以 &str 傳入 replace，並指派回字串
                 text = text.replace(&pat, &rep);
               }
             }

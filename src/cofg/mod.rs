@@ -6,7 +6,7 @@ pub(crate) mod config;
 /// Merge CLI overrides into loaded config.
 ///
 /// WHY: Preserve file-based config as baseline; explicit CLI flags have higher precedence.
-/// 中文：以設定檔為基礎，命令列參數覆寫對應欄位。
+/// WHY: Configuration file as base; CLI arguments override corresponding fields.
 pub(crate) fn build_config_from_cli(
   mut s: config::Cofg,
   cli: &cli::Args

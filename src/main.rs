@@ -22,11 +22,10 @@ use std::path::Path;
 ///
 /// WHY: Keep side-effect setup isolated from `main()`. Directory creation early prevents
 /// per-request race to create it lazily. Logger configured with module paths for traceability.
-/// 中文：集中初始化，避免每次請求重複檢查；模組路徑便於除錯追蹤。
 fn init(c: &Cofg) -> AppResult<()> {
   logger_init();
 
-  create_dir_all(c.public_path.clone())?;
+  create_dir_all(&c.public_path)?;
   create_dir_all("./meta")?;
   if !Path::new("./meta/html-t.hbs").exists() {
     error!("missing required template: meta/html-t.hbs\nuse default");
@@ -49,8 +48,7 @@ fn logger_init() {
   l.init();
 }
 
-// SECURITY: 常數時間比較，減少密碼比對的時序攻擊面。
-/// 比較長度差與逐位 XOR，避免資料相等時提早返回造成時間差異。
+// SECURITY: Constant-time comparison to reduce timing attack surface.
 fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
   let max_len = a.len().max(b.len());
   let mut diff: u8 = (a.len() ^ b.len()) as u8;
@@ -62,7 +60,7 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
   diff == 0
 }
 
-// 對 Option<&str> 進行常數時間比較；只有兩者皆為 Some 時才進行常數時間比較，否則直接返回 false（或 true 若皆為 None）。
+// Constant-time comparison for Option<&str>
 fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
   match (a, b) {
     (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
@@ -74,7 +72,6 @@ fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
 /// Load TLS configuration from certificate and key files.
 ///
 /// WHY: Encapsulate TLS setup logic; read PEM files and construct rustls ServerConfig.
-/// 中文：封裝 TLS 設定邏輯，載入憑證與私鑰建立 rustls 設定。
 fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerConfig> {
   use rustls::pki_types::{ CertificateDer, pem::PemObject as _, PrivateKeyDer, PrivatePkcs8KeyDer };
   use std::io::BufReader;
@@ -109,7 +106,6 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerC
 ///
 /// WHY: Keeps `main` concise; middleware toggles (path normalize, compress, logger) are applied
 /// only when enabled to avoid unnecessary overhead.
-/// 中文：依設定按需加掛 middleware，減少未使用功能的開銷。
 fn build_server(s: &Cofg) -> AppResult<Server> {
   let middleware_cofg = s.middleware.clone();
   let addrs = &s.addrs;
@@ -120,7 +116,6 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
     App::new()
       .wrap(
         middleware::Condition::new(middleware_cofg.rate_limiting.enable, {
-          // 構建 Governor 設定並回傳 Governor Transform
           let cfg = actix_governor::GovernorConfigBuilder
             ::default()
             .seconds_per_request(middleware_cofg.rate_limiting.seconds_per_request)
@@ -179,14 +174,12 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                     if ct_eq_str_opt(user.passwords.as_deref(), password) {
                       info!("http_base_authentication: password correct");
 
-                      // allow: 未設定時預設允許所有路徑
                       let in_allow = match user.allow.as_deref() {
                         Some(allow) => allow.iter().any(|allow_path| path.starts_with(allow_path)),
                         None => true,
                       };
                       info!("http_base_authentication: in_allow={}", in_allow);
 
-                      // disallow: 未設定時預設不封鎖任何路徑
                       let not_in_disallow = match user.disallow.as_deref() {
                         Some(disallow) => disallow.iter().all(|p| !path.starts_with(p)),
                         None => true,
@@ -203,7 +196,6 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                         ));
                       }
                     } else {
-                      // 密碼不符時立即返回，避免落入「無此使用者」訊息
                       return Err((
                         actix_web::error::ErrorUnauthorized(
                           "Unauthorized: no such user name or passwords"
@@ -212,7 +204,6 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                       ));
                     }
                   } else {
-                    // 沒有任何使用者名稱匹配 → 早退
                     return Err((
                       actix_web::error::ErrorUnauthorized(
                         "Unauthorized: no such user name or passwords"
@@ -221,7 +212,6 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                     ));
                   }
                 } else {
-                  // NOTE: 未配置任何使用者時一律拒絕，避免無意間全開。
                   warn!("no user data configured");
                 }
                 Err((actix_web::error::ErrorUnauthorized("Unauthorized: access denied"), req))

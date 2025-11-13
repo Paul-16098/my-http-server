@@ -3,9 +3,6 @@
 //! WHY: Isolate template engine initialization & context population so markdown → HTML pipeline
 //! stays pure/minimal (`md2html`). Engine instance is cached via `OnceCell<RwLock<_>>` for reuse
 //! (bytecode cache active) unless `hot_reload` signals we must reconstruct to pick up file edits.
-//!
-//! 中文：將模板引擎建構與上下文變數設定集中，讓 `md2html` 保持精簡；常態重用快取以利用
-//! bytecode cache，僅在 hot_reload 啟用時每次重建以反映檔案修改。
 
 use handlebars::{ Context, Handlebars };
 
@@ -25,8 +22,6 @@ use crate::error::{ AppError, AppResult };
 ///
 /// WHY: Allow configuration-driven variable list (`templating.value`) without schema explosion.
 /// Parsing kept intentionally small (no floats) for predictability.
-///
-/// 中文：透過簡單 `name:value` 規則（含 `env:` 展開）注入模板變數，避免為多個旗標打造冗長設定欄位。
 pub(crate) fn set_context_value(context: &mut Context, data: &str) {
   let context = context.data_mut();
 
@@ -67,7 +62,6 @@ pub(crate) fn set_context_value(context: &mut Context, data: &str) {
 ///
 /// WHY: Decouple config parsing from render path; context creation is cheap and explicit instead
 /// of sharing mutable state across renders.
-/// 中文：每次渲染建立獨立 context，避免共享可變狀態；同時注入版本資訊與設定變數。
 pub(crate) fn get_context(c: &crate::cofg::config::Cofg) -> Context {
   let mut context = Context::wraps(
     json!({
@@ -91,7 +85,6 @@ static ENGINE: OnceCell<RwLock<Handlebars>> = OnceCell::new();
 ///
 /// WHY: Development ergonomics—trade small rebuild cost for immediacy when editing templates.
 /// Production (no hot_reload) benefits from stable cached engine with bytecode reuse.
-/// 中文：hot_reload 時每次重建以反映檔案變更；否則重用快取獲得效能與 bytecode 優勢。
 pub(crate) fn get_engine(c: &'_ crate::cofg::config::Cofg) -> AppResult<Handlebars<'_>> {
   let cell = ENGINE.get_or_init(|| {
     let mut e = Handlebars::new();

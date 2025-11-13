@@ -4,9 +4,6 @@
 //! (HTTP request handling & markdown rendering) avoid disk IO / deserialization cost. A reload is
 //! only attempted when caller explicitly asks (`get(true)`) AND hot-reload is enabled. This keeps
 //! the steady-state fast while still offering a development-friendly live tweaking mode.
-//!
-//! 中文說明：集中式設定透過 `OnceCell` 快取，避免每次請求重新讀取/解析；只有在呼叫方要求且
-//! 設定檔允許 hot_reload 時才重讀，兼顧執行期效能與開發彈性。
 
 use nest_struct::nest_struct;
 use once_cell::sync::OnceCell;
@@ -173,15 +170,6 @@ impl Cofg {
       .read()
       .map(|g| g.clone())
       .unwrap_or_default()
-  }
-
-  /// Force a refresh ignoring the hot_reload flag (primarily for tests & rare admin scenarios).
-  /// WHY: Provides a narrow escape hatch for testing and tooling.
-  #[allow(dead_code)]
-  pub(crate) fn force_refresh() {
-    if let Some(lock) = GLOBAL_COFG.get() && let Ok(mut w) = lock.write() {
-      *w = Self::load_from_disk();
-    }
   }
 }
 

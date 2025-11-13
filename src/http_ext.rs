@@ -3,8 +3,6 @@
 //! WHY: Avoid recomputing derived request values (decoded URI, resolved disk path, extension
 //! checks). Actix's `Extensions` offers cheap per-request storage; this reduces repeated percent
 //! decode, path joins, & extension parsing when multiple middleware / handlers need them.
-//!
-//! 中文：使用每請求快取避免重複 percent-decode 與路徑組合，降低日誌或處理流程的重工。
 use actix_web::{ HttpMessage, HttpRequest };
 use std::path::{ Path, PathBuf };
 
@@ -35,35 +33,39 @@ pub trait HttpRequestCachedExt {
 
 impl HttpRequestCachedExt for HttpRequest {
   fn cached_filename_path(&self) -> PathBuf {
-    if let Some(v) = self.extensions().get::<FilenamePath>() {
-      return v.0.clone();
-    }
-    let filename_str = self.match_info().query("filename");
-    // PathBuf parsing is infallible for plain strings
-    let path = PathBuf::from(filename_str);
-    self.extensions_mut().insert(FilenamePath(path.clone()));
-    path
+    self.extensions()
+      .get::<FilenamePath>()
+      .map(|v| v.0.clone())
+      .unwrap_or_else(|| {
+        let filename_str = self.match_info().query("filename");
+        let path = PathBuf::from(filename_str);
+        self.extensions_mut().insert(FilenamePath(path.clone()));
+        path
+      })
   }
 
   fn cached_public_req_path(&self, c: &Cofg) -> PathBuf {
-    if let Some(v) = self.extensions().get::<PublicReqPath>() {
-      return v.0.clone();
-    }
-    let path = Path::new(&c.public_path).join(self.cached_filename_path());
-    self.extensions_mut().insert(PublicReqPath(path.clone()));
-    path
+    self.extensions()
+      .get::<PublicReqPath>()
+      .map(|v| v.0.clone())
+      .unwrap_or_else(|| {
+        let path = Path::new(&c.public_path).join(self.cached_filename_path());
+        self.extensions_mut().insert(PublicReqPath(path.clone()));
+        path
+      })
   }
 
   fn cached_is_markdown(&self, c: &Cofg) -> bool {
-    if let Some(v) = self.extensions().get::<IsMarkdown>() {
-      return v.0;
-    }
-    let is_md =
-      self
-        .cached_public_req_path(c)
-        .extension()
-        .and_then(|v| v.to_str()) == Some("md");
-    self.extensions_mut().insert(IsMarkdown(is_md));
-    is_md
+    self.extensions()
+      .get::<IsMarkdown>()
+      .map(|v| v.0)
+      .unwrap_or_else(|| {
+        let is_md = self
+          .cached_public_req_path(c)
+          .extension()
+          .and_then(|v| v.to_str()) == Some("md");
+        self.extensions_mut().insert(IsMarkdown(is_md));
+        is_md
+      })
   }
 }

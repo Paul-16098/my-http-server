@@ -56,7 +56,6 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
 ///
 /// WHY: On-demand generation avoids stale TOC and eliminates pre-bake step. Lightweight glob walk
 /// acceptable since `/` root requests are comparatively infrequent.
-/// 中文：即時產生，避免 TOC 與檔案狀態不一致；根據 toc.path 上層資料夾決定掃描基準。
 pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppResult<String> {
   debug!("root:{}", root_path.display());
   let public_path = &Path::new(&c.public_path).canonicalize()?;
