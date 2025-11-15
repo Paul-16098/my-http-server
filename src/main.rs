@@ -48,6 +48,19 @@ fn logger_init() {
 }
 
 // SECURITY: Constant-time comparison to reduce timing attack surface.
+#[cfg(test)]
+pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    let max_len = a.len().max(b.len());
+    let mut diff: u8 = (a.len() ^ b.len()) as u8;
+    for i in 0..max_len {
+        let ai = *a.get(i).unwrap_or(&0);
+        let bi = *b.get(i).unwrap_or(&0);
+        diff |= ai ^ bi;
+    }
+    diff == 0
+}
+
+#[cfg(not(test))]
 fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     let max_len = a.len().max(b.len());
     let mut diff: u8 = (a.len() ^ b.len()) as u8;
@@ -60,6 +73,16 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 }
 
 // Constant-time comparison for Option<&str>
+#[cfg(test)]
+pub(crate) fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+#[cfg(not(test))]
 fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),

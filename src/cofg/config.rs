@@ -122,6 +122,7 @@ impl Cofg {
             .configure_default_extensions()
     }
 
+    /// new from yaml string
     pub fn new_from_str(date_str: &str) -> Self {
         Self::new_from_source(config::File::from_str(date_str, config::FileFormat::Yaml))
     }

@@ -35,9 +35,13 @@ pub(crate) fn set_context_value(context: &mut Context, data: &str) {
 
         if value.starts_with("env:")
             && let Some((_, env)) = value.split_once(":")
-            && let Ok(v) = std::env::var(env)
         {
-            value = v;
+            if let Ok(v) = std::env::var(env) {
+                value = v;
+            } else {
+                // Env var doesn't exist - skip this key entirely
+                return;
+            }
         }
 
         if let Ok(tf) = value.parse::<bool>() {

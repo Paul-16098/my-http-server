@@ -1,3 +1,8 @@
 mod cli;
 mod config;
+mod error;
+mod integration;
 mod parser;
+mod request;
+mod security;
+mod templating;
