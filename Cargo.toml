@@ -48,6 +48,7 @@
 [[bin]]
     name = "my-http-server"
     path = "src/main.rs"
+
 [features]
     default = [
         "github_emojis",

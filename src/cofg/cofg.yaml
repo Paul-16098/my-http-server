@@ -76,13 +76,3 @@ toc:
 
 # 公共目錄的路徑
 public_path: ./public/
-
-cache:
-  # 是否啟用 Markdown 檔案的 HTML 渲染快取
-  enable_html: true
-  # HTML 快取的最大頁面數量（LRU 快取）。適用於小型網站：128~512
-  html_capacity: 256
-  # 是否啟用目錄（TOC）的快取
-  enable_toc: true
-  # TOC 快取的最大目錄/標題數量（LRU 快取）
-  toc_capacity: 64
