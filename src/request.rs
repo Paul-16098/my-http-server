@@ -17,7 +17,6 @@
 //! Why it’s designed this way
 //! - Keep the index behavior special-cased (let users override with their own `index.html`),
 //!   while the fallback route uniformly handles “render Markdown or serve static”.
-//! (Per-request caching helpers removed; paths & markdown checks now computed inline.)
 //!
 //! Templating context rules
 //! - Each Markdown render injects per-page `path` into the template context (plus engine

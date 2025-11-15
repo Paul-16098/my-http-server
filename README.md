@@ -6,7 +6,7 @@ My HTTP Server 是一個用於處理靜態檔案與 Markdown 檔案的高效能 
 
 - 提供靜態檔案服務
 - 將 Markdown 檔案轉換為 HTML
-- 支援模板渲染與快取機制
+- 支援模板渲染
 
 ## Technology Stack
 
@@ -15,7 +15,6 @@ My HTTP Server 是一個用於處理靜態檔案與 Markdown 檔案的高效能 
 - **框架與函式庫**:
   - Actix-web: 提供 HTTP 伺服器功能
   - Handlebars: 用於模板渲染
-  - OnceCell: 實現快取
   - Actix-governor: 實現速率限制
 
 ## Project Architecture
