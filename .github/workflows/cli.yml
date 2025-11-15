@@ -14,7 +14,9 @@ on:
 env:
   ACTIONS_ID: ${{ github.run_id }}
 
-permissions: write-all
+permissions:
+  id-token: write
+  attestations: write
 
 jobs:
   test-with-httpyac:
@@ -111,17 +113,20 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: GPG sign release artifacts
-        if: ${{ contains(runner.os, 'Windows') }}
-        shell: bash
-        run: |
-          gpg --detach-sign "./target/${{ matrix.platform.target }}/release/my-http-server.exe"
+      - if: ${{ contains(runner.os, 'Windows') }}
+        run: echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server.exe" >> $GITHUB_ENV
+      - if: ${{ !contains(runner.os, 'Windows') }}
+        run: echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server" >> $GITHUB_ENV
 
       - name: GPG sign release artifacts
-        if: ${{ !contains(runner.os, 'Windows') }}
         shell: bash
         run: |
-          gpg --detach-sign "./target/${{ matrix.platform.target }}/release/my-http-server"
+          gpg --detach-sign "${{ env.art_path }}"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: "${{ env.art_path }}"
 
       - name: Publish artifacts and release
         uses: fvj/actions-rust-release@jvf/add-glob-support-to-extra-files
