@@ -106,22 +106,51 @@ jobs:
           args: "--locked --release"
           strip: true
 
+      - name: Set artifact path
+        # Force bash so the append to $GITHUB_ENV behaves consistently across runners
+        shell: bash
+        run: |
+          if [[ "${{ matrix.platform.os-name }}" == *"Windows"* ]]; then
+            echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server.exe" >> $GITHUB_ENV
+          else
+            echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server" >> $GITHUB_ENV
+          fi
+
+      - name: Verify artifact exists
+        shell: bash
+        run: |
+          if [[ -z "${{ env.art_path }}" ]]; then
+            echo "Error: env.art_path is empty. Did the previous step set it correctly?" >&2
+            exit 1
+          fi
+          if [[ ! -f "${{ env.art_path }}" ]]; then
+            echo "Error: Artifact not found: ${{ env.art_path }}" >&2
+            echo "Directory listing of target/:"
+            ls -la ./target || true
+            exit 1
+          fi
+
       - name: Import GPG key
+        if: ${{ env.GPG_PRIVATE_KEY != '' && env.GPG_PASSPHRASE != '' }}
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         # GPG signing for release artifacts - requires GPG_PRIVATE_KEY and GPG_PASSPHRASE secrets
-        uses: crazy-max/ghaction-import-gpg@master
+        uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - if: ${{ contains(runner.os, 'Windows') }}
-        run: echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server.exe" >> $GITHUB_ENV
-      - if: ${{ !contains(runner.os, 'Windows') }}
-        run: echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server" >> $GITHUB_ENV
-
       - name: GPG sign release artifacts
+        if: ${{ env.GPG_PRIVATE_KEY != '' && env.GPG_PASSPHRASE != '' }}
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         shell: bash
         run: |
-          gpg --detach-sign "${{ env.art_path }}"
+          gpg --list-secret-keys || true
+          echo "Signing ${{ env.art_path }}"
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign "${{ env.art_path }}"
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v3
