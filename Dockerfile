@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.19
+# syntax=docker/dockerfile:1.20
 # Multi-stage Dockerfile for my-http-server (Rust + actix-web)
 # - Builder: rust:1.90.0-slim (bookworm)
 # - Runtime: debian:bookworm-slim (non-root)
