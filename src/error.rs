@@ -6,6 +6,7 @@
 //!
 //! 中文：集中管理錯誤型別並直接實作 Responder，讓內層只需 `?` 傳遞，不需關心 HTTP 回應細節。
 
+use actix_web::{HttpResponse, http::StatusCode};
 use log::warn;
 use thiserror::Error;
 
@@ -37,9 +38,48 @@ impl actix_web::Responder for AppError {
     type Body = actix_web::body::BoxBody;
 
     fn respond_to(self, _: &actix_web::HttpRequest) -> actix_web::HttpResponse<Self::Body> {
+        // Delegate to ResponseError for consistent status mapping and body shaping
+        actix_web::ResponseError::error_response(&self).map_into_boxed_body()
+    }
+}
+
+impl actix_web::ResponseError for AppError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            AppError::Io(e) => match e.kind() {
+                std::io::ErrorKind::NotFound => StatusCode::NOT_FOUND,
+                std::io::ErrorKind::PermissionDenied => StatusCode::FORBIDDEN,
+                std::io::ErrorKind::InvalidInput => StatusCode::BAD_REQUEST,
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+            AppError::GlobPatternError(_)
+            | AppError::GlobWalkError(_)
+            | AppError::TemplateError(_)
+            | AppError::RenderError(_)
+            | AppError::MarkdownParseError(_)
+            | AppError::ConfigError(_)
+            | AppError::StripPrefixError(_)
+            | AppError::TLSError(_)
+            | AppError::OtherError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+
+    fn error_response(&self) -> HttpResponse {
+        let status = self.status_code();
+
+        // Log the detailed error server-side, but avoid leaking internals to clients
         warn!("{self}");
-        actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR)
-            .body(self.to_string())
+
+        let msg = match status {
+            StatusCode::NOT_FOUND => "Not Found",
+            StatusCode::FORBIDDEN => "Forbidden",
+            StatusCode::BAD_REQUEST => "Bad Request",
+            _ => "Internal Server Error",
+        };
+
+        HttpResponse::build(status)
+            .content_type("text/plain; charset=utf-8")
+            .body(msg)
     }
 }
 
