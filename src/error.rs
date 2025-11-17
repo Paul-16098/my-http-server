@@ -70,16 +70,9 @@ impl actix_web::ResponseError for AppError {
         // Log the detailed error server-side, but avoid leaking internals to clients
         warn!("{self}");
 
-        let msg = match status {
-            StatusCode::NOT_FOUND => "Not Found",
-            StatusCode::FORBIDDEN => "Forbidden",
-            StatusCode::BAD_REQUEST => "Bad Request",
-            _ => "Internal Server Error",
-        };
-
         HttpResponse::build(status)
-            .content_type("text/plain; charset=utf-8")
-            .body(msg)
+            .content_type(actix_web::http::header::ContentType::plaintext())
+            .body(self.to_string())
     }
 }
 

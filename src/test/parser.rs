@@ -198,7 +198,7 @@ fn test_get_toc_unicode_filenames() {
 
     let toc = get_toc(root_path, &config, None).unwrap();
     // Should handle unicode filenames
-    assert!(toc.len() > 0);
+    assert!(!toc.is_empty());
 }
 
 #[test]

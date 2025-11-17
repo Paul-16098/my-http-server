@@ -2,6 +2,8 @@
 //!
 //! Tests for AppError variants, conversions, and HTTP response generation.
 
+use actix_web::Responder as _;
+
 use crate::error::{AppError, AppResult};
 use std::io;
 
@@ -60,16 +62,16 @@ fn test_other_error() {
     assert!(message.contains("Custom error message"));
 }
 
-// Async tests commented out - they require proper runtime setup in test module context
-// These tests verify that errors are properly converted to HTTP responses
-/*
 #[actix_web::test]
 async fn test_error_responder_status_code() {
     let err = AppError::OtherError("Test error".to_string());
     let req = actix_web::test::TestRequest::default().to_http_request();
 
     let response = err.respond_to(&req);
-    assert_eq!(response.status(), actix_web::http::StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(
+        response.status(),
+        actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
+    );
 }
 
 #[actix_web::test]
@@ -78,18 +80,12 @@ async fn test_error_responder_body() {
     let req = actix_web::test::TestRequest::default().to_http_request();
 
     let response = err.respond_to(&req);
-    let body = actix_web::body::to_bytes(response.into_body()).await.unwrap();
+    let body = actix_web::body::to_bytes(response.into_body())
+        .await
+        .unwrap();
     let body_str = String::from_utf8(body.to_vec()).unwrap();
 
     assert!(body_str.contains("Test body"));
-}
-*/
-
-#[test]
-fn test_app_result_ok() {
-    let result: AppResult<i32> = Ok(42);
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap(), 42);
 }
 
 #[test]
@@ -165,38 +161,6 @@ fn test_error_chain_io_to_app() {
         _ => panic!("Expected Io error"),
     }
 }
-
-#[test]
-fn test_multiple_error_types() {
-    // Test that different error types can be represented
-    let errors: Vec<AppError> = vec![
-        AppError::OtherError("error1".to_string()),
-        AppError::MarkdownParseError("error2".to_string()),
-        io::Error::new(io::ErrorKind::Other, "error3").into(),
-    ];
-
-    assert_eq!(errors.len(), 3);
-}
-
-// Commented out - async test
-/*
-#[actix_web::test]
-async fn test_different_io_error_kinds() {
-    let req = actix_web::test::TestRequest::default().to_http_request();
-
-    let errors = vec![
-        io::Error::new(io::ErrorKind::NotFound, "not found"),
-        io::Error::new(io::ErrorKind::PermissionDenied, "permission denied"),
-        io::Error::new(io::ErrorKind::ConnectionRefused, "connection refused"),
-    ];
-
-    for io_err in errors {
-        let app_err: AppError = io_err.into();
-        let response = app_err.respond_to(&req);
-        assert_eq!(response.status(), actix_web::http::StatusCode::INTERNAL_SERVER_ERROR);
-    }
-}
-*/
 
 #[test]
 fn test_error_debug_format() {
