@@ -5,7 +5,24 @@
 use crate::cofg::config::{BUILD_COFG, Cofg};
 use crate::parser::{markdown::parser_md, md2html, templating::get_context};
 use std::fs;
+use std::sync::{Mutex, OnceLock};
 use tempfile::TempDir;
+/// Serialize sections of tests that mutate process working directory.
+///
+/// WHY: Several integration tests temporarily switch the process CWD to place
+/// template files under `./meta`. Running these in parallel can race because
+/// CWD is a global process state. This helper ensures such blocks are executed
+/// one-at-a-time without requiring a custom test runner or external flags.
+fn with_cwd_lock<R>(dir: &std::path::Path, f: impl FnOnce() -> R) -> R {
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    let _g = LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+
+    let original_dir = std::env::current_dir().unwrap();
+    std::env::set_current_dir(dir).unwrap();
+    let res = f();
+    std::env::set_current_dir(original_dir).unwrap();
+    res
+}
 
 // Note: Many integration tests require proper config and template setup
 // These are structural tests demonstrating the test approach
@@ -29,14 +46,11 @@ fn test_md2html_basic_conversion() {
     let public_path = temp_dir.path().join("public");
     fs::create_dir_all(&public_path).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let markdown = "# Hello World\n\nThis is a test.".to_string();
-    let result = md2html(markdown, &config, vec![]);
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let markdown = "# Hello World\n\nThis is a test.".to_string();
+        md2html(markdown, &config, vec![])
+    });
 
     assert!(result.is_ok(), "md2html failed: {:?}", result.err());
     let html = result.unwrap();
@@ -58,15 +72,12 @@ fn test_md2html_with_context_variables() {
     let public_path = temp_dir.path().join("public");
     fs::create_dir_all(&public_path).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let markdown = "# Test Document".to_string();
-    let template_data = vec!["title:My Title".to_string(), "author:John Doe".to_string()];
-    let result = md2html(markdown, &config, template_data);
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let markdown = "# Test Document".to_string();
+        let template_data = vec!["title:My Title".to_string(), "author:John Doe".to_string()];
+        md2html(markdown, &config, template_data)
+    });
 
     assert!(result.is_ok(), "md2html failed: {:?}", result.err());
     let html = result.unwrap();
@@ -86,15 +97,12 @@ fn test_md2html_with_path_context() {
     let public_path = temp_dir.path().join("public");
     fs::create_dir_all(&public_path).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let markdown = "# Document".to_string();
-    let template_data = vec!["path:docs/readme.md".to_string()];
-    let result = md2html(markdown, &config, template_data);
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let markdown = "# Document".to_string();
+        let template_data = vec!["path:docs/readme.md".to_string()];
+        md2html(markdown, &config, template_data)
+    });
 
     assert!(result.is_ok());
     let html = result.unwrap();
@@ -131,14 +139,11 @@ fn test_md2html_handles_empty_markdown() {
     let template = "<!DOCTYPE html><html><body>{{{body}}}</body></html>";
     fs::write(meta_dir.join("html-t.hbs"), template).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let markdown = "".to_string();
-    let result = md2html(markdown, &config, vec![]);
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let markdown = "".to_string();
+        md2html(markdown, &config, vec![])
+    });
 
     assert!(result.is_ok());
     let html = result.unwrap();
@@ -267,17 +272,51 @@ fn test_template_context_type_inference_integration() {
 
 #[test]
 fn test_template_context_env_vars_integration() {
+    // Prepare a temporary template that references the env-expanded variable and body
+    let temp_dir = TempDir::new().unwrap();
+    let meta_dir = temp_dir.path().join("meta");
+    fs::create_dir_all(&meta_dir).unwrap();
+    let template = "<!DOCTYPE html><html><body>{{testvar}} {{{body}}}</body></html>";
+    fs::write(meta_dir.join("html-t.hbs"), template).unwrap();
+
+    // Public directory (not strictly needed for this test, but mirrors typical layout)
+    let public_path = temp_dir.path().join("public");
+    fs::create_dir_all(&public_path).unwrap();
+
+    // Set environment variable to be expanded via templating value DSL
     unsafe {
         std::env::set_var("TEST_INTEGRATION_VAR", "integration_value");
     }
 
-    let _template_data = vec!["testvar:env:TEST_INTEGRATION_VAR".to_string()];
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let markdown = "# Title".to_string();
+        let template_data = vec!["testvar:env:TEST_INTEGRATION_VAR".to_string()];
+        md2html(markdown, &config, template_data)
+    });
 
-    // Environment variable should be expanded
-
+    // Clean up env var immediately after render
     unsafe {
         std::env::remove_var("TEST_INTEGRATION_VAR");
     }
+
+    assert!(result.is_ok(), "md2html failed: {:?}", result.err());
+    let html = result.unwrap();
+    assert!(
+        html.contains("integration_value"),
+        "Rendered HTML did not include expanded env var: {}",
+        html
+    );
+    assert!(
+        !html.contains("{{testvar}}"),
+        "Rendered HTML still contains raw placeholder: {}",
+        html
+    );
+    assert!(
+        !html.contains("testvar:env:TEST_INTEGRATION_VAR"),
+        "Rendered HTML leaked raw template token: {}",
+        html
+    );
 }
 
 #[test]
@@ -292,14 +331,11 @@ fn test_template_body_injection() {
     let public_path = temp_dir.path().join("public");
     fs::create_dir_all(&public_path).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let markdown = "# Test".to_string();
-    let result = md2html(markdown, &config, vec![]);
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let markdown = "# Test".to_string();
+        md2html(markdown, &config, vec![])
+    });
 
     assert!(result.is_ok());
     let html = result.unwrap();
@@ -334,18 +370,15 @@ fn test_multiple_template_data_entries() {
     let public_path = temp_dir.path().join("public");
     fs::create_dir_all(&public_path).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let template_data = vec![
-        "var1:value1".to_string(),
-        "var2:123".to_string(),
-        "var3:true".to_string(),
-    ];
-    let result = md2html("# Test".to_string(), &config, template_data);
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let template_data = vec![
+            "var1:value1".to_string(),
+            "var2:123".to_string(),
+            "var3:true".to_string(),
+        ];
+        md2html("# Test".to_string(), &config, template_data)
+    });
 
     assert!(result.is_ok());
     let html = result.unwrap();
@@ -366,14 +399,11 @@ fn test_template_data_override() {
     let public_path = temp_dir.path().join("public");
     fs::create_dir_all(&public_path).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let template_data = vec!["key:first".to_string(), "key:second".to_string()];
-    let result = md2html("# Test".to_string(), &config, template_data);
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        let template_data = vec!["key:first".to_string(), "key:second".to_string()];
+        md2html("# Test".to_string(), &config, template_data)
+    });
 
     assert!(result.is_ok());
     let html = result.unwrap();
@@ -420,13 +450,10 @@ fn test_template_rendering_error() {
     let public_path = temp_dir.path().join("public");
     fs::create_dir_all(&public_path).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    let result = md2html("# Test".to_string(), &config, vec![]);
-
-    std::env::set_current_dir(&original_dir).unwrap();
+    let result = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        md2html("# Test".to_string(), &config, vec![])
+    });
 
     // Should return error when template file is missing
     assert!(result.is_err());
@@ -526,22 +553,17 @@ fn test_full_request_flow_directory_toc() {
     let template = "<!DOCTYPE html><html><body>{{{body}}}</body></html>";
     fs::write(meta_dir.join("html-t.hbs"), template).unwrap();
 
-    let original_dir = std::env::current_dir().unwrap();
-    std::env::set_current_dir(&temp_dir).unwrap();
-
-    let config = Cofg::new_from_str(BUILD_COFG);
-    // Try generating TOC with an explicit title first; if that fails (API may
-    // accept title as &str or Option<&str>), fall back to calling without a
-    // title. This makes the test more tolerant to small signature/behavior
-    // differences in get_toc while still validating TOC content.
-    // Pass &str instead of owned String to match expected Option<&str> signature
-    // Pass &str directly to match expected Option<&str> signature; owned String was causing a test failure
-    let toc = match get_toc(&public_path, &config, Some("Documentation".to_string().to_owned())) {
-        Ok(t) => t,
-        Err(_) => get_toc(&public_path, &config, None).unwrap(),
-    };
-
-    std::env::set_current_dir(original_dir).unwrap();
+    let toc = with_cwd_lock(temp_dir.path(), || {
+        let config = Cofg::new_from_str(BUILD_COFG);
+        match get_toc(
+            &public_path,
+            &config,
+            Some("Documentation".to_string().to_owned()),
+        ) {
+            Ok(t) => t,
+            Err(_) => get_toc(&public_path, &config, None).unwrap(),
+        }
+    });
 
     // Verify TOC contains references to the files in subdirectory
     // Be tolerant about exact formatting: check for any of the known file or directory names
