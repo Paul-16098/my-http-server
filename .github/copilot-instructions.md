@@ -1,48 +1,70 @@
-<!-- WHY: 精煉給 AI/協作者的高濃度指南；當路由/模板/熱重載/中介層策略變動時更新。保持 20–50 行。 -->
+<!-- WHY: High-density guide for AI agents; keep ~20–50 lines. Update when routing/templating/middleware changes. -->
 
-## AI 開發速覽（my-http-server）
+## AI Quick Reference (my-http-server)
 
-目的：讓代理快速掌握架構、熱路徑與約定，避免在昂貴路徑做出破壞性變更。
+**Architecture:** Actix-web HTTP server that serves static files and dynamically renders Markdown to HTML via `markdown_ppp` AST + Handlebars templating.
 
-1. Big picture
+### Request Flow
 
-- `meta/html-t.hbs` 為外殼；`.md` 於執行時轉 HTML 片段再套模板，其它副檔名走靜態檔。
-- 模組：HTTP（`src/request.rs`、`src/http_ext.rs`、`src/main.rs`）／轉換（`src/parser/*`）／設定（`src/cofg/*`）。
+- `.md` files: read → `markdown_ppp` AST → HTML fragment → inject into `meta/html-t.hbs` (Handlebars) → response
+- Other files: stream via `actix_files::NamedFile`
+- Missing files: serve `meta/404.html` if present, else plain 404
 
-2. 路由
+### Key Modules & Patterns
 
-- `GET /`：如有 `public/index.html` 直接回傳；否則以 `get_toc(public_path)` 產生 TOC → `md2html`。
-- `GET /{filename:.*}`：解析到 `public_path` 下；不存在 → 優先回 `meta/404.html`；`.md`→`read_to_string` + `md2html(path:<rel>)`；目錄 →`get_toc(dir)` 並以 `path:toc:<dir>` 渲染；否則 `NamedFile::open_async`。
+- **HTTP handling:** `src/request.rs` (routes: `/` index, `/{filename:.*}` catchall), `src/main.rs` (server setup)
+- **Parsing pipeline:** `src/parser/mod.rs::md2html` orchestrates markdown→HTML→template; `src/parser/markdown.rs` (TOC generation, parsing); `src/parser/templating.rs` (engine + context)
+- **Config:** `src/cofg/config.rs` uses `OnceCell<RwLock<Cofg>>` for global cached config; `Cofg::new()` returns cached value (no per-request reload unless `get(true)` + `hot_reload=true`)
+- **Errors:** `src/error.rs` defines `AppError` enum with `Responder` impl; bubble errors with `?` from any depth
 
-3. 模板/Context
+### Configuration Gotchas
 
-- 引擎：`parser/templating::get_engine` 以 `OnceCell<RwLock<_>>` 快取；`templating.hot_reload=true` 時每請求重建。
-- Context 內建 `server-version`；渲染時注入 `body`；呼叫端可加 `template_data_list`（如 `path:*`）。
-- DSL：`templating.value` 支援 `name:value` 與 `name:env:ENV`（型別推斷：bool → i64 → string）；缺冒號者忽略。
-- 模板註冊：邏輯名 `html-t` 對應 `./meta/html-t.hbs`，引擎未註冊時自動註冊。
+- **Template context DSL:** `templating.value: ["name:value"]` with type inference (bool → i64 → string) and `name:env:VAR` for env vars
+- **Hot reload:** `templating.hot_reload=true` rebuilds Handlebars engine per request (dev only); config reloaded only on explicit `get(true)` call
+- **Built-in context vars:** `server-version` (always), `body` (HTML fragment from markdown), `path` (supplied by route handlers)
+- **CLI overrides:** `cofg::build_config_from_cli` applies CLI args; TLS enabled only when both cert+key provided
 
-4. 中介層與安全（`src/main.rs`）
+### Routing Behavior
 
-- Logger：`%{url}xi` 先 percent-decode 並去頭 `/`，target=`http-log`。
-- NormalizePath/Compress：依旗標啟用；BasicAuth：常數時間比較，`allow` 先於 `disallow`，未設定使用者則預設拒絕。
-- Rate Limiting：`middleware.rate_limiting.{seconds_per_request, burst_size}`（actix-governor）。
-- IP Filter：`middleware.ip_filter.{enable,allow,block}`（glob）；序位於 BasicAuth 之後；停用為零開銷。
-- TLS：`tls.enable` 載入 `cert/key` 建立 rustls；失敗會回退為 HTTP。
-- Security：尚未強制 canonical prefix；不可信內容根時需自行加前綴檢查避免 traversal。
+- `GET /` → serve `public/index.html` if exists; else generate TOC from `public_path` via `get_toc` and render with `md2html`
+- `GET /{filename:.*}` → resolve under `public_path`; if `.md` → read + `md2html` with `path:` context; if dir → TOC; else static file
 
-5. 熱路徑/快取
+### TOC Generation
 
-- 設定：`Cofg::new()` 走全域快取；勿在請求熱路徑強制重讀。
-- 每請求快取鍵：`cached_filename_path`、`cached_public_req_path`、`cached_is_markdown`。
-- 渲染入口：維持 `md2html` 為唯一入口（模板/Context 副作用已封裝）。
+- `parser::markdown::get_toc(root, c, title?)` walks with `wax::Glob`, filters by `toc.ext`, ignores `toc.ig`, outputs percent-encoded Markdown list
 
-6. 工作流/陷阱
+### Middleware Chain (when enabled)
 
-- 執行：`cargo run`；首次若缺 `meta/html-t.hbs` 會寫入預設後退出，需再執行一次。
-- 測試：`src/test/*.rs`；可用任務：`ast-grep: scan` / `ast-grep: test`；發佈：`cargo build --release`（Docker/Compose 可用，容器內設 `ip=0.0.0.0`）。
-- CLI 覆寫：`build_config_from_cli(Cofg::new(), &cli::Args::parse())`（如 `--ip/--port`）。
-- FAQ：模板不生效 → 開 `templating.hot_reload=true` 或重啟；404 純文字 → 缺 `meta/404.html`；BasicAuth 以 `allow`/`disallow` 判序；日誌 URL 已解碼。
+Rate limiting → Logger → NormalizePath → Compress → BasicAuth → IP Filter → Routes
 
-7. 快速定位
+- Logger format uses `%{url}xi` (percent-decoded, leading `/` trimmed) targeting `http-log` module
+- Toggle middleware via `cofg.yaml`: `middleware.{normalize_path,compress,logger.enabling,http_base_authentication.enable,ip_filter.enable,rate_limiting.enable}`
 
-- HTTP/路由：`src/request.rs`、`src/http_ext.rs`、`src/main.rs`；轉換：`src/parser/{markdown.rs, templating.rs, mod.rs}`；設定：`src/cofg/{config.rs, cofg.yaml}`；測試：`src/test/*.rs`。
+### Dev Workflow
+
+- **First run:** `cargo run` writes defaults (`cofg.yaml`, `meta/html-t.hbs`) and exits; run again to start server
+- **Tests:** `cargo test` (unit tests in `src/test/*.rs`); integration tests check middleware, auth, IP filter
+- **Linting:** `cargo clippy -- -D warnings`
+- **VS Code tasks:** `ast-grep: scan` (lint with ast-grep rules), `ast-grep: test` (interactive testing)
+- **API docs:** `/api` serves Swagger UI (utoipa-generated from `src/api.rs`)
+
+### Important Constraints
+
+- **No HTML caching:** Markdown re-parsed per request (performance trade-off for simplicity)
+- **Path security:** Canonicalization is best-effort; add strict prefix enforcement if serving untrusted roots
+- **Template files:** `meta/html-t.hbs` must exist; auto-created from embedded default on first run
+- **Custom 404:** Place `meta/404.html` to override default plaintext 404
+
+### Code Conventions
+
+- **WHY comments:** Module and function docs explain rationale, not just what
+- **Bilingual docs:** English + 中文 for team accessibility (see `architecture.md`, `src/parser/mod.rs`)
+- **Contract sections:** Functions document inputs, outputs, errors, side effects, perf/security notes (see `md2html`)
+- **Error propagation:** Use `?` operator with `AppError`; custom `Responder` impl converts to HTTP responses
+
+### Quick References
+
+- Request flow diagrams: `docs/request-flow.md`
+- Config→code mapping: `docs/config-templating-map.md`
+- Architecture deep dive: `architecture.md`
+- Key function list: `docs/key-functions.md`

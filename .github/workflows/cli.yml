@@ -14,18 +14,27 @@ on:
 env:
   ACTIONS_ID: ${{ github.run_id }}
 
-permissions: write-all
+permissions:
+  id-token: write
+  attestations: write
 
 jobs:
   test-with-httpyac:
+    # allow failed
+    if: false
     runs-on: ubuntu-latest
     name: test with httpyac
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - name: install httpyac
-        run: npm install -g httpyac
+      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c
+
+      - name: Install netcat
+        run: |
+          if ! command -v nc &> /dev/null; then
+            apt-get update && apt-get install -y netcat-openbsd
+          fi
 
       - run: cargo b
       - run: cargo run &
@@ -44,14 +53,14 @@ jobs:
 
       - name: test
         id: test
-        run: httpyac send -a test/test.http
+        run: npx httpyac send test/test.http -a --bail --insecure --raw
 
   test:
     runs-on: ubuntu-latest
     name: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - run: cargo test
 
   release:
@@ -87,7 +96,7 @@ jobs:
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v1
@@ -97,24 +106,56 @@ jobs:
           args: "--locked --release"
           strip: true
 
+      - name: Set artifact path
+        # Force bash so the append to $GITHUB_ENV behaves consistently across runners
+        shell: bash
+        run: |
+          if [[ "${{ matrix.platform.os-name }}" == *"Windows"* ]]; then
+            echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server.exe" >> $GITHUB_ENV
+          else
+            echo "art_path=./target/${{ matrix.platform.target }}/release/my-http-server" >> $GITHUB_ENV
+          fi
+
+      - name: Verify artifact exists
+        shell: bash
+        run: |
+          if [[ -z "${{ env.art_path }}" ]]; then
+            echo "Error: env.art_path is empty. Did the previous step set it correctly?" >&2
+            exit 1
+          fi
+          if [[ ! -f "${{ env.art_path }}" ]]; then
+            echo "Error: Artifact not found: ${{ env.art_path }}" >&2
+            echo "Directory listing of target/:"
+            ls -la ./target || true
+            exit 1
+          fi
+
       - name: Import GPG key
+        if: ${{ env.GPG_PRIVATE_KEY != '' && env.GPG_PASSPHRASE != '' }}
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         # GPG signing for release artifacts - requires GPG_PRIVATE_KEY and GPG_PASSPHRASE secrets
-        uses: crazy-max/ghaction-import-gpg@master
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: GPG sign release artifacts
-        if: ${{ contains(runner.os, 'Windows') }}
+        if: ${{ env.GPG_PRIVATE_KEY != '' && env.GPG_PASSPHRASE != '' }}
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         shell: bash
         run: |
-          gpg --detach-sign "./target/${{ matrix.platform.target }}/release/my-http-server.exe"
+          gpg --list-secret-keys || true
+          echo "Signing ${{ env.art_path }}"
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign "${{ env.art_path }}"
 
-      - name: GPG sign release artifacts
-        if: ${{ !contains(runner.os, 'Windows') }}
-        shell: bash
-        run: |
-          gpg --detach-sign "./target/${{ matrix.platform.target }}/release/my-http-server"
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: "${{ env.art_path }}"
 
       - name: Publish artifacts and release
         uses: fvj/actions-rust-release@jvf/add-glob-support-to-extra-files

@@ -41,12 +41,16 @@
 
 - 模板：
 
-  - `templating.value` 以 `name:value`/`name:env:ENV` DSL 注入 Context（型別推斷：bool→i64→string）；`templating.hot_reload=true` 時每請求重建引擎。
+  - `templating.value` 以 `name:value`/`name:env:ENV` DSL 注入 Context（型別推斷：bool→i64→string）；`templating.hot_reload=true` 時每請求重建模板引擎（Handlebars）。
 
 - 中介層順序（啟用時）：NormalizePath → Compress → Logger → BasicAuth → IP Filter → 處理器。
 
 - 快取：
-  - 全域：設定與模板引擎；每請求：路徑衍生值。
+  - 全域：設定（Cofg）與模板引擎（Handlebars）。
+  - 每請求：路徑衍生值（decoded_uri、filename_path、public_req_path、is_markdown）。
+  - 跨請求：
+    - HTML（Markdown → 完整頁面）：LRU，鍵包含 `(abs_path, file_mtime, file_size, template_hbs_mtime, template_ctx_hash)`；可由 `cache.enable_html` 關閉。
+    - TOC：LRU，鍵包含 `(dir_abs, dir_mtime, title)`；可由 `cache.enable_toc` 關閉。
 
 ## 導讀建議
 

@@ -9,38 +9,47 @@ use clap::Parser;
 
 use crate::error::AppError;
 
-#[derive(Parser, Debug)]
-#[command(version = option_env!("VERSION").unwrap_or("?"))]
+#[derive(Parser, Debug, Clone)]
+#[command(version = crate::VERSION)]
 pub(crate) struct Args {
-  #[arg(long)]
-  pub(crate) ip: Option<String>,
-  #[arg(long)]
-  pub(crate) port: Option<u16>,
-  #[arg(long)]
-  pub(crate) tls_cert: Option<String>,
-  #[arg(long)]
-  pub(crate) tls_key: Option<String>,
+    #[arg(long)]
+    pub(crate) ip: Option<String>,
+    #[arg(long)]
+    pub(crate) port: Option<u16>,
+    #[arg(long)]
+    pub(crate) tls_cert: Option<String>,
+    #[arg(long)]
+    pub(crate) tls_key: Option<String>,
+    #[arg()]
+    /// Root directory for execution context
+    pub(crate) root_dir: Option<String>,
 }
 
 impl TryFrom<&Args> for super::config::CofgAddrs {
-  type Error = AppError;
+    type Error = AppError;
 
-  fn try_from(val: &Args) -> Result<Self, Self::Error> {
-    if let (Some(ip), Some(port)) = (&val.ip, val.port) {
-      Ok(Self { ip: ip.clone(), port })
-    } else {
-      Err(AppError::OtherError("ip or port is none".to_string()))
+    fn try_from(val: &Args) -> Result<Self, Self::Error> {
+        if let (Some(ip), Some(port)) = (&val.ip, val.port) {
+            Ok(Self {
+                ip: ip.clone(),
+                port,
+            })
+        } else {
+            Err(AppError::OtherError("ip or port is none".to_string()))
+        }
     }
-  }
 }
 impl TryFrom<Args> for super::config::CofgAddrs {
-  type Error = AppError;
+    type Error = AppError;
 
-  fn try_from(val: Args) -> Result<Self, Self::Error> {
-    if let (Some(ip), Some(port)) = (&val.ip, val.port) {
-      Ok(Self { ip: ip.clone(), port })
-    } else {
-      Err(AppError::OtherError("ip or port is none".to_string()))
+    fn try_from(val: Args) -> Result<Self, Self::Error> {
+        if let (Some(ip), Some(port)) = (&val.ip, val.port) {
+            Ok(Self {
+                ip: ip.clone(),
+                port,
+            })
+        } else {
+            Err(AppError::OtherError("ip or port is none".to_string()))
+        }
     }
-  }
 }

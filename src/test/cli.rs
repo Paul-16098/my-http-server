@@ -1,43 +1,89 @@
-use crate::cofg::{ cli::Args, config::{ Cofg, CofgAddrs } };
+use crate::cofg::{cli::Args, config::CofgAddrs};
 
 #[test]
-fn form_test() {
-  assert_eq!(
-    std::convert::TryInto::<CofgAddrs>
-      ::try_into(Args {
+fn test_try_from_args_with_valid_ip_and_port() {
+    let args = Args {
         ip: Some("127.0.0.1".to_string()),
-        port: Some(6426),
+        port: Some(8080),
         tls_cert: None,
         tls_key: None,
-      })
-      .unwrap(),
-    CofgAddrs {
-      ip: "127.0.0.1".to_string(),
-      port: 6426,
-    }
-  )
+        root_dir: None,
+    };
+
+    let result = CofgAddrs::try_from(&args);
+    assert!(result.is_ok());
+    let cofg_addrs = result.unwrap();
+    assert_eq!(cofg_addrs.ip, "127.0.0.1");
+    assert_eq!(cofg_addrs.port, 8080);
 }
+
 #[test]
-fn build_config_from_cli_test() {
-  use crate::cofg::build_config_from_cli;
-  assert_eq!(
-    build_config_from_cli(
-      Cofg {
-        ..Default::default()
-      },
-      &(Args {
-        ip: Some("127.0.0.1".to_string()),
-        port: Some(6426),
+fn test_try_from_args_with_missing_ip() {
+    let args = Args {
+        ip: None,
+        port: Some(8080),
         tls_cert: None,
         tls_key: None,
-      })
-    ).unwrap(),
-    Cofg {
-      addrs: CofgAddrs {
-        ip: "127.0.0.1".to_string(),
-        port: 6426,
-      },
-      ..Default::default()
-    }
-  )
+        root_dir: None,
+    };
+
+    let result = CofgAddrs::try_from(&args);
+    assert!(result.is_err());
+    assert_eq!(
+        result.unwrap_err().to_string(),
+        "Other error: ip or port is none".to_string()
+    );
+}
+
+#[test]
+fn test_try_from_args_with_missing_port() {
+    let args = Args {
+        ip: Some("127.0.0.1".to_string()),
+        port: None,
+        tls_cert: None,
+        tls_key: None,
+        root_dir: None,
+    };
+
+    let result = CofgAddrs::try_from(&args);
+    assert!(result.is_err());
+    assert_eq!(
+        result.unwrap_err().to_string(),
+        "Other error: ip or port is none".to_string()
+    );
+}
+
+#[test]
+fn test_try_from_args_with_missing_ip_and_port() {
+    let args = Args {
+        ip: None,
+        port: None,
+        tls_cert: None,
+        tls_key: None,
+        root_dir: None,
+    };
+
+    let result = CofgAddrs::try_from(&args);
+    assert!(result.is_err());
+    assert_eq!(
+        result.unwrap_err().to_string(),
+        "Other error: ip or port is none".to_string()
+    );
+}
+
+#[test]
+fn test_try_from_owned_args_with_valid_ip_and_port() {
+    let args = Args {
+        ip: Some("192.168.1.1".to_string()),
+        port: Some(3000),
+        tls_cert: None,
+        tls_key: None,
+        root_dir: None,
+    };
+
+    let result = CofgAddrs::try_from(args);
+    assert!(result.is_ok());
+    let cofg_addrs = result.unwrap();
+    assert_eq!(cofg_addrs.ip, "192.168.1.1");
+    assert_eq!(cofg_addrs.port, 3000);
 }

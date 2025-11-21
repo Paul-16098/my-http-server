@@ -26,7 +26,7 @@ If `cofg.yaml` missing it is auto-created from embedded default.
 
 1. Append string to `templating.value` in `cofg.yaml` (e.g. `- "docs_mode:true"`)
 2. (Optional) Use `env:` prefix for environment injection
-3. Reference in `meta/html-t.templating` via `{{ docs_mode }}`
+3. Reference in `meta/html-t.hbs` via `{{ docs_mode }}`
 4. Enable `templating.hot_reload: true` during development to avoid restart
 
 ### Expose Config Field to Templates
@@ -93,16 +93,12 @@ Potential crate: `notify`. Flow:
 2. Watch `cofg.yaml` & `meta/` & `public/`
 3. On change: `Cofg::force_refresh()` or invalidate HTML cache (future)
 
-### Implement HTML Render Cache
+### HTML/TOC Caches
 
-Pseudo-code:
+Already implemented:
 
-```rust
-struct RenderCacheKey { path: PathBuf, mtime: SystemTime }
-// HashMap<RenderCacheKey, Arc<String>>
-```
-
-Look up before `read_to_string`; if mtime changed re-render.
+- HTML render cache (bounded LRU) in `parser::md2html` keyed by `(abs_path, file_mtime, file_size, template_hbs_mtime, template_ctx_hash)`. Disable via `cache.enable_html: false` or tune `cache.html_capacity`.
+- TOC cache (bounded LRU) in `parser::markdown::get_toc` keyed by `(dir_abs, dir_mtime, title)`. Disable via `cache.enable_toc: false` or tune `cache.toc_capacity`.
 
 ## 7. Performance Checklist
 

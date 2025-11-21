@@ -1,3 +1,4 @@
 [target.x86_64-pc-windows-msvc]
     # 使用 lld-link 取代 MSVC link.exe，避開 PDB LNK1318 問題
+    # https://github.com/Paul-16098/my-http-server/actions/runs/18581183879/job/52976227676#step:3:1
     linker = "rust-lld.exe"

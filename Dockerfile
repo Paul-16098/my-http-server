@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.19
+# syntax=docker/dockerfile:1.20
 # Multi-stage Dockerfile for my-http-server (Rust + actix-web)
 # - Builder: rust:1.90.0-slim (bookworm)
 # - Runtime: debian:bookworm-slim (non-root)
@@ -7,22 +7,37 @@
 # - Default templates baked in; mount volumes to override
 # - TLS support: mount certificate and key files, use --tls-cert and --tls-key args
 
-FROM rust:slim AS builder
+
+
+FROM lukemathwalker/cargo-chef:latest-rust-slim AS chef
+
 WORKDIR /app
 
-# Speed up release build without requiring strip in runtime
-ENV RUSTFLAGS="-C strip=symbols"
+FROM chef AS planner
+
+# Only copy manifests to generate dependency recipe (better cache stability)
+COPY Cargo.toml Cargo.lock ./
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+
 ENV IN_DOCKER=true
 
-# Pre-fetch deps for better layer cache
-COPY Cargo.toml Cargo.lock ./
-COPY build.rs build.rs ./
-RUN cargo fetch --locked
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+
+# Pre-fetch deps for better layer cache & add build.rs
+COPY Cargo.toml Cargo.lock build.rs ./
 
 # Copy source
 COPY src ./src
-
+# in build use `include_str!("...")`
 COPY meta ./meta
+COPY emojis.json ./
+COPY ./src/swagger-ui.html ./src/swagger-ui.html
+COPY LICENSE.txt ./
+
 
 # Build with BuildKit cache mounts
 # Enable BuildKit before building: DOCKER_BUILDKIT=1
@@ -64,4 +79,5 @@ VOLUME ["/app/public","/app/meta"]
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget -qO- http://127.0.0.1:8080/ > /dev/null || exit 1
 
-ENTRYPOINT ["/usr/local/bin/my-http-server", "--ip", "0.0.0.0"]
+ENTRYPOINT ["/usr/local/bin/my-http-server"]
+CMD [ "--ip", "0.0.0.0" ]

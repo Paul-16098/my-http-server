@@ -1,4 +1,35 @@
-# Build artifacts
+# Reduce Docker build context & avoid leaking local files
+# Note: Do NOT ignore meta/ because runtime stage copies it into the image.
+#       Keep public/ included too (often mounted as a volume; harmless in context).
+
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# VCS & CI
+/.git/
+/.gitignore
+/.github/
+
+# Editors & OS junk
+/.vscode/
+/.idea/
+.DS_Store
+Thumbs.db
+
+# Logs & temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Project docs & tests (not required for building the binary)
+/docs/
+/test/
+
+# Docker orchestration files (not needed inside image context)
+/docker-compose.yml  # Docker orchestration files (not needed inside image context)
+/docker-compose.yaml # Docker orchestration files (not needed inside image context)
 target/
 
 # VCS / CI
@@ -23,5 +54,4 @@ public/
 !meta/
 
 # Other
-.dockerignore
 Dockerfile
