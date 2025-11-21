@@ -26,7 +26,7 @@ jobs:
     name: test with httpyac
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
@@ -60,7 +60,7 @@ jobs:
     name: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - run: cargo test
 
   release:
@@ -96,7 +96,7 @@ jobs:
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v1
