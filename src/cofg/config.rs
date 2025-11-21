@@ -146,11 +146,16 @@ impl Cofg {
     }
 
     pub(crate) fn new() -> Self {
-        Self::get()
+        Self::get(true)
     }
 
-    pub(crate) fn get() -> Self {
+    /// if `reload` is true, reload config from disk
+    pub(crate) fn get(reload: bool) -> Self {
         let cell = GLOBAL_COFG.get_or_init(|| RwLock::new(Self::load_from_disk()));
+
+        if reload && let Ok(mut guard) = cell.write() {
+            *guard = Self::load_from_disk();
+        }
 
         cell.read().map(|g| g.clone()).unwrap_or_default()
     }

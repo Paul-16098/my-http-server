@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod test;
 
+mod api;
 mod cofg;
 mod parser;
 use crate::cofg::{cli, config::Cofg};
@@ -300,7 +301,11 @@ async fn main() -> AppResult<()> {
         .to_string();
 
     init(&s)?;
-    info!("VERSION: {}", option_env!("VERSION").unwrap_or("?"));
+    info!(
+        "VERSION: {} in {}",
+        option_env!("VERSION").unwrap_or("?"),
+        Path::new(".").canonicalize()?.display()
+    );
     debug!("cofg: {s:#?}");
 
     build_server(&s)?.await?;

@@ -30,6 +30,17 @@ pub(crate) fn build_config_from_cli(
         s.tls.key = key.to_string();
         s.tls.enable = true;
     }
+    if let Some(dir) = &cli.root_dir {
+        // println!("Overriding root_dir to {}", dir);
+        std::env::set_current_dir(dir)?;
+        let mut new_cli = cli.clone();
+        new_cli.root_dir = None;
+
+        let new_cofg = build_config_from_cli(config::Cofg::new(), &new_cli);
+        // println!("New cofg from root_dir: {:?}", new_cofg);
+
+        return new_cofg;
+    }
 
     Ok(s)
 }

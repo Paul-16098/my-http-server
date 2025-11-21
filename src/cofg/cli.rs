@@ -9,7 +9,7 @@ use clap::Parser;
 
 use crate::error::AppError;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(version = option_env!("VERSION").unwrap_or("?"))]
 pub(crate) struct Args {
     #[arg(long)]
@@ -20,6 +20,9 @@ pub(crate) struct Args {
     pub(crate) tls_cert: Option<String>,
     #[arg(long)]
     pub(crate) tls_key: Option<String>,
+    #[arg()]
+    /// Root directory for execution context
+    pub(crate) root_dir: Option<String>,
 }
 
 impl TryFrom<&Args> for super::config::CofgAddrs {

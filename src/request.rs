@@ -198,7 +198,7 @@ fn render_toc_to_html_response(
 pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
     debug!("{req:#?}");
 
-    let c = &Cofg::new();
+    let c = &Cofg::get(false);
     let public_path = &Path::new(&c.public_path).canonicalize().unwrap();
     // Resolve the target path under the configured public root.
     let filename_str = req.match_info().query("filename");
@@ -217,7 +217,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
             } else {
                 let err = f.err().unwrap();
                 warn!("{err}");
-                server_error(err.to_string());
+                return server_error(err.to_string());
             }
         }
     }
