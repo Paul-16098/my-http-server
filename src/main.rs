@@ -18,6 +18,8 @@ use log::{debug, error, info, warn};
 use std::fs::create_dir_all;
 use std::path::Path;
 
+pub(crate) const VERSION: &str = env!("VERSION");
+
 /// Initialize logging & ensure `public_path` directory exists.
 ///
 /// WHY: Keep side-effect setup isolated from `main()`. Directory creation early prevents
@@ -49,7 +51,7 @@ fn logger_init() {
 }
 
 // SECURITY: Constant-time comparison to reduce timing attack surface.
-#[cfg(test)]
+
 pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     let max_len = a.len().max(b.len());
     let mut diff: u8 = (a.len() ^ b.len()) as u8;
@@ -61,30 +63,8 @@ pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     diff == 0
 }
 
-#[cfg(not(test))]
-fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-    let max_len = a.len().max(b.len());
-    let mut diff: u8 = (a.len() ^ b.len()) as u8;
-    for i in 0..max_len {
-        let ai = *a.get(i).unwrap_or(&0);
-        let bi = *b.get(i).unwrap_or(&0);
-        diff |= ai ^ bi;
-    }
-    diff == 0
-}
-
 // Constant-time comparison for Option<&str>
-#[cfg(test)]
 pub(crate) fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
-    match (a, b) {
-        (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
-        (None, None) => true,
-        _ => false,
-    }
-}
-
-#[cfg(not(test))]
-fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
         (None, None) => true,
@@ -131,6 +111,7 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerC
 fn build_server(s: &Cofg) -> AppResult<Server> {
     let middleware_cofg = s.middleware.clone();
     let addrs = &s.addrs;
+    let api_enable = s.api.enable;
 
     info!(
         "run in {}://{}/",
@@ -139,7 +120,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
     );
 
     let server = HttpServer::new(move || {
-        App::new()
+        let mut app = App::new()
             .wrap(middleware::Condition::new(
                 middleware_cofg.rate_limiting.enable,
                 {
@@ -265,8 +246,18 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 
                     filter
                 },
-            ))
-            .service(main_req)
+            ));
+        if api_enable {
+            app = app.service(
+                actix_web::web::scope("/api")
+                    .service(api::docs)
+                    .service(api::raw_openapi)
+                    .service(api::meta)
+                    .service(api::license),
+            );
+        }
+        app = app.service(main_req);
+        app
     })
     .keep_alive(KeepAlive::Os);
 
@@ -303,7 +294,7 @@ async fn main() -> AppResult<()> {
     init(&s)?;
     info!(
         "VERSION: {} in {}",
-        option_env!("VERSION").unwrap_or("?"),
+        VERSION,
         Path::new(".").canonicalize()?.display()
     );
     debug!("cofg: {s:#?}");

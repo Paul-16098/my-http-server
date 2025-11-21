@@ -74,5 +74,10 @@ toc:
   ig:
     - <build-in>
 
+api:
+  # 啟用 API 端點（包括 Swagger UI 和 OpenAPI 文件）
+  enable: true
+  allow_edit: false
+
 # 公共目錄的路徑
 public_path: ./public/

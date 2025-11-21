@@ -13,9 +13,11 @@ My HTTP Server 是一個用於處理靜態檔案與 Markdown 檔案的高效能 
 - **語言**: Rust
 
 - **框架與函式庫**:
-  - Actix-web: 提供 HTTP 伺服器功能
-  - Handlebars: 用於模板渲染
-  - Actix-governor: 實現速率限制
+  - [Actix-web](https://actix.rs/): 提供 HTTP 伺服器功能
+  - [Handlebars](https://github.com/sunng87/handlebars-rust): 用於模板渲染
+  - [Actix-governor](https://github.com/AaronErhardt/actix-governor): 實現速率限制
+  - [utoipa](https://github.com/juhaku/utoipa): 提供自動生成的 OpenAPI 文檔
+  - [swagger-ui](https://github.com/swagger-api/swagger-ui/): 提供可視覺化 API 資源並與之互動
 
 ## Project Architecture
 

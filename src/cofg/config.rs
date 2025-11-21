@@ -71,6 +71,10 @@ pub(crate) struct Cofg {
         pub(crate) burst_size: u32
       }
     },
+    pub(crate) api: nest! {
+      pub(crate) enable: bool,
+      pub(crate) allow_edit: bool
+    },
     pub(crate) templating: nest! {
       /// Custom template values
       pub(crate) value: Option<Vec<String>>,

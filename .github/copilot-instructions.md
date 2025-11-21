@@ -2,38 +2,69 @@
 
 ## AI Quick Reference (my-http-server)
 
-- Flow: .md → markdown_ppp AST → HTML fragment → Handlebars `meta/html-t.hbs` → response; non-.md → `actix_files::NamedFile` passthrough.
-- Key modules: HTTP `src/request.rs`; parsing `src/parser/{markdown.rs,templating.rs,mod.rs}`; config `src/cofg/{config.rs,cli.rs,mod.rs}`; server `src/main.rs`; errors `src/error.rs`.
+**Architecture:** Actix-web HTTP server that serves static files and dynamically renders Markdown to HTML via `markdown_ppp` AST + Handlebars templating.
 
-Configuration & templating
+### Request Flow
 
-- `Cofg::new()` returns cached config (OnceCell<RwLock<\_>>). No per-request reload API.
-- CLI overrides via `cofg::build_config_from_cli` (TLS only enabled when cert+key provided).
-- Template engine: global OnceCell<RwLock<Handlebars>>; `templating.hot_reload=true` sets dev_mode (does NOT rebuild each request).
-- Context DSL `templating.value`: `name:value` (type inference bool→i64→string) and `name:env:VAR`. Always includes `server-version`; body is injected as HTML fragment.
+- `.md` files: read → `markdown_ppp` AST → HTML fragment → inject into `meta/html-t.hbs` (Handlebars) → response
+- Other files: stream via `actix_files::NamedFile`
+- Missing files: serve `meta/404.html` if present, else plain 404
 
-Routing
+### Key Modules & Patterns
 
-- GET / → serve `public/index.html` if present; else build TOC (from `public_path`) and render via `md2html`.
-- GET /{filename:.\*} → resolve under `public_path`; if missing prefer `meta/404.html`; if `.md` read + `md2html` with `path:`; if dir → TOC; else stream file.
+- **HTTP handling:** `src/request.rs` (routes: `/` index, `/{filename:.*}` catchall), `src/main.rs` (server setup)
+- **Parsing pipeline:** `src/parser/mod.rs::md2html` orchestrates markdown→HTML→template; `src/parser/markdown.rs` (TOC generation, parsing); `src/parser/templating.rs` (engine + context)
+- **Config:** `src/cofg/config.rs` uses `OnceCell<RwLock<Cofg>>` for global cached config; `Cofg::new()` returns cached value (no per-request reload unless `get(true)` + `hot_reload=true`)
+- **Errors:** `src/error.rs` defines `AppError` enum with `Responder` impl; bubble errors with `?` from any depth
 
-TOC
+### Configuration Gotchas
 
-- `parser::markdown::get_toc(root, c, title?)` walks with `wax::Glob`, filters by `toc.ext`, ignores `toc.ig`, outputs percent-encoded links.
+- **Template context DSL:** `templating.value: ["name:value"]` with type inference (bool → i64 → string) and `name:env:VAR` for env vars
+- **Hot reload:** `templating.hot_reload=true` rebuilds Handlebars engine per request (dev only); config reloaded only on explicit `get(true)` call
+- **Built-in context vars:** `server-version` (always), `body` (HTML fragment from markdown), `path` (supplied by route handlers)
+- **CLI overrides:** `cofg::build_config_from_cli` applies CLI args; TLS enabled only when both cert+key provided
 
-Middleware order
+### Routing Behavior
 
-- Rate limiting → Logger → NormalizePath → Compress → BasicAuth → IP Filter → Routes. Logger uses `%{url}xi` (percent-decoded, trims leading `/`) to target `http-log`.
+- `GET /` → serve `public/index.html` if exists; else generate TOC from `public_path` via `get_toc` and render with `md2html`
+- `GET /{filename:.*}` → resolve under `public_path`; if `.md` → read + `md2html` with `path:` context; if dir → TOC; else static file
 
-Dev workflow
+### TOC Generation
 
-- Start: `cargo run` (writes default `cofg.yaml` and `meta/html-t.hbs` on first run and exits—run again).
-- Test: `cargo test` (tests in `src/test/*.rs`). Lint: `cargo clippy -- -D warnings`. VS Code tasks: ast-grep: scan/test.
+- `parser::markdown::get_toc(root, c, title?)` walks with `wax::Glob`, filters by `toc.ext`, ignores `toc.ig`, outputs percent-encoded Markdown list
 
-Notes / gotchas
+### Middleware Chain (when enabled)
 
-- No HTML render cache; Markdown re-parsed per request.
-- Path canonicalization is best-effort; add prefix enforcement if serving untrusted roots.
-- Custom 404: create `meta/404.html`.
+Rate limiting → Logger → NormalizePath → Compress → BasicAuth → IP Filter → Routes
 
-Quick links: `docs/request-flow.md`, `docs/config-templating-map.md`, `architecture.md`.
+- Logger format uses `%{url}xi` (percent-decoded, leading `/` trimmed) targeting `http-log` module
+- Toggle middleware via `cofg.yaml`: `middleware.{normalize_path,compress,logger.enabling,http_base_authentication.enable,ip_filter.enable,rate_limiting.enable}`
+
+### Dev Workflow
+
+- **First run:** `cargo run` writes defaults (`cofg.yaml`, `meta/html-t.hbs`) and exits; run again to start server
+- **Tests:** `cargo test` (unit tests in `src/test/*.rs`); integration tests check middleware, auth, IP filter
+- **Linting:** `cargo clippy -- -D warnings`
+- **VS Code tasks:** `ast-grep: scan` (lint with ast-grep rules), `ast-grep: test` (interactive testing)
+- **API docs:** `/api` serves Swagger UI (utoipa-generated from `src/api.rs`)
+
+### Important Constraints
+
+- **No HTML caching:** Markdown re-parsed per request (performance trade-off for simplicity)
+- **Path security:** Canonicalization is best-effort; add strict prefix enforcement if serving untrusted roots
+- **Template files:** `meta/html-t.hbs` must exist; auto-created from embedded default on first run
+- **Custom 404:** Place `meta/404.html` to override default plaintext 404
+
+### Code Conventions
+
+- **WHY comments:** Module and function docs explain rationale, not just what
+- **Bilingual docs:** English + 中文 for team accessibility (see `architecture.md`, `src/parser/mod.rs`)
+- **Contract sections:** Functions document inputs, outputs, errors, side effects, perf/security notes (see `md2html`)
+- **Error propagation:** Use `?` operator with `AppError`; custom `Responder` impl converts to HTTP responses
+
+### Quick References
+
+- Request flow diagrams: `docs/request-flow.md`
+- Config→code mapping: `docs/config-templating-map.md`
+- Architecture deep dive: `architecture.md`
+- Key function list: `docs/key-functions.md`

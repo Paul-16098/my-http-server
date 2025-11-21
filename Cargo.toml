@@ -1,7 +1,13 @@
 [package]
-    name    = "my-http-server"
+    name = "my-http-server"
     version = "3.2.0"
     edition = "2024"
+    license-file = "./LICENSE.txt"
+    readme = "./README.md"
+    repository = "https://github.com/Paul-16098/my-http-server/"
+    authors = [
+        "Paul-16098",
+    ]
 
 [dependencies]
     actix-files = "0.6.8"
@@ -44,6 +50,9 @@
         "log",
     ] }
     lru = "0.16.2"
+    utoipa = { version = "5.4.0", features = [
+        "actix_extras",
+    ] }
 
 [[bin]]
     name = "my-http-server"
