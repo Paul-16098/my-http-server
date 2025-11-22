@@ -13,7 +13,7 @@ impl utoipa::Modify for ServerAddon {
     servers((url = ".", description = "Local server")), 
     modifiers(&ServerAddon), 
     paths(meta, license, file::get_raw_file, file::file_info, file::list_files, file::check_exists),
-    components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse))
+    components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse, file::PathType))
 )]
 pub(crate) struct ApiDoc;
 
@@ -94,6 +94,18 @@ pub(crate) mod file {
         }
     }
 
+    /// Helper to canonicalize the configured public_path with unified error handling.
+    /// WHY: All endpoints need a canonical, absolute root path to enforce prefix checks
+    /// for traversal protection. Centralizing this logic removes duplication and ensures
+    /// future security fixes apply everywhere.
+    fn get_canonical_public_path() -> Result<PathBuf, HttpResponse> {
+        let c = Cofg::get(false);
+        Path::new(&c.public_path).canonicalize().map_err(|e| {
+            warn!("public_path canonicalize failed: {}", e);
+            HttpResponse::InternalServerError().body(AppError::from(e).to_string())
+        })
+    }
+
     /// Common validation logic for all path types
     fn validate_path_base(path: &str, public_path: &Path) -> Result<PathBuf, ValidationError> {
         if path.trim().is_empty() {
@@ -161,13 +173,9 @@ pub(crate) mod file {
     )]
     #[post("/get_raw")]
     async fn get_raw_file(req: actix_web::HttpRequest, path: String) -> HttpResponse {
-        let c = Cofg::get(false);
-        let public_path = match Path::new(&c.public_path).canonicalize() {
+        let public_path = match get_canonical_public_path() {
             Ok(v) => v,
-            Err(e) => {
-                warn!("public_path canonicalize failed: {}", e);
-                return HttpResponse::InternalServerError().body(AppError::from(e).to_string());
-            }
+            Err(resp) => return resp,
         };
 
         let resolved = match validate_and_resolve_path(&path, &public_path) {
@@ -207,13 +215,23 @@ pub(crate) mod file {
         pub entries: Vec<FileInfo>,
     }
 
+    /// Type of the path if it exists: "file", "directory", or "other"
+    #[derive(Serialize, Deserialize, Clone, Debug, utoipa::ToSchema, PartialEq, Eq)]
+    #[serde(rename_all = "lowercase")]
+    pub enum PathType {
+        File,
+        Directory,
+        Other,
+    }
+
     /// Response structure for path existence check
     #[derive(Serialize, Deserialize, Clone, Debug, utoipa::ToSchema)]
     pub struct ExistsResponse {
         /// Whether the path exists
         pub exists: bool,
-        /// Type of the path if it exists
-        pub path_type: Option<String>,
+        /// Type of the path if it exists: "file", "directory", or "other"
+        #[schema(example = "file")]
+        pub path_type: Option<PathType>,
     }
 
     /// Get file or directory metadata
@@ -238,13 +256,9 @@ pub(crate) mod file {
     )]
     #[post("/info")]
     async fn file_info(path: String) -> HttpResponse {
-        let c = Cofg::get(false);
-        let public_path = match Path::new(&c.public_path).canonicalize() {
+        let public_path = match get_canonical_public_path() {
             Ok(v) => v,
-            Err(e) => {
-                warn!("public_path canonicalize failed: {}", e);
-                return HttpResponse::InternalServerError().body(AppError::from(e).to_string());
-            }
+            Err(resp) => return resp,
         };
 
         let resolved = match validate_and_resolve_any_path(&path, &public_path) {
@@ -316,13 +330,9 @@ pub(crate) mod file {
     )]
     #[post("/list")]
     async fn list_files(path: String) -> HttpResponse {
-        let c = Cofg::get(false);
-        let public_path = match Path::new(&c.public_path).canonicalize() {
+        let public_path = match get_canonical_public_path() {
             Ok(v) => v,
-            Err(e) => {
-                warn!("public_path canonicalize failed: {}", e);
-                return HttpResponse::InternalServerError().body(AppError::from(e).to_string());
-            }
+            Err(resp) => return resp,
         };
 
         let resolved = match validate_and_resolve_directory_path(&path, &public_path) {
@@ -360,13 +370,13 @@ pub(crate) mod file {
                 .to_string_lossy()
                 .to_string();
 
-            let relative_path = entry_path
-                .strip_prefix(&public_path)
-                .map(|p| p.to_string_lossy().to_string())
-                .unwrap_or_else(|e| {
-                    warn!("Failed to strip prefix from directory entry: {}", entry_path.display());
-                    format!("Error stripping prefix: {}", e)
-                });
+            let relative_path = match entry_path.strip_prefix(&public_path) {
+                Ok(p) => p.to_string_lossy().to_string(),
+                Err(e) => {
+                    warn!("Failed to strip prefix from directory entry: {}: {}", entry_path.display(), e);
+                    continue; // Skip inconsistent entry, avoid exposing error text to API consumers
+                }
+            };
 
             let size = if metadata.is_file() {
                 Some(metadata.len())
@@ -391,7 +401,8 @@ pub(crate) mod file {
         }
 
         // Sort entries: directories first, then files, alphabetically within each group
-        entries.sort_by_cached_key(|e| (e.is_file, e.name.to_lowercase()));
+        // NOTE: Use !is_directory so directories (true) sort before files (false)
+        entries.sort_by_cached_key(|e| (!e.is_directory, e.name.to_lowercase()));
 
         let relative_path = resolved
             .strip_prefix(&public_path)
@@ -408,13 +419,21 @@ pub(crate) mod file {
     }
 
     /// Check if a path exists
-    /// 
-    /// WHY: Lightweight existence check without fetching full metadata or content.
-    /// Returns 200 OK with exists:false for missing paths (unlike /info which returns 404).
-    /// 
+    ///
+    /// WHY: Provides a lightweight existence probe without incurring the overhead of
+    /// metadata extraction or content streaming. Designed to return `200 OK` with
+    /// `exists:false` for missing paths (instead of a 404) so client code can perform
+    /// conditional logic (e.g. create-if-missing) without treating absence as an error.
+    /// This keeps error semantics reserved for invalid requests (empty path, traversal, IO
+    /// errors) and simplifies consumer retry logic.
+    ///
+    /// Rationale: Reuses centralized validation helper ensuring any future hardening of
+    /// traversal or normalization automatically applies here. Separating existence checks
+    /// from `/info` avoids eager filesystem metadata calls for hot-path probes.
+    ///
     /// # Security
-    /// - Validates against path traversal for existing paths
-    /// - Returns minimal information for non-existent paths (no error details)
+    /// - Centralized path validation prevents traversal attempts
+    /// - Missing paths never leak internal error details
     #[utoipa::path(
         request_body(content = String, description = "path relative to public_path to check", example = "./dir/test.md"),
         responses(
@@ -425,48 +444,28 @@ pub(crate) mod file {
     )]
     #[post("/exists")]
     async fn check_exists(path: String) -> HttpResponse {
-        let c = Cofg::get(false);
-        let public_path = match Path::new(&c.public_path).canonicalize() {
+        let public_path = match get_canonical_public_path() {
             Ok(v) => v,
-            Err(e) => {
-                warn!("public_path canonicalize failed: {}", e);
-                return HttpResponse::InternalServerError().body(AppError::from(e).to_string());
-            }
+            Err(resp) => return resp,
         };
 
-        // Check for empty path
-        if path.trim().is_empty() {
-            return HttpResponse::BadRequest().body("empty path");
-        }
-
-        let candidate = public_path.join(&path);
-
-        // Try to canonicalize - if it fails with NotFound, the path doesn't exist
-        let resolved = match candidate.canonicalize() {
+        let resolved = match validate_and_resolve_any_path(&path, &public_path) {
             Ok(p) => p,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            Err(ValidationError::NotFound) => {
                 return HttpResponse::Ok().json(ExistsResponse {
                     exists: false,
                     path_type: None,
                 });
             }
-            Err(e) => {
-                return HttpResponse::BadRequest().body(AppError::from(e).to_string());
-            }
+            Err(e) => return e.into_response(),
         };
 
-        // Check for path traversal
-        if !resolved.starts_with(&public_path) {
-            warn!("attempt to access file outside public_path: {}", resolved.display());
-            return HttpResponse::Forbidden().body("path traversal attacks are not allowed");
-        }
-
         let path_type = if resolved.is_file() {
-            Some("file".to_string())
+            Some(PathType::File)
         } else if resolved.is_dir() {
-            Some("directory".to_string())
+            Some(PathType::Directory)
         } else {
-            Some("other".to_string())
+            Some(PathType::Other)
         };
 
         HttpResponse::Ok().json(ExistsResponse {

@@ -64,15 +64,15 @@ fn test_directory_listing_struct_creation() {
 
 #[test]
 fn test_exists_response_struct_creation() {
-    use crate::api::file::ExistsResponse;
+    use crate::api::file::{ExistsResponse, PathType};
 
     let response_exists = ExistsResponse {
         exists: true,
-        path_type: Some("file".to_string()),
+        path_type: Some(PathType::File),
     };
 
     assert!(response_exists.exists);
-    assert_eq!(response_exists.path_type, Some("file".to_string()));
+    assert_eq!(response_exists.path_type, Some(PathType::File));
 
     let response_not_exists = ExistsResponse {
         exists: false,
@@ -136,12 +136,12 @@ fn test_directory_listing_serialization() {
 
 #[test]
 fn test_exists_response_serialization() {
-    use crate::api::file::ExistsResponse;
+    use crate::api::file::{ExistsResponse, PathType};
     use serde_json;
 
     let response = ExistsResponse {
         exists: true,
-        path_type: Some("directory".to_string()),
+        path_type: Some(PathType::Directory),
     };
 
     let json = serde_json::to_string(&response).unwrap();
@@ -331,14 +331,19 @@ fn test_unix_timestamp_conversion() {
 
 #[test]
 fn test_path_type_strings() {
-    // Test the path type string constants used in ExistsResponse
-    let file_type = "file";
-    let dir_type = "directory";
-    let other_type = "other";
+    use crate::api::file::PathType;
+    use serde_json;
 
-    assert_eq!(file_type, "file");
-    assert_eq!(dir_type, "directory");
-    assert_eq!(other_type, "other");
+    // Ensure enum variants serialize to expected lowercase strings
+    assert_eq!(serde_json::to_string(&PathType::File).unwrap(), "\"file\"");
+    assert_eq!(
+        serde_json::to_string(&PathType::Directory).unwrap(),
+        "\"directory\""
+    );
+    assert_eq!(
+        serde_json::to_string(&PathType::Other).unwrap(),
+        "\"other\""
+    );
 }
 
 #[test]
