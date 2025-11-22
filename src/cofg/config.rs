@@ -5,7 +5,6 @@
 //! only attempted when caller explicitly asks (`get(true)`) AND hot-reload is enabled. This keeps
 //! the steady-state fast while still offering a development-friendly live tweaking mode.
 
-use log::error;
 use nest_struct::nest_struct;
 use once_cell::sync::OnceCell;
 use std::{collections::HashSet, process::exit, sync::RwLock};
@@ -129,7 +128,8 @@ impl Cofg {
             .unwrap()
             .try_deserialize::<Self>()
             .unwrap_or_else(|err| {
-                error!("{}", AppError::ConfigError(err));
+                // log is not yet initialized here
+                println!("{}", AppError::ConfigError(err));
                 exit(1)
             })
             .configure_default_extensions()
