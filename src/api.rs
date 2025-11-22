@@ -416,7 +416,7 @@ pub(crate) mod file {
         }
 
         let candidate = public_path.join(&path);
-        
+
         // Try to canonicalize - if it fails with NotFound, the path doesn't exist
         let resolved = match candidate.canonicalize() {
             Ok(p) => p,
