@@ -270,7 +270,10 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                     .service(api::raw_openapi)
                     .service(api::meta)
                     .service(api::license)
-                    .service(api::file::get_raw_file),
+                    .service(api::file::get_raw_file)
+                    .service(api::file::file_info)
+                    .service(api::file::list_files)
+                    .service(api::file::check_exists),
             );
         }
         app = app.service(main_req);
