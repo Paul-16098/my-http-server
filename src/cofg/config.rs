@@ -5,9 +5,12 @@
 //! only attempted when caller explicitly asks (`get(true)`) AND hot-reload is enabled. This keeps
 //! the steady-state fast while still offering a development-friendly live tweaking mode.
 
+use log::error;
 use nest_struct::nest_struct;
 use once_cell::sync::OnceCell;
-use std::{collections::HashSet, sync::RwLock};
+use std::{collections::HashSet, process::exit, sync::RwLock};
+
+use crate::error::AppError;
 
 pub(crate) const BUILD_COFG: &str = include_str!("cofg.yaml");
 
@@ -57,10 +60,13 @@ pub(crate) struct Cofg {
       pub(crate) ip_filter: nest! {
         /// Enable IP filtering
         pub(crate) enable: bool,
-        /// Whitelisted IPs
-        pub(crate) allow: Option<Vec<String>>,
-        /// Blacklisted IPs
-        pub(crate) block: Option<Vec<String>>
+        pub(crate) rules: Vec<nest!{
+          pub(crate) limit_to: Vec<String>,
+          /// Whitelisted IPs
+          pub(crate) allow: Option<Vec<String>>,
+          /// Blacklisted IPs
+          pub(crate) block: Option<Vec<String>>
+        }>,
       },
       pub(crate) rate_limiting: nest! {
         /// Enable rate limiting
@@ -122,7 +128,10 @@ impl Cofg {
             .build()
             .unwrap()
             .try_deserialize::<Self>()
-            .unwrap()
+            .unwrap_or_else(|err| {
+                error!("{}", AppError::ConfigError(err));
+                exit(1)
+            })
             .configure_default_extensions()
     }
 

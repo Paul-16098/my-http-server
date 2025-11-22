@@ -29,24 +29,32 @@ middleware:
     # 是否啟用 HTTP 基本驗證
     enable: false
     users:
-      # 使用者清單（可選）
+      # # 使用者清單（可選）
       # - name: 使用者名稱
       #   passwords: 密碼（可選）
-      #   allow: 允許的路徑清單（可選）
+      #   allow: # 允許的路徑清單（可選）
       #     - /
-      #   disallow: 禁止的路徑清單（可選）
+      #   disallow: # 禁止的路徑清單（可選）
       #     - /disallow/
 
   ip_filter:
     # 是否啟用 IP 過濾
     enable: false
-    # 允許的 IP 或範圍（白名單模式，可選）
-    allow:
-      # - 127.0.0.1
-      # - 192.168.1.*
-    # 禁止的 IP 或範圍（黑名單模式，可選）
-    block:
-      # - 10.0.0.*
+    # 規則清單
+    rules:
+      # limit_to: 指定此規則適用的路徑（支援萬用字元 *，例如 "*" 代表所有路徑）。
+      # 只有當請求的路徑符合 limit_to 中的任一模式時，才會套用本規則的 allow/block 清單。
+      # 英文說明: limit_to specifies which paths this rule applies to (wildcards like "*" match all paths).
+      # The allow/block lists are only checked for requests matching these paths.
+      - limit_to:
+          - "*"
+        # 允許的 IP 或範圍（白名單模式，可選）
+        allow:
+          # - 127.0.0.1
+          # - 192.168.1.*
+        # 禁止的 IP 或範圍（黑名單模式，可選）
+        block:
+          # - 10.0.0.*
 
   rate_limiting:
     # 是否啟用速率限制

@@ -196,7 +196,7 @@ fn render_toc_to_html_response(
 /// separate for TOC special-case.
 /// 中文：統一路徑處理；Markdown 即時轉換，其餘走靜態檔。
 pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
-    debug!("{req:#?}");
+    debug!("{req:?}");
 
     let c = &Cofg::get(false);
     let public_path = &Path::new(&c.public_path).canonicalize().unwrap();

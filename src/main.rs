@@ -12,6 +12,7 @@ use crate::error::AppResult;
 mod request;
 use crate::request::main_req;
 
+use actix_web::HttpResponse;
 use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
 use clap::Parser as _;
 use log::{debug, error, info, warn};
@@ -232,17 +233,32 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                     use actix_ip_filter::IPFilter;
                     let mut filter = IPFilter::new();
 
-                    // If allow list is specified, use whitelist mode
-                    if let Some(allow_list) = middleware_cofg.ip_filter.allow.as_ref() {
-                        let allow_refs: Vec<&str> = allow_list.iter().map(|s| s.as_str()).collect();
-                        filter = filter.allow(allow_refs);
-                    }
+                    for rule in middleware_cofg.ip_filter.rules.iter() {
+                        // If allow list is specified, use whitelist mode
+                        if let Some(allow_list) = rule.allow.as_ref() {
+                            let allow_refs: Vec<&str> =
+                                allow_list.iter().map(|s| s.as_str()).collect();
+                            filter = filter.allow(allow_refs);
+                        }
 
-                    // If block list is specified, add to blocklist
-                    if let Some(block_list) = middleware_cofg.ip_filter.block.as_ref() {
-                        let block_refs: Vec<&str> = block_list.iter().map(|s| s.as_str()).collect();
-                        filter = filter.block(block_refs);
+                        // If block list is specified, add to blocklist
+                        if let Some(block_list) = rule.block.as_ref() {
+                            let block_refs: Vec<&str> =
+                                block_list.iter().map(|s| s.as_str()).collect();
+                            filter = filter.block(block_refs);
+                        }
+                        filter =
+                            filter.limit_to(rule.limit_to.iter().map(|f| f.as_str()).collect());
                     }
+                    filter = filter.on_block(
+                        |_flt: &IPFilter, ip: &str, req: &actix_web::dev::ServiceRequest| {
+                            debug!("ip_filter: block ip {ip} req={:?}", req);
+                            Some(
+                                HttpResponse::Forbidden()
+                                    .body(format!("IP is blocked, your IP is {ip}")),
+                            )
+                        },
+                    );
 
                     filter
                 },
@@ -253,7 +269,8 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                     .service(api::docs)
                     .service(api::raw_openapi)
                     .service(api::meta)
-                    .service(api::license),
+                    .service(api::license)
+                    .service(api::file::get_raw_file),
             );
         }
         app = app.service(main_req);
