@@ -94,10 +94,8 @@ pub(crate) mod file {
         }
     }
 
-    fn validate_and_resolve_path(
-        path: &str,
-        public_path: &Path,
-    ) -> Result<PathBuf, ValidationError> {
+    /// Common validation logic for all path types
+    fn validate_path_base(path: &str, public_path: &Path) -> Result<PathBuf, ValidationError> {
         if path.trim().is_empty() {
             return Err(ValidationError::Empty);
         }
@@ -114,6 +112,15 @@ pub(crate) mod file {
         if !resolved.starts_with(public_path) {
             return Err(ValidationError::Traversal(resolved.display().to_string()));
         }
+
+        Ok(resolved)
+    }
+
+    fn validate_and_resolve_path(
+        path: &str,
+        public_path: &Path,
+    ) -> Result<PathBuf, ValidationError> {
+        let resolved = validate_path_base(path, public_path)?;
 
         if !resolved.is_file() {
             return Err(ValidationError::NotFile);
@@ -126,46 +133,14 @@ pub(crate) mod file {
         path: &str,
         public_path: &Path,
     ) -> Result<PathBuf, ValidationError> {
-        if path.trim().is_empty() {
-            return Err(ValidationError::Empty);
-        }
-
-        let candidate = public_path.join(path);
-        let resolved = candidate.canonicalize().map_err(|e| {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                ValidationError::NotFound
-            } else {
-                ValidationError::IoError(e)
-            }
-        })?;
-
-        if !resolved.starts_with(public_path) {
-            return Err(ValidationError::Traversal(resolved.display().to_string()));
-        }
-
-        Ok(resolved)
+        validate_path_base(path, public_path)
     }
 
     fn validate_and_resolve_directory_path(
         path: &str,
         public_path: &Path,
     ) -> Result<PathBuf, ValidationError> {
-        if path.trim().is_empty() {
-            return Err(ValidationError::Empty);
-        }
-
-        let candidate = public_path.join(path);
-        let resolved = candidate.canonicalize().map_err(|e| {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                ValidationError::NotFound
-            } else {
-                ValidationError::IoError(e)
-            }
-        })?;
-
-        if !resolved.starts_with(public_path) {
-            return Err(ValidationError::Traversal(resolved.display().to_string()));
-        }
+        let resolved = validate_path_base(path, public_path)?;
 
         if !resolved.is_dir() {
             return Err(ValidationError::NotDirectory);
@@ -207,7 +182,7 @@ pub(crate) mod file {
     }
 
     /// Response structure for file metadata
-    #[derive(Serialize, Deserialize, utoipa::ToSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, utoipa::ToSchema)]
     pub struct FileInfo {
         /// File name
         pub name: String,
@@ -224,7 +199,7 @@ pub(crate) mod file {
     }
 
     /// Response structure for directory listing
-    #[derive(Serialize, Deserialize, utoipa::ToSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, utoipa::ToSchema)]
     pub struct DirectoryListing {
         /// Directory path relative to public_path
         pub path: String,
@@ -233,7 +208,7 @@ pub(crate) mod file {
     }
 
     /// Response structure for path existence check
-    #[derive(Serialize, Deserialize, utoipa::ToSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, utoipa::ToSchema)]
     pub struct ExistsResponse {
         /// Whether the path exists
         pub exists: bool,
