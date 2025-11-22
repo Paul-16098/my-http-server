@@ -275,7 +275,7 @@ fn test_directory_reading() {
 fn test_sorting_entries() {
     use crate::api::file::FileInfo;
 
-    let mut entries = vec![
+    let mut entries = [
         FileInfo {
             name: "zebra.txt".to_string(),
             path: "zebra.txt".to_string(),

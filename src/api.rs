@@ -217,6 +217,16 @@ pub(crate) mod file {
     }
 
     /// Get file or directory metadata
+    ///
+    /// WHY: Allows API consumers to query metadata without downloading full file content.
+    /// Critical for building file browsers and checking file properties.
+    ///
+    /// # Security
+    /// - Validates against path traversal via canonicalization + prefix check
+    /// - Only exposes files within configured public_path
+    ///
+    /// # Performance
+    /// Synchronous filesystem access; may block on slow filesystems
     #[utoipa::path(
         request_body(content = String, description = "file or directory path relative to public_path", example = "./dir/test.md"),
         responses(
@@ -255,7 +265,7 @@ pub(crate) mod file {
 
         let relative_path = resolved
             .strip_prefix(&public_path)
-            .unwrap_or(&resolved)
+            .unwrap_or_else(|e| {warn!("{e}");&resolved})
             .to_string_lossy()
             .to_string();
 
@@ -284,6 +294,17 @@ pub(crate) mod file {
     }
 
     /// List files in a directory
+    ///
+    /// WHY: Enables building file browsers and navigation UIs that need to display
+    /// directory contents. Sorts deterministically (directories first, then alphabetically)
+    /// for consistent client-side rendering.
+    ///
+    /// # Security
+    /// - Validates directory path against traversal attacks
+    /// - Skips entries with metadata errors (logs warnings) rather than failing entire request
+    ///
+    /// # Performance
+    /// Synchronous directory traversal; may be slow for large directories
     #[utoipa::path(
         request_body(content = String, description = "directory path relative to public_path", example = "./dir"),
         responses(
@@ -341,9 +362,11 @@ pub(crate) mod file {
 
             let relative_path = entry_path
                 .strip_prefix(&public_path)
-                .unwrap_or(&entry_path)
-                .to_string_lossy()
-                .to_string();
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_else(|e| {
+                    warn!("Failed to strip prefix from directory entry: {}", entry_path.display());
+                    format!("Error stripping prefix: {}", e)
+                });
 
             let size = if metadata.is_file() {
                 Some(metadata.len())
@@ -368,13 +391,7 @@ pub(crate) mod file {
         }
 
         // Sort entries: directories first, then files, alphabetically within each group
-        entries.sort_by(|a, b| {
-            match (a.is_directory, b.is_directory) {
-                (true, false) => std::cmp::Ordering::Less,
-                (false, true) => std::cmp::Ordering::Greater,
-                _ => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
-            }
-        });
+        entries.sort_by_cached_key(|e| (e.is_file, e.name.to_lowercase()));
 
         let relative_path = resolved
             .strip_prefix(&public_path)
@@ -391,6 +408,13 @@ pub(crate) mod file {
     }
 
     /// Check if a path exists
+    /// 
+    /// WHY: Lightweight existence check without fetching full metadata or content.
+    /// Returns 200 OK with exists:false for missing paths (unlike /info which returns 404).
+    /// 
+    /// # Security
+    /// - Validates against path traversal for existing paths
+    /// - Returns minimal information for non-existent paths (no error details)
     #[utoipa::path(
         request_body(content = String, description = "path relative to public_path to check", example = "./dir/test.md"),
         responses(
