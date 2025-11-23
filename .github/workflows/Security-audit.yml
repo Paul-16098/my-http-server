@@ -1,5 +1,6 @@
 name: Security audit
 on:
+  workflow_dispatch:
   push:
     paths:
       - "**/Cargo.toml"
@@ -9,6 +10,7 @@ on:
 
 permissions:
   checks: write
+  issues: write
 
 jobs:
   security_audit:
