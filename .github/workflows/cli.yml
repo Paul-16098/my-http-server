@@ -61,7 +61,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - run: cargo test
+
+      - run: cargo binstall cargo-all-features
+      - run: cargo all-features test
 
   release:
     name: Release - ${{ matrix.platform.os-name }}
