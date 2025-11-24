@@ -33,7 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c
+      - uses: actions-rust-lang/setup-rust-toolchain@ca4a6432af353637602348dec3df861ef02ed8a6
 
       - name: Install netcat
         run: |
