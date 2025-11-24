@@ -30,6 +30,8 @@ pub(crate) enum AppError {
     StripPrefixError(#[from] std::path::StripPrefixError),
     #[error("TLS Error: {0}")]
     TLSError(#[from] rustls_pki_types::pem::Error),
+    #[error("cli Error: {0}")]
+    CliError(String),
     #[error("Other error: {0}")]
     OtherError(String),
 }
@@ -60,6 +62,7 @@ impl actix_web::ResponseError for AppError {
             | AppError::ConfigError(_)
             | AppError::StripPrefixError(_)
             | AppError::TLSError(_)
+            | AppError::CliError(_)
             | AppError::OtherError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

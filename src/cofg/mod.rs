@@ -1,4 +1,4 @@
-use crate::error::AppResult;
+use crate::error::{AppError, AppResult};
 
 pub(crate) mod cli;
 pub(crate) mod config;
@@ -31,13 +31,12 @@ pub(crate) fn build_config_from_cli(
         s.tls.enable = true;
     }
     if let Some(dir) = &cli.root_dir {
-        // println!("Overriding root_dir to {}", dir);
-        std::env::set_current_dir(dir)?;
+        std::env::set_current_dir(dir)
+            .map_err(|_| AppError::CliError("ROOT_DIR must a path".to_string()))?;
         let mut new_cli = cli.clone();
         new_cli.root_dir = None;
 
         let new_cofg = build_config_from_cli(config::Cofg::new(), &new_cli);
-        // println!("New cofg from root_dir: {:?}", new_cofg);
 
         return new_cofg;
     }
