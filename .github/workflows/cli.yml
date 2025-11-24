@@ -10,6 +10,11 @@ on:
       - dev
   pull_request:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - release-tag-and-backmerge.yml
+    types:
+      - completed
 
 env:
   ACTIONS_ID: ${{ github.run_id }}
