@@ -49,10 +49,9 @@
     actix-governor = { version = "0.10.0", features = [
         "log",
     ] }
-    lru = "0.16.2"
     utoipa = { version = "5.4.0", features = [
         "actix_extras",
-    ] }
+    ], optional = true }
 
 [[bin]]
     name = "my-http-server"
@@ -61,8 +60,12 @@
 [features]
     default = [
         "github_emojis",
+        "api",
     ]
     github_emojis = [
+    ]
+    api = [
+        "dep:utoipa",
     ]
 
 [dev-dependencies]

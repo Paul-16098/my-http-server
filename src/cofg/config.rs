@@ -76,6 +76,7 @@ pub(crate) struct Cofg {
         pub(crate) burst_size: u32
       }
     },
+    #[cfg(feature = "api")]
     pub(crate) api: nest! {
       pub(crate) enable: bool,
       pub(crate) allow_edit: bool

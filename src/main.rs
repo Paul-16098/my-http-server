@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod test;
 
+#[cfg(feature = "api")]
 mod api;
 mod cofg;
 mod parser;
@@ -112,6 +113,7 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerC
 fn build_server(s: &Cofg) -> AppResult<Server> {
     let middleware_cofg = s.middleware.clone();
     let addrs = &s.addrs;
+    #[cfg(feature = "api")]
     let api_enable = s.api.enable;
 
     info!(
@@ -263,6 +265,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                     filter
                 },
             ));
+        #[cfg(feature = "api")]
         if api_enable {
             app = app.service(
                 actix_web::web::scope("/api")
