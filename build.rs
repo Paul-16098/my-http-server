@@ -30,19 +30,16 @@ fn main() {
     };
 
     let env_suffix = match var("ACTIONS_ID") {
-        Ok(id) => format!("(actions/runs/{id})"),
-        Err(std::env::VarError::NotPresent) if !in_docker => "(Local)".to_string(),
-        Err(_) if in_docker => "(Docker)".to_string(),
-        Err(_) => "(unknown)".to_string(),
+        Ok(id) => format!("actions/runs/{id}"),
+        Err(std::env::VarError::NotPresent) if !in_docker => "Local".to_string(),
+        Err(_) if in_docker => "Docker".to_string(),
+        Err(_) => "unknown".to_string(),
     };
-
     println!(
-        "cargo:rustc-env=VERSION={}({} Profile)-{commit_hash}{env_suffix}[f:{}]",
-        var("CARGO_PKG_VERSION").unwrap(),
-        var("PROFILE").unwrap(),
-        {
-            let f = var("CARGO_CFG_FEATURE").unwrap();
-            if f.is_empty() { "none".to_string() } else { f }
-        }
+        "cargo:rustc-env=FEATURES={}",
+        var("CARGO_CFG_FEATURE").unwrap()
     );
+    println!("cargo:rustc-env=PROFILE={}", var("PROFILE").unwrap());
+    println!("cargo:rustc-env=commit_hash={commit_hash}");
+    println!("cargo:rustc-env=env_suffix={env_suffix}");
 }

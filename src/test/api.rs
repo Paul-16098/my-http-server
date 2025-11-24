@@ -2,7 +2,7 @@
 //!
 //! Tests for file-related API endpoints
 
-use std::fs;
+use std::fs::{self};
 use tempfile::TempDir;
 
 #[test]

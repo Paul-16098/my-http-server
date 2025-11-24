@@ -1,6 +1,6 @@
 [package]
     name = "my-http-server"
-    version = "4.0.0"
+    version = "4.1.0"
     edition = "2024"
     license-file = "./LICENSE.txt"
     readme = "./README.md"
@@ -33,6 +33,7 @@
     thiserror = "2.0.17"
     clap = { version = "4.5.49", features = [
         "derive",
+        "string",
     ] }
     handlebars = "6.3.2"
     serde_json = "1.0.145"

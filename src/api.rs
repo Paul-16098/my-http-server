@@ -1,19 +1,19 @@
-use actix_web::{HttpResponse, get, http::header::ContentType, scope, web};
-use serde_json::json;
+use actix_web::{HttpResponse, get, http::header::ContentType, web::Json, scope};
 use utoipa::OpenApi;
 
-struct ServerAddon;
-impl utoipa::Modify for ServerAddon {
-    fn modify(&self, _openapi: &mut utoipa::openapi::OpenApi) {}
-}
+
+// struct ServerAddon;
+// impl utoipa::Modify for ServerAddon {
+//     fn modify(&self, _openapi: &mut utoipa::openapi::OpenApi) {}
+// }
 
 #[derive(utoipa::OpenApi)]
 #[openapi(
-    info(version = crate::VERSION, license(name = "gpl-3.0", url = "/api/license"), contact(name = "GitHub", url = "https://github.com/Paul-16098/my-http-server/")), 
+    info(version = crate::VERSION.version, license(name = "gpl-3.0", url = "/api/license"), contact(name = "GitHub", url = "https://github.com/Paul-16098/my-http-server/")), 
     servers((url = ".", description = "Local server")), 
-    modifiers(&ServerAddon), 
+    // modifiers(&ServerAddon), 
     paths(meta, license, file::get_raw_file, file::file_info, file::list_files, file::check_exists),
-    components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse, file::PathType))
+    components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse, file::PathType, crate::Version))
 )]
 pub(crate) struct ApiDoc;
 
@@ -39,12 +39,12 @@ async fn raw_openapi() -> HttpResponse {
 /// A JSON object containing the server version
 #[utoipa::path(
     responses(
-        (status = 200, body = serde_json::Value)
+        (status = 200, body = crate::Version)
     )
 )]
 #[get("/meta")]
-async fn meta() -> actix_web::web::Json<serde_json::Value> {
-    web::Json(json!({ "VERSION": crate::VERSION,}))
+async fn meta() -> actix_web::web::Json<crate::Version> {
+    Json(crate::VERSION)
 }
 /// Get server license
 /// # Returns
@@ -69,7 +69,8 @@ pub(crate) mod file {
 
     use crate::{cofg::config::Cofg, error::AppError};
 
-    enum ValidationError {
+    #[derive(Debug)]
+    pub(crate) enum ValidationError {
         Empty,
         Traversal(String),
         NotFound,
@@ -98,7 +99,7 @@ pub(crate) mod file {
     /// WHY: All endpoints need a canonical, absolute root path to enforce prefix checks
     /// for traversal protection. Centralizing this logic removes duplication and ensures
     /// future security fixes apply everywhere.
-    fn get_canonical_public_path() -> Result<PathBuf, HttpResponse> {
+    pub(crate) fn get_canonical_public_path() -> Result<PathBuf, HttpResponse> {
         let c = Cofg::get(false);
         Path::new(&c.public_path).canonicalize().map_err(|e| {
             warn!("public_path canonicalize failed: {}", e);
@@ -107,7 +108,7 @@ pub(crate) mod file {
     }
 
     /// Common validation logic for all path types
-    fn validate_path_base(path: &str, public_path: &Path) -> Result<PathBuf, ValidationError> {
+    pub(crate) fn validate_path_base(path: &str, public_path: &Path) -> Result<PathBuf, ValidationError> {
         if path.trim().is_empty() {
             return Err(ValidationError::Empty);
         }
@@ -128,7 +129,7 @@ pub(crate) mod file {
         Ok(resolved)
     }
 
-    fn validate_and_resolve_path(
+    pub(crate) fn validate_and_resolve_path(
         path: &str,
         public_path: &Path,
     ) -> Result<PathBuf, ValidationError> {
@@ -141,14 +142,14 @@ pub(crate) mod file {
         Ok(resolved)
     }
 
-    fn validate_and_resolve_any_path(
+    pub(crate) fn validate_and_resolve_any_path(
         path: &str,
         public_path: &Path,
     ) -> Result<PathBuf, ValidationError> {
         validate_path_base(path, public_path)
     }
 
-    fn validate_and_resolve_directory_path(
+    pub(crate) fn validate_and_resolve_directory_path(
         path: &str,
         public_path: &Path,
     ) -> Result<PathBuf, ValidationError> {
