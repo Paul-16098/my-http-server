@@ -1,0 +1,8 @@
+[tasks.test]
+    args = [
+        "all-features",
+        "test",
+    ]
+    dependencies = [
+        "build",
+    ]
