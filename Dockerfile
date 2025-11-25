@@ -34,7 +34,7 @@ COPY Cargo.toml Cargo.lock build.rs ./
 COPY src ./src
 # in build use `include_str!("...")`
 COPY meta ./meta
-COPY emojis.json ./
+# COPY emojis.json ./
 COPY ./src/swagger-ui.html ./src/swagger-ui.html
 COPY LICENSE.txt ./
 

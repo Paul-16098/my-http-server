@@ -2,6 +2,7 @@ use std::env::var;
 use std::path::Path;
 use std::process::Command;
 
+#[cfg(feature = "github_emojis")]
 fn download_github_emojis() -> Result<(), Box<dyn std::error::Error>> {
     if !Path::new("./emojis.json").exists() {
         println!("cargo:warning=build.rs: No emojis.json found, downloading...");
