@@ -2,16 +2,22 @@ use std::env::var;
 use std::path::Path;
 use std::process::Command;
 
+fn warn(t: &'static str) {
+    println!("cargo:warning=build.rs: {t}");
+}
+
 #[cfg(feature = "github_emojis")]
 fn download_github_emojis() -> Result<(), Box<dyn std::error::Error>> {
     if !Path::new("./emojis.json").exists() {
-        println!("cargo:warning=build.rs: No emojis.json found, downloading...");
+        warn("No emojis.json found, downloading...");
         // Download emojis.json using Rust (reqwest blocking)
         let url = "http://api.github.com/emojis";
 
         let mut resp = ureq::get(url)
             .header("User-Agent", "Paul-16098/my-http-server-build")
             .call()?;
+        println!("{:?}", resp);
+        println!("build.rs: Downloaded emojis.json, writing to file...");
         let body_str = resp.body_mut().read_to_string()?;
         std::fs::write("emojis.json", body_str)?;
     } else {
@@ -46,11 +52,11 @@ fn main() {
                 let commit_hash_str = String::from_utf8_lossy(&output.stdout);
                 commit_hash_str.trim().to_string()
             } else {
-                println!("cargo::warning=build.rs: Git command failed with output: {output:#?}");
+                warn("Git command failed with output: {output:#?}");
                 String::from("unknown")
             }
         } else if !in_docker {
-            println!("cargo::warning=build.rs: No .git directory found, skipping git versioning");
+            warn("No .git directory found, skipping git versioning");
             String::from("unknown")
         } else {
             "".to_string()
