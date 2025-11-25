@@ -4,5 +4,8 @@
         "test",
     ]
     dependencies = [
+        "install-dep",
         "build",
     ]
+[tasks.install-dep]
+    install_crate = "cargo-all-features"
