@@ -28,16 +28,7 @@ fn main() {
     // download
     #[cfg(feature = "github_emojis")]
     if let Err(e) = download_github_emojis() {
-        println!(
-            "cargo:error=build.rs: Failed to download GitHub emojis so disabling feature github_emojis"
-        );
-        println!("cargo:error={e}");
-        println!(
-            r#"cargo::rustc-cfg=feature="{}""#,
-            var("CARGO_CFG_FEATURE")
-                .unwrap()
-                .replace("github_emojis", "")
-        )
+        panic!("{}", e);
     };
 
     // env
