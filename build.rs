@@ -2,8 +2,44 @@ use std::env::var;
 use std::path::Path;
 use std::process::Command;
 
+fn download_github_emojis() -> Result<(), Box<dyn std::error::Error>> {
+    if !Path::new("./emojis.json").exists() {
+        println!("cargo:warning=build.rs: No emojis.json found, downloading...");
+        // Download emojis.json using Rust (reqwest blocking)
+        let url = "http://api.github.com/emojis";
+
+        let mut resp = ureq::get(url)
+            .header("User-Agent", "Paul-16098/my-http-server-build")
+            .call()?;
+        let body_str = resp.body_mut().read_to_string()?;
+        std::fs::write("emojis.json", body_str)?;
+    } else {
+        println!("build.rs: emojis.json found, skipping download");
+    }
+    Ok(())
+}
+
 fn main() {
-    println!("cargo:rerun-if-changed=build.rs");
+    // init
+    for f in ["build.rs", "emojis.json"] {
+        println!("cargo:rerun-if-changed={f}");
+    }
+    // download
+    #[cfg(feature = "github_emojis")]
+    if let Err(e) = download_github_emojis() {
+        println!(
+            "cargo:error=build.rs: Failed to download GitHub emojis so disabling feature github_emojis"
+        );
+        println!("cargo:error={e}");
+        println!(
+            r#"cargo::rustc-cfg=feature="{}""#,
+            var("CARGO_CFG_FEATURE")
+                .unwrap()
+                .replace("github_emojis", "")
+        )
+    };
+
+    // env
     let in_docker = var("IN_DOCKER").is_ok();
 
     let commit_hash = {

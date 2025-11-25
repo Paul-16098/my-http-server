@@ -1,6 +1,5 @@
-use actix_web::{HttpResponse, get, http::header::ContentType, web::Json, scope};
+use actix_web::{HttpResponse, get, http::header::ContentType, scope, web::Json};
 use utoipa::OpenApi;
-
 
 // struct ServerAddon;
 // impl utoipa::Modify for ServerAddon {
@@ -108,7 +107,10 @@ pub(crate) mod file {
     }
 
     /// Common validation logic for all path types
-    pub(crate) fn validate_path_base(path: &str, public_path: &Path) -> Result<PathBuf, ValidationError> {
+    pub(crate) fn validate_path_base(
+        path: &str,
+        public_path: &Path,
+    ) -> Result<PathBuf, ValidationError> {
         if path.trim().is_empty() {
             return Err(ValidationError::Empty);
         }
@@ -280,7 +282,10 @@ pub(crate) mod file {
 
         let relative_path = resolved
             .strip_prefix(&public_path)
-            .unwrap_or_else(|e| {warn!("{e}");&resolved})
+            .unwrap_or_else(|e| {
+                warn!("{e}");
+                &resolved
+            })
             .to_string_lossy()
             .to_string();
 
@@ -366,15 +371,16 @@ pub(crate) mod file {
                 }
             };
 
-            let name = entry
-                .file_name()
-                .to_string_lossy()
-                .to_string();
+            let name = entry.file_name().to_string_lossy().to_string();
 
             let relative_path = match entry_path.strip_prefix(&public_path) {
                 Ok(p) => p.to_string_lossy().to_string(),
                 Err(e) => {
-                    warn!("Failed to strip prefix from directory entry: {}: {}", entry_path.display(), e);
+                    warn!(
+                        "Failed to strip prefix from directory entry: {}: {}",
+                        entry_path.display(),
+                        e
+                    );
                     continue; // Skip inconsistent entry, avoid exposing error text to API consumers
                 }
             };
