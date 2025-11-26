@@ -94,8 +94,16 @@ fn emojis_init() -> Result<(), Box<dyn std::error::Error>> {
     if !Path::new("./emojis.json").exists() {
         info!("emoji json files not found, fetching from github api...");
         let mut resp = ureq::get("https://api.github.com/emojis")
-            .header("User-Agent", "Paul-16098/my-http-server-build")
-            .call()?;
+            .header("User-Agent", "Paul-16098/my-http-server")
+            .header(
+                "Authorization",
+                format!(
+                    "Bearer {}",
+                    std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN environment variable not set. Please set it to a valid GitHub token.")
+                ),
+            )
+            .call()
+            .expect("emojis not initialized: failed to fetch from github api");
         let body = resp.body_mut().read_json::<HashMap<String, String>>()?;
         let mut unicode_emojis = HashMap::new();
         let mut else_emojis = HashMap::new();
@@ -129,11 +137,12 @@ fn emojis_init() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         info!("emoji json files found, skipping fetch.");
     }
-    EMOJIS
-        .set(serde_json::from_str(&std::fs::read_to_string(
-            "./emojis.json",
-        )?)?)
-        .expect("EMOJIS already initialized");
+    EMOJIS.get_or_init(|| {
+        serde_json::from_str(
+            &std::fs::read_to_string("./emojis.json").expect("Failed to read emojis.json"),
+        )
+        .expect("Failed to parse emojis.json as valid JSON")
+    });
     Ok(())
 }
 fn logger_init() {

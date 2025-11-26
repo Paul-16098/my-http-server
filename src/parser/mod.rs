@@ -77,13 +77,13 @@ pub(crate) fn md2html(
     log::trace!("ast={ast:#?}");
     #[cfg(feature = "github_emojis")]
     {
-        struct ReplaceGithubEmojis(Emojis);
-        impl markdown_ppp::ast_transform::Transformer for ReplaceGithubEmojis {
+        struct ReplaceGithubEmojis<'a>(&'a Emojis);
+        impl<'a> markdown_ppp::ast_transform::Transformer for ReplaceGithubEmojis<'a> {
             fn transform_inline(
                 &mut self,
                 inline: markdown_ppp::ast::Inline,
             ) -> markdown_ppp::ast::Inline {
-                let e = &self.0;
+                let e = self.0;
                 match inline {
                     markdown_ppp::ast::Inline::Text(code) => {
                         let mut text = code;
@@ -111,15 +111,11 @@ pub(crate) fn md2html(
                 }
             }
         }
-
+        // some test not initialize emojis
+        crate::emojis_init().expect("emojis not initialized");
         ast = markdown_ppp::ast_transform::Transform::transform_with(
             ast,
-            ReplaceGithubEmojis(
-                EMOJIS
-                    .get()
-                    .expect("EMOJIS not initialized during startup")
-                    .clone(),
-            ),
+            ReplaceGithubEmojis(EMOJIS.get().unwrap()),
         )
     }
     log::trace!("ast={ast:#?}");

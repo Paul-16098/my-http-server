@@ -1,4 +1,7 @@
 [tasks.test]
+    condition = { env_set = [
+        "GITHUB_TOKEN",
+    ], fail_message = "GITHUB_TOKEN is not set" }
     args = [
         "all-features",
         "test",
