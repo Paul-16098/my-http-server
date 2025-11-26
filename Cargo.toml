@@ -54,7 +54,7 @@
     ], optional = true }
     ureq = { version = "3.1.4", features = [
         "json",
-    ] }
+    ], optional = true }
 
 [[bin]]
     name = "my-http-server"
@@ -66,6 +66,7 @@
         "api",
     ]
     github_emojis = [
+        "dep:ureq",
     ]
     api = [
         "dep:utoipa",

@@ -1,70 +1,63 @@
-<!-- WHY: High-density guide for AI agents; keep ~20–50 lines. Update when routing/templating/middleware changes. -->
+<!-- AI Agent Coding Guide: my-http-server (2025.11) -->
 
-## AI Quick Reference (my-http-server)
+# AI Coding Agent Instructions
 
-**Architecture:** Actix-web HTTP server that serves static files and dynamically renders Markdown to HTML via `markdown_ppp` AST + Handlebars templating.
+## Architecture Overview
 
-### Request Flow
+Actix-web server serving static files and dynamic Markdown via `markdown_ppp` AST + Handlebars. Key flows:
 
-- `.md` files: read → `markdown_ppp` AST → HTML fragment → inject into `meta/html-t.hbs` (Handlebars) → response
-- Other files: stream via `actix_files::NamedFile`
+- `.md` files: read → parse (AST) → HTML → inject into `meta/html-t.hbs` → response
+- Other files: streamed via `actix_files::NamedFile`
 - Missing files: serve `meta/404.html` if present, else plain 404
 
-### Key Modules & Patterns
+## Key Modules & Patterns
 
-- **HTTP handling:** `src/request.rs` (routes: `/` index, `/{filename:.*}` catchall), `src/main.rs` (server setup)
-- **Parsing pipeline:** `src/parser/mod.rs::md2html` orchestrates markdown→HTML→template; `src/parser/markdown.rs` (TOC generation, parsing); `src/parser/templating.rs` (engine + context)
-- **Config:** `src/cofg/config.rs` uses `OnceCell<RwLock<Cofg>>` for global cached config; `Cofg::new()` returns cached value (no per-request reload unless `get(true)` + `hot_reload=true`)
-- **Errors:** `src/error.rs` defines `AppError` enum with `Responder` impl; bubble errors with `?` from any depth
+- **HTTP Routing:** `src/request.rs` (main routes), `src/main.rs` (server setup)
+- **Markdown Pipeline:** `src/parser/mod.rs::md2html` (orchestrates parsing & templating)
+- **TOC:** `src/parser/markdown.rs::get_toc` (walks files, builds TOC)
+- **Templating:** `src/parser/templating.rs` (Handlebars engine, context DSL)
+- **Config:** `src/cofg/config.rs` (`OnceCell<RwLock<Cofg>` for global config)
+- **Errors:** `src/error.rs` (`AppError` with `Responder` impl, use `?` for propagation)
 
-### Configuration Gotchas
+## Routing & Behavior
 
-- **Template context DSL:** `templating.value: ["name:value"]` with type inference (bool → i64 → string) and `name:env:VAR` for env vars
-- **Hot reload:** `templating.hot_reload=true` rebuilds Handlebars engine per request (dev only); config reloaded only on explicit `get(true)` call
-- **Built-in context vars:** `server-version` (always), `body` (HTML fragment from markdown), `path` (supplied by route handlers)
-- **CLI overrides:** `cofg::build_config_from_cli` applies CLI args; TLS enabled only when both cert+key provided
+- `GET /` → serve `public/index.html` if exists, else TOC via `get_toc` + `md2html`
+- `GET /{filename:.*}` → resolve under `public_path`; `.md` → parse/render; dir → TOC; else static file
 
-### Routing Behavior
+## Middleware (toggle via `cofg.yaml`)
 
-- `GET /` → serve `public/index.html` if exists; else generate TOC from `public_path` via `get_toc` and render with `md2html`
-- `GET /{filename:.*}` → resolve under `public_path`; if `.md` → read + `md2html` with `path:` context; if dir → TOC; else static file
+Chain: Rate limiting → Logger → NormalizePath → Compress → BasicAuth → IP Filter → Routes
+Logger uses `%{url}xi` (percent-decoded, leading `/` trimmed)
 
-### TOC Generation
+## Configuration & Templating
 
-- `parser::markdown::get_toc(root, c, title?)` walks with `wax::Glob`, filters by `toc.ext`, ignores `toc.ig`, outputs percent-encoded Markdown list
+- Context DSL: `templating.value: ["name:value"]` (type inference, env support)
+- Hot reload: `templating.hot_reload=true` (dev only, rebuilds engine per request)
+- Built-in context: `server-version`, `body`, `path`
+- CLI overrides: `cofg::build_config_from_cli` (TLS only if cert+key provided)
 
-### Middleware Chain (when enabled)
+## Developer Workflow
 
-Rate limiting → Logger → NormalizePath → Compress → BasicAuth → IP Filter → Routes
+- **First run:** `cargo run` (writes defaults, exits); run again to start server
+- **Tests:** `cargo test` (unit: `src/test/*.rs`, integration: middleware/auth/IP)
+- **Lint:** `cargo clippy -- -D warnings`
+- **VS Code tasks:** `ast-grep: scan` (lint), `ast-grep: test` (interactive)
+- **API docs:** `/api` (Swagger UI from `src/api.rs`)
 
-- Logger format uses `%{url}xi` (percent-decoded, leading `/` trimmed) targeting `http-log` module
-- Toggle middleware via `cofg.yaml`: `middleware.{normalize_path,compress,logger.enabling,http_base_authentication.enable,ip_filter.enable,rate_limiting.enable}`
+## Constraints & Conventions
 
-### Dev Workflow
+- No HTML caching: Markdown re-parsed per request
+- Path security: Canonicalization is best-effort; add strict prefix enforcement if needed
+- Template: `meta/html-t.hbs` must exist (auto-created on first run)
+- Custom 404: Place `meta/404.html` to override default
+- **WHY comments:** Explain rationale, not just what
+- **Bilingual docs:** English + 中文 (see `architecture.md`, `src/parser/mod.rs`)
+- **Contract sections:** Functions document inputs/outputs/errors/side effects/perf/security
+- **Error propagation:** Use `?` with `AppError`; custom `Responder` for HTTP
 
-- **First run:** `cargo run` writes defaults (`cofg.yaml`, `meta/html-t.hbs`) and exits; run again to start server
-- **Tests:** `cargo test` (unit tests in `src/test/*.rs`); integration tests check middleware, auth, IP filter
-- **Linting:** `cargo clippy -- -D warnings`
-- **VS Code tasks:** `ast-grep: scan` (lint with ast-grep rules), `ast-grep: test` (interactive testing)
-- **API docs:** `/api` serves Swagger UI (utoipa-generated from `src/api.rs`)
+## Quick References
 
-### Important Constraints
-
-- **No HTML caching:** Markdown re-parsed per request (performance trade-off for simplicity)
-- **Path security:** Canonicalization is best-effort; add strict prefix enforcement if serving untrusted roots
-- **Template files:** `meta/html-t.hbs` must exist; auto-created from embedded default on first run
-- **Custom 404:** Place `meta/404.html` to override default plaintext 404
-
-### Code Conventions
-
-- **WHY comments:** Module and function docs explain rationale, not just what
-- **Bilingual docs:** English + 中文 for team accessibility (see `architecture.md`, `src/parser/mod.rs`)
-- **Contract sections:** Functions document inputs, outputs, errors, side effects, perf/security notes (see `md2html`)
-- **Error propagation:** Use `?` operator with `AppError`; custom `Responder` impl converts to HTTP responses
-
-### Quick References
-
-- Request flow diagrams: `docs/request-flow.md`
-- Config→code mapping: `docs/config-templating-map.md`
-- Architecture deep dive: `architecture.md`
-- Key function list: `docs/key-functions.md`
+- Request flow: `docs/request-flow.md`
+- Config mapping: `docs/config-templating-map.md`
+- Architecture: `architecture.md`
+- Key functions: `docs/key-functions.md`
