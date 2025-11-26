@@ -6,9 +6,8 @@
 
 use handlebars::{Context, Handlebars};
 
-use once_cell::sync::OnceCell;
 use serde_json::json;
-use std::sync::RwLock;
+use std::sync::{OnceLock, RwLock};
 
 use crate::error::{AppError, AppResult};
 
@@ -78,7 +77,7 @@ pub(crate) fn get_context(c: &crate::cofg::config::Cofg) -> Context {
 
     context
 }
-static ENGINE: OnceCell<RwLock<Handlebars>> = OnceCell::new();
+static ENGINE: OnceLock<RwLock<Handlebars>> = OnceLock::new();
 
 /// Retrieve (or rebuild under hot reload) the template engine.
 ///

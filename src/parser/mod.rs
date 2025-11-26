@@ -4,11 +4,24 @@
 //! Hot reload & context assembly handled in internal modules. (Global HTML caching removed
 //! for simplicity: each request now re-renders Markdown.)
 
-use crate::parser::templating::set_context_value;
+#[cfg(feature = "github_emojis")]
+use std::collections::HashMap;
+#[cfg(feature = "github_emojis")]
 use std::sync::OnceLock;
+
+use crate::parser::templating::set_context_value;
 
 pub(crate) mod markdown;
 pub(crate) mod templating;
+
+#[cfg(feature = "github_emojis")]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub(crate) struct Emojis {
+    pub(crate) unicode: HashMap<String, String>,
+    pub(crate) r#else: HashMap<String, String>,
+}
+#[cfg(feature = "github_emojis")]
+pub(crate) static EMOJIS: OnceLock<Emojis> = OnceLock::new();
 
 /// Convert a single markdown string into full HTML page via template `html-t` (file: `./meta/html-t.hbs`).
 ///
@@ -58,54 +71,52 @@ pub(crate) fn md2html(
     if !engine.has_template("html-t") {
         engine.register_template_file("html-t", "./meta/html-t.hbs")?;
     }
-
+    #[allow(unused_mut)]
     let mut ast = markdown::parser_md(md)?;
     // PERF: 只在 trace 開啟時輸出 AST；大型 Markdown 可能造成龐大日誌量。
     log::trace!("ast={ast:#?}");
-    if cfg!(feature = "github_emojis") {
-        static EMOJI_MAP: OnceLock<std::collections::HashMap<String, String>> = OnceLock::new();
-        let emojis = EMOJI_MAP.get_or_init(|| {
-            let data = include_str!("./../../emojis.json");
-            match serde_json::from_str::<std::collections::HashMap<String, String>>(data) {
-                Ok(map) => map,
-                Err(e) => {
-                    log::warn!("failed to parse emojis.json: {}", e);
-                    std::collections::HashMap::new()
-                }
-            }
-        });
-
-        struct ReplaceGithubEmojis<'a> {
-            emojis: &'a std::collections::HashMap<String, String>,
-        }
+    #[cfg(feature = "github_emojis")]
+    {
+        struct ReplaceGithubEmojis<'a>(&'a Emojis);
         impl<'a> markdown_ppp::ast_transform::Transformer for ReplaceGithubEmojis<'a> {
             fn transform_inline(
                 &mut self,
                 inline: markdown_ppp::ast::Inline,
             ) -> markdown_ppp::ast::Inline {
+                let e = self.0;
                 match inline {
                     markdown_ppp::ast::Inline::Text(code) => {
                         let mut text = code;
-                        for (k, v) in self.emojis.iter() {
+                        for (k, _v) in e.r#else.iter() {
                             let pat = format!(":{k}:");
                             if text.contains(&pat) {
-                                let rep = format!(
-                                    r#"<img class="emoji" alt="{pat}" src="{v}" style="width: 1em;">"#
+                                log::warn!(
+                                    "for security, github emoji replacement uses only unicode mapping; custom image replacement is not secure, so {pat} is skipped"
                                 );
-                                text = text.replace(&pat, &rep);
+                                // let rep = format!(
+                                //     r#"<img class="emoji" alt="{pat} emoji" src="{v}" style="width: 1em;">"#
+                                // );
+                                // text = text.replace(&pat, &rep);
                             }
                         }
-                        markdown_ppp::ast::Inline::Html(text)
+                        for (k, v) in e.unicode.iter() {
+                            let pat = format!(":{k}:");
+                            if text.contains(&pat) {
+                                text = text.replace(&pat, v);
+                            }
+                        }
+                        markdown_ppp::ast::Inline::Text(text)
                     }
                     other => self.walk_transform_inline(other),
                 }
             }
         }
-
+        // some test not initialize emojis
+        crate::emojis_init().expect("emojis not initialized");
         ast = markdown_ppp::ast_transform::Transform::transform_with(
             ast,
-            ReplaceGithubEmojis { emojis },
-        );
+            ReplaceGithubEmojis(EMOJIS.get().unwrap()),
+        )
     }
     log::trace!("ast={ast:#?}");
     let html = markdown_ppp::html_printer::render_html(
