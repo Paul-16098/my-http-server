@@ -6,36 +6,11 @@ fn warn(t: &'static str) {
     println!("cargo:warning=build.rs: {t}");
 }
 
-#[cfg(feature = "github_emojis")]
-fn download_github_emojis() -> Result<(), Box<dyn std::error::Error>> {
-    if !Path::new("./emojis.json").exists() {
-        warn("No emojis.json found, downloading...");
-        // Download emojis.json using Rust (reqwest blocking)
-        let url = "http://api.github.com/emojis";
-
-        let mut resp = ureq::get(url)
-            .header("User-Agent", "Paul-16098/my-http-server-build")
-            .call()?;
-        println!("{:?}", resp);
-        println!("build.rs: Downloaded emojis.json, writing to file...");
-        let body_str = resp.body_mut().read_to_string()?;
-        std::fs::write("emojis.json", body_str)?;
-    } else {
-        println!("build.rs: emojis.json found, skipping download");
-    }
-    Ok(())
-}
-
 fn main() {
     // init
     for f in ["build.rs", "emojis.json"] {
         println!("cargo:rerun-if-changed={f}");
     }
-    // download
-    #[cfg(feature = "github_emojis")]
-    if let Err(e) = download_github_emojis() {
-        panic!("{}", e);
-    };
 
     // env
     let in_docker = var("IN_DOCKER").is_ok();

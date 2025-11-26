@@ -36,6 +36,12 @@ pub(crate) enum AppError {
     OtherError(String),
 }
 
+impl From<std::boxed::Box<dyn std::error::Error + 'static>> for AppError {
+    fn from(value: std::boxed::Box<dyn std::error::Error + 'static>) -> Self {
+        AppError::OtherError(value.to_string())
+    }
+}
+
 impl actix_web::Responder for AppError {
     type Body = actix_web::body::BoxBody;
 

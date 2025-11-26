@@ -82,6 +82,58 @@ fn init(c: &Cofg) -> AppResult<()> {
         // exit and make user re-run to re-init
         std::process::exit(1);
     }
+    #[cfg(feature = "github_emojis")]
+    emojis_init()?;
+    Ok(())
+}
+#[cfg(feature = "github_emojis")]
+fn emojis_init() -> Result<(), Box<dyn std::error::Error>> {
+    use parser::{EMOJIS, Emojis};
+    use std::collections::HashMap;
+
+    if !Path::new("./emojis.json").exists() {
+        info!("emoji json files not found, fetching from github api...");
+        let mut resp = ureq::get("https://api.github.com/emojis")
+            .header("User-Agent", "Paul-16098/my-http-server-build")
+            .call()?;
+        let body = resp.body_mut().read_json::<HashMap<String, String>>()?;
+        let mut unicode_emojis = HashMap::new();
+        let mut else_emojis = HashMap::new();
+        for (k, v) in body.iter() {
+            if v.contains("unicode") {
+                let unicode = v
+                    .trim_end_matches(".png?v8")
+                    .split('/')
+                    .collect::<Vec<_>>()
+                    .last()
+                    .unwrap()
+                    .split('-')
+                    .filter_map(|code| u32::from_str_radix(code, 16).ok())
+                    .filter_map(std::char::from_u32)
+                    .collect();
+                debug!("Found unicode emoji: {k} -> {unicode}");
+
+                unicode_emojis.insert(k.clone(), unicode);
+            } else {
+                debug!("Found non-unicode emoji: {k} -> {v}");
+
+                else_emojis.insert(k.clone(), v.clone());
+            }
+        }
+
+        let json = serde_json::to_string(&Emojis {
+            unicode: unicode_emojis,
+            r#else: else_emojis,
+        })?;
+        std::fs::write("./emojis.json", json)?;
+    } else {
+        info!("emoji json files found, skipping fetch.");
+    }
+    EMOJIS
+        .set(serde_json::from_str(&std::fs::read_to_string(
+            "./emojis.json",
+        )?)?)
+        .expect("EMOJIS already initialized");
     Ok(())
 }
 fn logger_init() {

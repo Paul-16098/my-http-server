@@ -6,8 +6,11 @@
 //! the steady-state fast while still offering a development-friendly live tweaking mode.
 
 use nest_struct::nest_struct;
-use once_cell::sync::OnceCell;
-use std::{collections::HashSet, process::exit, sync::RwLock};
+use std::{
+    collections::HashSet,
+    process::exit,
+    sync::{OnceLock, RwLock},
+};
 
 use crate::error::AppError;
 
@@ -98,7 +101,7 @@ pub(crate) struct Cofg {
 }
 
 // global cached config; allow refresh when hot_reload = true
-static GLOBAL_COFG: OnceCell<RwLock<Cofg>> = OnceCell::new();
+static GLOBAL_COFG: OnceLock<RwLock<Cofg>> = OnceLock::new();
 
 impl Default for Cofg {
     fn default() -> Self {
