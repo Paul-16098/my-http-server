@@ -83,25 +83,23 @@ fn init(c: &Cofg) -> AppResult<()> {
         std::process::exit(1);
     }
     #[cfg(feature = "github_emojis")]
-    emojis_init()?;
+    emojis_init(std::env::var("GITHUB_TOKEN").ok())?;
     Ok(())
 }
 #[cfg(feature = "github_emojis")]
-fn emojis_init() -> Result<(), Box<dyn std::error::Error>> {
+fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
     use parser::{EMOJIS, Emojis};
     use std::collections::HashMap;
 
     if !Path::new("./emojis.json").exists() {
         info!("emoji json files not found, fetching from github api...");
         let mut resp = ureq::get("https://api.github.com/emojis")
-            .header("User-Agent", "Paul-16098/my-http-server")
-            .header(
-                "Authorization",
-                format!(
-                    "Bearer {}",
-                    std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN environment variable not set. Please set it to a valid GitHub token.")
-                ),
-            )
+            .header("User-Agent", "Paul-16098/my-http-server");
+
+        if let Some(t) = ght {
+            resp = resp.header("Authorization", format!("Bearer {}", t));
+        }
+        let mut resp = resp
             .call()
             .expect("emojis not initialized: failed to fetch from github api");
         let body = resp.body_mut().read_json::<HashMap<String, String>>()?;
