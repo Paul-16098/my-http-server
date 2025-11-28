@@ -54,10 +54,34 @@ Call tooling helpers (manually or via future CLI command):
 
 Edit `meta/404.html`. No restart needed if only static file; templates not involved.
 
-## 4. Testing Strategy
+## 4. 测试策略（Testing Strategy）
 
-| Layer          | Test Type                       | Example                            |
+| 层级 (Layer)   | 测试类型 (Test Type)            | 示例 (Example)                     |
 | -------------- | ------------------------------- | ---------------------------------- |
+| 单元测试       | 纯函数/模块                     | `src/test/*.rs`                    |
+| 集成测试       | 路由/中间件/安全                | `src/test/integration.rs`           |
+| 手动/端到端    | CLI/热重载/配置变更             | `cargo run` + 浏览器/CLI            |
+
+WHY: 多层测试覆盖，保证核心逻辑和边界场景。
+
+## 5. 热重载与开发者体验（Hot Reload & DX）
+
+- `templating.hot_reload: true` 时，每次请求自动重载模板和配置，适合开发调试。
+- 生产环境建议关闭热重载，提升性能和稳定性。
+- 变更 `cofg.yaml` 或模板后，开发环境无需重启，生产需重启服务。
+
+## 6. 性能优化建议（Performance Tips）
+
+- 避免在热路径频繁重载配置。
+- 静态文件优先走流式返回，Markdown 动态渲染无缓存。
+- 合理配置缓存容量，防止内存溢出。
+
+## 7. 常见问题与排查（FAQ & Troubleshooting）
+
+- 启动报错：检查 `cofg.yaml` 是否存在且格式正确。
+- 路由 404：确认 public 路径和文件权限。
+- 模板变量无效：检查 `templating.value` 配置和模板语法。
+- 性能异常：检查是否误用 `force_reload` 或缓存配置。
 | Config load    | Unit                            | Default values, hot reload gating  |
 | Templating     | Unit                            | `set_context_value` parsing matrix |
 | Markdown parse | Unit                            | Edge syntax constructs             |

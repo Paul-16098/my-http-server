@@ -1,63 +1,75 @@
+
 # Request Flow & Sequence
 
-> WHY: Clarify branching & data derivation points to aid debugging and performance tuning.
+> WHY: 明确分支与数据派生点，便于调试、性能优化和安全审查。
 
-## 1. Index Route (`/`)
+> 最后更新时间：2025-11-28
+> 适用版本：dev 分支
+
+## 1. Index 路由 (`/`)
 
 ```mermaid
 flowchart TB
-  A([GET /]) --> B{index.html exists?}
-  B -->|Yes| C[Read index.html] --> D[200 OK static]
-  B -->|No| E[Build TOC] --> F{TOC ok?}
-  F -->|Err| G[[500 Error]]
-  F -->|Ok| H[md2html TOC] --> I{Render ok?}
-  I -->|Err| G
-  I -->|Ok| J[200 OK rendered TOC]
+  A([GET /]) --> B{public/index.html 是否存在?}
+  B -->|是| C[读取 index.html] --> D[200 OK 静态]
+  B -->|否| E[生成 TOC] --> F{TOC 是否正常?}
+  F -->|错误| G[[500 错误]]
+  F -->|正常| H[md2html 渲染 TOC] --> I{渲染是否成功?}
+  I -->|错误| G
+  I -->|成功| J[200 OK 渲染 TOC]
 ```
+
+WHY: 首页优先静态文件，缺失时自动生成 TOC，保证无论有无 index.html 都能访问。
 
 Notes:
 
-- `Cofg::new()` used once early; config cached.
-- TOC generation frequency expected low; no caching needed initially.
+- `Cofg::new()` 仅初始化一次，配置全局缓存。
+- TOC 生成频率低，无需缓存。
 
-## 2. Generic Path Route (`/{filename:.*}`)
+## 2. 通用路径路由 (`/{filename:.*}`)
 
 ```mermaid
 flowchart TB
-  A([GET /path]) --> B[decoded_uri]
-  B --> C[filename_path]
-  C --> D[public_join]
-  D --> E{File exists?}
-  E -->|No| F[Load 404.html] --> G[[404 Not Found]]
-  E -->|Yes| H{Is .md?}
-  H -->|No| I[Static file] --> J[200 OK static]
-  H -->|Yes| K[Read file]
-  K --> L[md2html path] --> M{Render ok?}
-  M -->|Err| N[[500 Error]]
-  M -->|Ok| O[200 OK HTML]
+  A([GET /{filename}]) --> B[解码 URI]
+  B --> C[拼接 public 路径]
+  C --> D{文件是否存在?}
+  D -->|否| E[加载 meta/404.html] --> F[[404 Not Found]]
+  D -->|是| G{是否为 .md 文件?}
+  G -->|否| H[静态文件流式返回] --> I[200 OK 静态]
+  G -->|是| J[读取 Markdown] --> K[md2html 渲染] --> L{渲染是否成功?}
+  L -->|错误| M[[500 错误]]
+  L -->|成功| N[200 OK HTML]
 ```
 
-## 3. md2html Internals
+WHY: 路径安全采用 canonicalize，优先 public 下查找，.md 文件走解析渲染，目录自动 TOC，404 可自定义。
+
+## 3. md2html 内部流程
 
 ```text
-engine = get_engine(cfg)       # maybe rebuild if hot_reload
+engine = get_engine(cfg)       # hot_reload 时每次重建
 ctx = get_context(cfg)
-for extra var (e.g. path): set_context_value
+for extra var (如 path): set_context_value
 ast = parser_md(markdown)
 fragment = render_html(ast)
 ctx.body = fragment
-template = compile_to_bytecode(html-t.templating)
+template = compile_to_bytecode(html-t.hbs)
 final_html = render_compiled(template, ctx)
 ```
 
-## 4. Cache Keys
+WHY: 保证 Markdown 动态渲染，无缓存，支持热重载和上下文扩展。
 
-Per-request (extensions):
+## 4. 关键缓存与上下文变量
+
+每次请求扩展：
 
 | Key           | Source Function          | Purpose                                     |
 | ------------- | ------------------------ | ------------------------------------------- |
-| DecodedUri    | `cached_decoded_uri`     | Logging-friendly, percent-decoded path      |
-| FilenamePath  | `cached_filename_path`   | Reusable path param as `PathBuf`            |
+| DecodedUri    | `cached_decoded_uri`     | 日志友好，百分号解码路径                    |
+| FilenamePath  | `cached_filename_path`   | 可复用的 PathBuf 路径参数                   |
+| TOC           | `get_toc`                | 目录树，目录请求时动态生成                  |
+| Engine        | `get_engine`             | Handlebars 模板引擎，支持热重载             |
+
+WHY: 这些变量用于性能优化、日志追踪和上下文扩展，便于后续功能拓展。
 | PublicReqPath | `cached_public_req_path` | Disk resolution anchor under `public_path`  |
 | IsMarkdown    | `cached_is_markdown`     | Branch predicate for dynamic vs static path |
 
