@@ -1475,9 +1475,9 @@ checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 
 [[package]]
 name = "markdown-ppp"
-version = "2.7.1"
+version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d693b09aad3f725e17512401e0711ca3e4f27e215ce3fbd0dbdfab889fe8c397"
+checksum = "3b81d0783bebd46789094a3a630e39adf5e36c321b7ceedeed4a156ef4b6f73f"
 dependencies = [
  "entities",
  "nom 8.0.0",
