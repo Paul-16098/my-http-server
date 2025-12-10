@@ -66,7 +66,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - uses: taiki-e/install-action@50708e9ba8d7b6587a2cb575ddaa9a62e927bc06 # v2.62.63
+      - uses: taiki-e/install-action@271014ec0fe73d05f4206c04b4392ad895d8f0e3 # v2.62.66
         with:
           tool: cargo-make
       - run: cargo make test
