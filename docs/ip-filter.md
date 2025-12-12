@@ -88,13 +88,11 @@ middleware:
 ## 注意事項 / Notes
 
 1. **預設行為** / Default Behavior:
-
    - 當 `enable: false` 時，不進行任何過濾 / No filtering when `enable: false`
    - 當僅設定 `allow` 時，未列出的 IP 將被拒絕 / When only `allow` is set, unlisted IPs are rejected
    - 當僅設定 `block` 時，未列出的 IP 將被允許 / When only `block` is set, unlisted IPs are allowed
 
 2. **中介軟體順序** / Middleware Order:
-
    - IP 過濾器在 HTTP 基本認證之後執行 / IP filter runs after HTTP basic authentication
    - 確保安全性檢查的層次性 / Ensures layered security checks
 

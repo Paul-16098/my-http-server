@@ -8,9 +8,10 @@
 > WHY: 提供 cofg.yaml 配置项与代码行为的唯一映射参考，便于开发、调试和扩展。
 > 中文：快速了解配置字段如何影响程序行为，支持双语协作。
 
-> 最后更新时间：2025-11-28
+> 最后更新时间：2025-12-13
 > 适用版本：dev 分支
->
+> 参见：`.github/copilot-instructions.md`（AI 编码代理完整指引）
+
 ## Top-Level
 
 | Field                        | Type              | Code Reference                                           | Effect                                                                     |
@@ -36,29 +37,29 @@
 
 ## 顶层配置项映射（Top-Level）
 
-| 字段 (Field)                | 类型 (Type)       | 代码引用 (Code Reference)                                | 作用 (Effect)                                                             |
-| --------------------------- | ----------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `addrs.ip`                  | string            | `main.rs:build_server` via `CofgAddrs`                   | 绑定监听 IP                                                                |
-| `addrs.port`                | u16               | `main.rs:build_server`                                   | 绑定监听端口                                                               |
-| `tls.enable`                | bool              | `main.rs:build_server`                                   | 启用 TLS/HTTPS，true 时用 rustls 绑定                                      |
-| `tls.cert`                  | string            | `main.rs:load_tls_config`                                | TLS 证书文件路径（PEM 格式）                                               |
-| `tls.key`                   | string            | `main.rs:load_tls_config`                                | TLS 私钥文件路径（PEM 格式）                                               |
-| `middleware.normalize_path` | bool              | `main.rs:build_server`                                   | 是否启用路径标准化（Trim）                                                 |
-| `middleware.compress`       | bool              | `main.rs:build_server`                                   | 是否启用压缩中间件                                                         |
-| `middleware.logger.enabling`| bool              | `main.rs:build_server`                                   | 启用请求日志                                                               |
-| `middleware.logger.format`  | string            | `main.rs:build_server`                                   | 日志格式字符串，支持自定义 url 替换                                        |
-| `middleware.ratelimit.*`    | 多类型            | `main.rs:build_server`                                   | 启用/配置限流中间件（如速率、窗口等）                                      |
-| `middleware.basic_auth.*`   | 多类型            | `main.rs:build_server`                                   | 启用/配置基础认证                                                          |
-| `middleware.ip_filter.*`    | 多类型            | `main.rs:build_server`                                   | 启用/配置 IP 过滤                                                          |
-| `templating.value`          | list<string>      | `parser/templating.rs:get_context` & `set_context_value` | 动态模板变量（name:value DSL）                                             |
-| `templating.hot_reload`     | bool              | `cofg::get` (reload gate), `templating::get_engine`      | 启用热重载，配置/模板每次请求重读                                          |
-| `toc.path`                  | string (relative) | `markdown.rs:get_toc`, `_make_toc`, `main.rs:index`      | TOC 生成目标路径及扫描基准目录                                              |
-| `toc.ext`                   | list<string>      | `markdown.rs:get_toc`                                    | TOC 扫描时纳入的文件扩展名                                                 |
-| `public_path`               | string            | 多处：`http_ext`, `markdown`, `main`                     | 内容查找根目录                                                             |
-| `cache.enable_html`         | bool              | `parser::md2html`                                        | 启用 HTML 渲染 LRU 缓存                                                    |
-| `cache.html_capacity`       | usize             | `parser::md2html`                                        | HTML 缓存容量                                                              |
-| `cache.enable_toc`          | bool              | `parser::markdown::get_toc`                              | 启用 TOC LRU 缓存                                                          |
-| `cache.toc_capacity`        | usize             | `parser::markdown::get_toc`                              | TOC 缓存容量                                                               |
+| 字段 (Field)                 | 类型 (Type)       | 代码引用 (Code Reference)                                | 作用 (Effect)                         |
+| ---------------------------- | ----------------- | -------------------------------------------------------- | ------------------------------------- |
+| `addrs.ip`                   | string            | `main.rs:build_server` via `CofgAddrs`                   | 绑定监听 IP                           |
+| `addrs.port`                 | u16               | `main.rs:build_server`                                   | 绑定监听端口                          |
+| `tls.enable`                 | bool              | `main.rs:build_server`                                   | 启用 TLS/HTTPS，true 时用 rustls 绑定 |
+| `tls.cert`                   | string            | `main.rs:load_tls_config`                                | TLS 证书文件路径（PEM 格式）          |
+| `tls.key`                    | string            | `main.rs:load_tls_config`                                | TLS 私钥文件路径（PEM 格式）          |
+| `middleware.normalize_path`  | bool              | `main.rs:build_server`                                   | 是否启用路径标准化（Trim）            |
+| `middleware.compress`        | bool              | `main.rs:build_server`                                   | 是否启用压缩中间件                    |
+| `middleware.logger.enabling` | bool              | `main.rs:build_server`                                   | 启用请求日志                          |
+| `middleware.logger.format`   | string            | `main.rs:build_server`                                   | 日志格式字符串，支持自定义 url 替换   |
+| `middleware.ratelimit.*`     | 多类型            | `main.rs:build_server`                                   | 启用/配置限流中间件（如速率、窗口等） |
+| `middleware.basic_auth.*`    | 多类型            | `main.rs:build_server`                                   | 启用/配置基础认证                     |
+| `middleware.ip_filter.*`     | 多类型            | `main.rs:build_server`                                   | 启用/配置 IP 过滤                     |
+| `templating.value`           | list<string>      | `parser/templating.rs:get_context` & `set_context_value` | 动态模板变量（name:value DSL）        |
+| `templating.hot_reload`      | bool              | `cofg::get` (reload gate), `templating::get_engine`      | 启用热重载，配置/模板每次请求重读     |
+| `toc.path`                   | string (relative) | `markdown.rs:get_toc`, `_make_toc`, `main.rs:index`      | TOC 生成目标路径及扫描基准目录        |
+| `toc.ext`                    | list<string>      | `markdown.rs:get_toc`                                    | TOC 扫描时纳入的文件扩展名            |
+| `public_path`                | string            | 多处：`http_ext`, `markdown`, `main`                     | 内容查找根目录                        |
+| `cache.enable_html`          | bool              | `parser::md2html`                                        | 启用 HTML 渲染 LRU 缓存               |
+| `cache.html_capacity`        | usize             | `parser::md2html`                                        | HTML 缓存容量                         |
+| `cache.enable_toc`           | bool              | `parser::markdown::get_toc`                              | 启用 TOC LRU 缓存                     |
+| `cache.toc_capacity`         | usize             | `parser::markdown::get_toc`                              | TOC 缓存容量                          |
 
 WHY: 映射表便于查找配置项影响点，支持快速定位和扩展。
 
@@ -116,9 +117,9 @@ templating:
 
 ## 热重载语义（Hot Reload Semantics）
 
-| 标志 (Flag)             | 触发重载条件 (Trigger)                            | 影响对象 (Affects)                      |
-| ----------------------- | ------------------------------------------------- | --------------------------------------- |
-| `templating.hot_reload` | `Cofg::get(true)` 调用 & 每次 `get_engine` 调用   | 配置结构体、模板引擎实例                |
+| 标志 (Flag)             | 触发重载条件 (Trigger)                          | 影响对象 (Affects)       |
+| ----------------------- | ----------------------------------------------- | ------------------------ |
+| `templating.hot_reload` | `Cofg::get(true)` 调用 & 每次 `get_engine` 调用 | 配置结构体、模板引擎实例 |
 
 WHY: 启用 hot_reload 可在开发时实时生效配置和模板变更，生产环境建议关闭。
 

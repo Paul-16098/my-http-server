@@ -1,6 +1,7 @@
 # Developer Guide (深入開發指南)
 
 > Goal: Accelerate onboarding with practical tasks & mental models. 目標：快速進入狀況。
+> 完整指引見 `.github/copilot-instructions.md`；本文檔重點在常見開發任務。
 
 ## 1. Quick Start
 
@@ -56,11 +57,11 @@ Edit `meta/404.html`. No restart needed if only static file; templates not invol
 
 ## 4. 测试策略（Testing Strategy）
 
-| 层级 (Layer)   | 测试类型 (Test Type)            | 示例 (Example)                     |
-| -------------- | ------------------------------- | ---------------------------------- |
-| 单元测试       | 纯函数/模块                     | `src/test/*.rs`                    |
-| 集成测试       | 路由/中间件/安全                | `src/test/integration.rs`           |
-| 手动/端到端    | CLI/热重载/配置变更             | `cargo run` + 浏览器/CLI            |
+| 层级 (Layer) | 测试类型 (Test Type) | 示例 (Example)            |
+| ------------ | -------------------- | ------------------------- |
+| 单元测试     | 纯函数/模块          | `src/test/*.rs`           |
+| 集成测试     | 路由/中间件/安全     | `src/test/integration.rs` |
+| 手动/端到端  | CLI/热重载/配置变更  | `cargo run` + 浏览器/CLI  |
 
 WHY: 多层测试覆盖，保证核心逻辑和边界场景。
 
@@ -82,11 +83,11 @@ WHY: 多层测试覆盖，保证核心逻辑和边界场景。
 - 路由 404：确认 public 路径和文件权限。
 - 模板变量无效：检查 `templating.value` 配置和模板语法。
 - 性能异常：检查是否误用 `force_reload` 或缓存配置。
-| Config load    | Unit                            | Default values, hot reload gating  |
-| Templating     | Unit                            | `set_context_value` parsing matrix |
-| Markdown parse | Unit                            | Edge syntax constructs             |
-| md2html        | Integration                     | Template error propagation         |
-| HTTP           | Integration (actix test server) | Markdown vs static path branching  |
+  | Config load | Unit | Default values, hot reload gating |
+  | Templating | Unit | `set_context_value` parsing matrix |
+  | Markdown parse | Unit | Edge syntax constructs |
+  | md2html | Integration | Template error propagation |
+  | HTTP | Integration (actix test server) | Markdown vs static path branching |
 
 Use `cargo nextest run` for faster & nicer output.
 

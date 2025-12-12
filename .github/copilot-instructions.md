@@ -1,63 +1,173 @@
-<!-- AI Agent Coding Guide: my-http-server (2025.11) -->
+<!-- AI Agent Coding Guide: my-http-server (2025.12) -->
 
 # AI Coding Agent Instructions
 
-## Architecture Overview
+## System Architecture
 
-Actix-web server serving static files and dynamic Markdown via `markdown_ppp` AST + Handlebars. Key flows:
+**Core Purpose:** Actix-web HTTP server that serves static files and renders Markdown files dynamically via `markdown_ppp` AST + Handlebars templating.
 
-- `.md` files: read → parse (AST) → HTML → inject into `meta/html-t.hbs` → response
-- Other files: streamed via `actix_files::NamedFile`
-- Missing files: serve `meta/404.html` if present, else plain 404
+**Request Flow (Markdown):**
 
-## Key Modules & Patterns
+```
+GET /docs/readme.md → resolve path → read file → parse (markdown_ppp AST)
+→ render to HTML fragment → inject into meta/html-t.hbs template
+→ add context (path, server-version, configured vars) → return full HTML
+```
 
-- **HTTP Routing:** `src/request.rs` (main routes), `src/main.rs` (server setup)
-- **Markdown Pipeline:** `src/parser/mod.rs::md2html` (orchestrates parsing & templating)
-- **TOC:** `src/parser/markdown.rs::get_toc` (walks files, builds TOC)
-- **Templating:** `src/parser/templating.rs` (Handlebars engine, context DSL)
-- **Config:** `src/cofg/config.rs` (`OnceCell<RwLock<Cofg>` for global config)
-- **Errors:** `src/error.rs` (`AppError` with `Responder` impl, use `?` for propagation)
+**Request Flow (Static):**
 
-## Routing & Behavior
+```
+GET /assets/logo.png → resolve path → actix_files::NamedFile (streaming) → response
+```
 
-- `GET /` → serve `public/index.html` if exists, else TOC via `get_toc` + `md2html`
-- `GET /{filename:.*}` → resolve under `public_path`; `.md` → parse/render; dir → TOC; else static file
+**Missing Files:** Return custom `meta/404.html` if exists, else plain-text 404.
 
-## Middleware (toggle via `cofg.yaml`)
+## Module Responsibilities
 
-Chain: Rate limiting → Logger → NormalizePath → Compress → BasicAuth → IP Filter → Routes
-Logger uses `%{url}xi` (percent-decoded, leading `/` trimmed)
+| Module                     | Purpose                                            | Key Entry Points                                       |
+| -------------------------- | -------------------------------------------------- | ------------------------------------------------------ |
+| `src/main.rs`              | Server composition, middleware chain, logging init | `create_server()`, middleware layers                   |
+| `src/request.rs`           | HTTP routes (GET /, GET /{filename:.\*})           | `index()`, `fallback()` handlers                       |
+| `src/parser/mod.rs`        | Orchestrates md→HTML→template pipeline             | `md2html(md, cfg, extra_vars)`                         |
+| `src/parser/markdown.rs`   | Markdown AST parsing, TOC generation               | `parser_md()`, `get_toc()`                             |
+| `src/parser/templating.rs` | Handlebars engine lifecycle, context assembly      | `get_engine()`, `get_context()`, `set_context_value()` |
+| `src/cofg/config.rs`       | Global config caching (OnceCell<RwLock<\_>>)       | `Cofg::new()`, hot reload guards                       |
+| `src/error.rs`             | Unified error type with Responder impl             | `AppError` enum, `?` propagation                       |
 
-## Configuration & Templating
+## Critical Data Structures & Patterns
 
-- Context DSL: `templating.value: ["name:value"]` (type inference, env support)
-- Hot reload: `templating.hot_reload=true` (dev only, rebuilds engine per request)
-- Built-in context: `server-version`, `body`, `path`
-- CLI overrides: `cofg::build_config_from_cli` (TLS only if cert+key provided)
+### Configuration Caching (`Cofg::new()`)
+
+- Stored in global `OnceCell<RwLock<Cofg>>`
+- **Normal mode:** Returns cached clone (zero IO cost)
+- **Hot reload mode** (`templating.hot_reload=true`, dev only): Caller can force reload via `get(true)`
+- **Why:** Keep hot paths fast; enable dev ergonomics without production cost
+
+### Template Engine Lifecycle (`get_engine()`)
+
+- Single global `OnceCell<RwLock<Handlebars>>`
+- **Normal mode:** First build caches bytecode; reused thereafter
+- **Hot reload mode:** Entire engine rebuilt per request (intentional dev cost)
+- **Template registration:** `html-t` lazily registered from `./meta/html-t.hbs` on first render
+
+### Context DSL (`templating.value` in config)
+
+```yaml
+templating:
+  value:
+    - "name:value" # string
+    - "count:42" # auto-inferred as i64
+    - "enabled:true" # auto-inferred as bool
+    - "apikey:env:API_KEY" # pulled from environment
+```
+
+Type inference order: `bool` → `i64` → `string`. Malformed entries silently ignored.
+
+### Per-Request Caching
+
+`http_ext` module caches small derived values (percent-decoded URI, resolved PathBuf, canonical path) to avoid recomputation across logging, branching, and file I/O.
+
+## Error Handling Pattern
+
+```rust
+// Deep functions return AppResult<T> (= Result<T, AppError>)
+fn helper() -> AppResult<String> { ... }
+
+// Route handlers use ? to bubble up
+#[post("/")]
+async fn my_route() -> AppResult<impl Responder> {
+    let data = helper()?;  // Error auto-converts to HTTP 500 + logging
+    Ok(HttpResponse::Ok().json(data))
+}
+
+// AppError::Responder impl ensures uncaught errors still produce proper HTTP response
+```
 
 ## Developer Workflow
 
-- **First run:** `cargo run` (writes defaults, exits); run again to start server
-- **Tests:** `cargo test` (unit: `src/test/*.rs`, integration: middleware/auth/IP)
-- **Lint:** `cargo clippy -- -D warnings`
-- **VS Code tasks:** `ast-grep: scan` (lint), `ast-grep: test` (interactive)
-- **API docs:** `/api` (Swagger UI from `src/api.rs`)
+| Task            | Command                                           | Notes                                                              |
+| --------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
+| **First run**   | `cargo run` (exits, creates defaults) → run again | Creates `meta/html-t.hbs`, `cofg.yaml`                             |
+| **Development** | `cargo run`                                       | Hot reload enabled by default; watch `cofg.yaml` & `meta/` changes |
+| **Test**        | `cargo test` or `cargo make test`                 | Tests in `src/test/*.rs` (unit + integration)                      |
+| **Lint**        | `cargo clippy -- -D warnings`                     | Must pass to merge                                                 |
+| **Format**      | `cargo fmt`                                       | Checked in CI                                                      |
+| **API docs**    | Open `/api` endpoint                              | Swagger UI auto-generated from `src/api.rs`                        |
 
-## Constraints & Conventions
+## Coding Conventions
 
-- No HTML caching: Markdown re-parsed per request
-- Path security: Canonicalization is best-effort; add strict prefix enforcement if needed
-- Template: `meta/html-t.hbs` must exist (auto-created on first run)
-- Custom 404: Place `meta/404.html` to override default
-- **WHY comments:** Explain rationale, not just what
-- **Bilingual docs:** English + 中文 (see `architecture.md`, `src/parser/mod.rs`)
-- **Contract sections:** Functions document inputs/outputs/errors/side effects/perf/security
-- **Error propagation:** Use `?` with `AppError`; custom `Responder` for HTTP
+### Documentation & Comments
 
-## Quick References
+- **WHY comments only:** Explain rationale, not "what" (code speaks for itself)
+- **Contract sections:** Functions document inputs/outputs/errors/side effects/perf/security impacts
+- **Bilingual approach:** Core docs in English; comments in `src/` mix English + 中文 for team clarity
+- Example: See `src/request.rs` module docs (dual-language flow explanation)
 
-- Request flow: `docs/request-flow.md`
-- Config mapping: `docs/config-templating-map.md`
-- Architecture: `architecture.md`
-- Key functions: `docs/key-functions.md`
+### Error Propagation
+
+- Use `?` with `AppError` for clean call chains
+- Never inline HTTP status codes in helpers; let `Responder` impl handle mapping
+- Log context (path, config state) before returning errors
+
+### Path Security
+
+- **Current:** Best-effort canonicalization; path joined against configured `public_path`
+- **Gap:** No strict canonical prefix check; future hardening needed for untrusted roots
+- **Mitigation:** If serving user-provided content roots, add traversal validation
+
+### Middleware Chain (configurable via `cofg.yaml`)
+
+```
+Rate Limiting → Logger → NormalizePath → Compress → BasicAuth → IP Filter → Routes
+```
+
+Each can be toggled; order matters for efficiency (expensive checks after filtering).
+
+## Key Files & References
+
+- **Request flow:** [docs/request-flow.md](../docs/request-flow.md)
+- **Architecture deep-dive:** [architecture.md](../architecture.md)
+- **Config mapping:** [docs/config-templating-map.md](../docs/config-templating-map.md)
+- **Key functions:** [docs/key-functions.md](../docs/key-functions.md)
+- **Markdown parsing:** [src/parser/markdown.rs](../src/parser/markdown.rs)
+- **Templating DSL:** [src/parser/templating.rs](../src/parser/templating.rs)
+
+## Common Implementation Patterns
+
+### Adding a New Configuration Option
+
+1. Add field to nested struct in `src/cofg/config.rs` (use `nest!` macro for clarity)
+2. Add YAML key to `src/cofg/cofg.yaml` (embedded default)
+3. Reference via `Cofg::new().field` in hot paths (cached, zero IO)
+4. Extend middleware chain if it's a middleware toggle
+
+### Rendering Markdown with Custom Context
+
+```rust
+let extra_vars = vec![
+    "title:My Page".to_string(),
+    "author:env:AUTHOR_NAME".to_string(),
+];
+let html = md2html(markdown_text, &Cofg::new(), extra_vars)?;
+```
+
+### Handling Missing Files & Custom 404
+
+- Route checks `Path::exists()` on resolved path
+- If missing, tries `./meta/404.html` (user-customizable)
+- Falls back to plain-text "404 Not Found"
+
+## Performance & Scalability Notes
+
+- **Markdown caching:** Removed (every request re-parses); future optimization: cache by (path, mtime, size, template_version)
+- **Config caching:** Free (RwLock clone is cheap)
+- **Engine bytecode:** Handlebars auto-manages; hot reload disables for dev
+- **Streaming:** Static files use `actix_files::NamedFile` (efficient for large assets)
+- **Middleware order:** Rate limiting first to reject abuse early; Logger before expensive middleware
+
+## Testing Strategy
+
+- **Unit tests:** Isolate module logic (config, parsing, templating)
+- **Integration tests:** Full request→response cycles (middleware chain, auth, IP filtering)
+- **Test helpers:** `src/test/` modules provide fixtures (temp dirs, mock requests, default configs)
+- **Run interactive:** `cargo make test` for guided test exploration

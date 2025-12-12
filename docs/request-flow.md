@@ -1,10 +1,10 @@
-
 # Request Flow & Sequence
 
 > WHY: 明确分支与数据派生点，便于调试、性能优化和安全审查。
 
-> 最后更新时间：2025-11-28
+> 最后更新时间：2025-12-13
 > 适用版本：dev 分支
+> 参见：`.github/copilot-instructions.md`（AI 编码代理完整指引）
 
 ## 1. Index 路由 (`/`)
 
@@ -62,16 +62,16 @@ WHY: 保证 Markdown 动态渲染，无缓存，支持热重载和上下文扩�
 
 每次请求扩展：
 
-| Key           | Source Function          | Purpose                                     |
-| ------------- | ------------------------ | ------------------------------------------- |
-| DecodedUri    | `cached_decoded_uri`     | 日志友好，百分号解码路径                    |
-| FilenamePath  | `cached_filename_path`   | 可复用的 PathBuf 路径参数                   |
-| TOC           | `get_toc`                | 目录树，目录请求时动态生成                  |
-| Engine        | `get_engine`             | Handlebars 模板引擎，支持热重载             |
+| Key          | Source Function        | Purpose                         |
+| ------------ | ---------------------- | ------------------------------- |
+| DecodedUri   | `cached_decoded_uri`   | 日志友好，百分号解码路径        |
+| FilenamePath | `cached_filename_path` | 可复用的 PathBuf 路径参数       |
+| TOC          | `get_toc`              | 目录树，目录请求时动态生成      |
+| Engine       | `get_engine`           | Handlebars 模板引擎，支持热重载 |
 
 WHY: 这些变量用于性能优化、日志追踪和上下文扩展，便于后续功能拓展。
-| PublicReqPath | `cached_public_req_path` | Disk resolution anchor under `public_path`  |
-| IsMarkdown    | `cached_is_markdown`     | Branch predicate for dynamic vs static path |
+| PublicReqPath | `cached_public_req_path` | Disk resolution anchor under `public_path` |
+| IsMarkdown | `cached_is_markdown` | Branch predicate for dynamic vs static path |
 
 Cross-request:
 
