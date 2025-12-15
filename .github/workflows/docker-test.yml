@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  docker-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,3 +22,49 @@ jobs:
 
       - name: Build
         run: docker build .
+  test-with-httpyac:
+    # allow failed
+    if: false
+    runs-on: ubuntu-latest
+    name: test with httpyac
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1.15.2
+
+      - name: Install netcat
+        run: |
+          if ! command -v nc &> /dev/null; then
+            apt-get update && apt-get install -y netcat-openbsd
+          fi
+
+      - run: cargo b
+      - run: cargo run &
+
+      - name: Wait for server to be ready
+        run: |
+          for i in {1..10}; do
+            if nc -z localhost 8080; then
+              echo "Server is up!"
+              break
+            else
+              echo "Waiting for server..."
+              sleep 1
+            fi
+          done
+
+      - name: test
+        id: test
+        run: npx httpyac send test/test.http -a --bail --insecure --raw
+
+  cargo-test:
+    runs-on: ubuntu-latest
+    name: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - uses: taiki-e/install-action@271014ec0fe73d05f4206c04b4392ad895d8f0e3 # v2.62.66
+        with:
+          tool: cargo-make
+      - run: cargo make test
