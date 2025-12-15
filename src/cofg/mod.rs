@@ -1,3 +1,5 @@
+use log::warn;
+
 use crate::error::{AppError, AppResult};
 
 pub(crate) mod cli;
@@ -11,6 +13,15 @@ pub(crate) fn build_config_from_cli(
     mut s: config::Cofg,
     cli: &cli::Args,
 ) -> AppResult<config::Cofg> {
+    if s.middleware.rate_limiting.burst_size == 0 {
+        warn!("burst_size of 0 is invalid; setting to 1");
+        s.middleware.rate_limiting.burst_size = 1;
+    }
+    if s.middleware.rate_limiting.seconds_per_request == 0 {
+        warn!("seconds_per_request of 0 is invalid; setting to 1");
+        s.middleware.rate_limiting.seconds_per_request = 1;
+    }
+
     match (&cli.ip, cli.port) {
         (None, None) => (),
         (None, Some(port)) => {

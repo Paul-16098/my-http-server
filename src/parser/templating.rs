@@ -6,6 +6,7 @@
 
 use handlebars::{Context, Handlebars};
 
+use log::error;
 use serde_json::json;
 use std::sync::{OnceLock, RwLock};
 
@@ -68,7 +69,10 @@ pub(crate) fn get_context(c: &crate::cofg::config::Cofg) -> Context {
     let mut context = Context::wraps(json!({
       "server-version": env!("CARGO_PKG_VERSION")
     }))
-    .unwrap();
+    .unwrap_or_else(|e| {
+        error!("Failed to create template context: {}", e);
+        Context::null()
+    });
     if let Some(raw_str) = &c.templating.value {
         for data in raw_str {
             set_context_value(&mut context, data);

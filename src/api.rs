@@ -1,6 +1,8 @@
 use actix_web::{HttpResponse, get, http::header::ContentType, scope, web::Json};
 use utoipa::OpenApi;
 
+use crate::request::server_error;
+
 // struct ServerAddon;
 // impl utoipa::Modify for ServerAddon {
 //     fn modify(&self, _openapi: &mut utoipa::openapi::OpenApi) {}
@@ -27,11 +29,19 @@ async fn docs() -> HttpResponse {
         .body(include_str!("./swagger-ui.html"))
 }
 
+#[utoipa::path(
+    responses(
+        (status = 200, description = "OpenAPI JSON document", content_type = "application/json"),
+        (status = 500, description = "Failed to generate OpenAPI JSON document", content_type = "text/plain")
+    )
+)]
 #[get("/raw")]
 async fn raw_openapi() -> HttpResponse {
-    HttpResponse::Ok()
-        .content_type(ContentType::json())
-        .body(ApiDoc::openapi().to_pretty_json().unwrap())
+    let body = ApiDoc::openapi().to_json();
+    match body {
+        Ok(b) => HttpResponse::Ok().content_type(ContentType::json()).body(b),
+        Err(e) => server_error(format!("Failed to generate OpenAPI JSON: {}", e)),
+    }
 }
 /// Get server meta information
 /// # Returns

@@ -72,8 +72,6 @@ impl Default for Version {
 /// WHY: Keep side-effect setup isolated from `main()`. Directory creation early prevents
 /// per-request race to create it lazily. Logger configured with module paths for traceability.
 fn init(c: &Cofg) -> AppResult<()> {
-    logger_init();
-
     create_dir_all(&c.public_path)?;
     create_dir_all("./meta")?;
     if !Path::new("./meta/html-t.hbs").exists() {
@@ -99,9 +97,7 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(t) = ght {
             resp = resp.header("Authorization", format!("Bearer {}", t));
         }
-        let mut resp = resp
-            .call()
-            .expect("emojis not initialized: failed to fetch from github api");
+        let mut resp = resp.call()?;
         let body = resp.body_mut().read_json::<HashMap<String, String>>()?;
         let mut unicode_emojis = HashMap::new();
         let mut else_emojis = HashMap::new();
@@ -112,17 +108,23 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
                     .split('/')
                     .collect::<Vec<_>>()
                     .last()
-                    .unwrap()
-                    .split('-')
-                    .filter_map(|code| u32::from_str_radix(code, 16).ok())
-                    .filter_map(std::char::from_u32)
-                    .collect();
-                debug!("Found unicode emoji: {k} -> {unicode}");
-
-                unicode_emojis.insert(k.clone(), unicode);
+                    .map(|last| {
+                        last.split('-')
+                            .filter_map(|code| u32::from_str_radix(code, 16).ok())
+                            .filter_map(std::char::from_u32)
+                            .collect::<String>()
+                    });
+                match unicode {
+                    Some(unicode) => {
+                        debug!("Found unicode emoji: {k} -> {unicode}");
+                        unicode_emojis.insert(k.clone(), unicode);
+                    }
+                    None => {
+                        warn!("Failed to parse unicode emoji for key: {k}, value: {v}");
+                    }
+                }
             } else {
                 debug!("Found non-unicode emoji: {k} -> {v}");
-
                 else_emojis.insert(k.clone(), v.clone());
             }
         }
@@ -135,12 +137,15 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
     } else {
         info!("emoji json files found, skipping fetch.");
     }
-    EMOJIS.get_or_init(|| {
-        serde_json::from_str(
-            &std::fs::read_to_string("./emojis.json").expect("Failed to read emojis.json"),
-        )
-        .expect("Failed to parse emojis.json as valid JSON")
-    });
+    let emojis_json = std::fs::read_to_string("./emojis.json").map_err(|e| {
+        error!("Failed to read emojis.json: {}", e);
+        e
+    })?;
+    let emojis: parser::Emojis = serde_json::from_str(&emojis_json).map_err(|e| {
+        error!("Failed to parse emojis.json as valid JSON: {}", e);
+        e
+    })?;
+    EMOJIS.get_or_init(|| emojis);
     Ok(())
 }
 fn logger_init() {
@@ -235,7 +240,10 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
                         .seconds_per_request(middleware_cofg.rate_limiting.seconds_per_request)
                         .burst_size(middleware_cofg.rate_limiting.burst_size)
                         .finish()
-                        .unwrap();
+                        .unwrap_or_else(|| {
+                            error!("Failed to build rate limiting config");
+                            actix_governor::GovernorConfig::default()
+                        });
                     actix_governor::Governor::new(&cfg)
                 },
             ))
@@ -405,6 +413,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 
 #[actix_web::main]
 async fn main() -> AppResult<()> {
+    logger_init();
     let mut s = cofg::build_config_from_cli(Cofg::new(), &cli::Args::parse())?;
     s.public_path = Path::new(&s.public_path)
         .canonicalize()

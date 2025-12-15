@@ -22,6 +22,7 @@ pub(crate) struct Args {
     pub(crate) tls_key: Option<String>,
     #[arg()]
     /// Root directory for execution context
+    /// config, templates, static files, etc. will be resolved relative to this path.
     pub(crate) root_dir: Option<String>,
 }
 

@@ -5,14 +5,14 @@
 //! only attempted when caller explicitly asks (`get(true)`) AND hot-reload is enabled. This keeps
 //! the steady-state fast while still offering a development-friendly live tweaking mode.
 
+use log::{debug, error, warn};
 use nest_struct::nest_struct;
 use std::{
     collections::HashSet,
-    process::exit,
     sync::{OnceLock, RwLock},
 };
 
-use crate::error::AppError;
+use crate::error::AppResult;
 
 pub(crate) const BUILD_COFG: &str = include_str!("cofg.yaml");
 
@@ -105,42 +105,49 @@ static GLOBAL_COFG: OnceLock<RwLock<Cofg>> = OnceLock::new();
 
 impl Default for Cofg {
     fn default() -> Self {
-        Cofg::new_from_str(BUILD_COFG)
+        match Cofg::new_from_str(BUILD_COFG) {
+            Ok(r) => r,
+            Err(e) => {
+                error!("Failed to load default configuration: {}", e);
+                panic!("Failed to load default configuration: {}", e);
+            }
+        }
     }
 }
 
 impl Cofg {
-    /// Load configuration from disk, creating a default file if it doesn't exist.
+    /// Load configuration from disk.
     /// WHY: Supports scenarios like admin commands or live reload utilities.
-    pub fn load_from_disk() -> Self {
-        if !std::path::Path::new("./cofg.yaml").exists() {
-            println!("write default cofg");
-            std::fs::write("./cofg.yaml", BUILD_COFG).unwrap();
-        }
+    pub fn load_from_disk() -> AppResult<Self> {
         Self::new_from_source(config::File::with_name("./cofg.yaml"))
+    }
+
+    /// Load configuration from disk, creating a default file if it doesn't exist.
+    pub fn load_from_disk_or_init() -> AppResult<Self> {
+        if !std::path::Path::new("./cofg.yaml").exists() {
+            debug!("write default cofg");
+            if let Err(e) = std::fs::write("./cofg.yaml", BUILD_COFG) {
+                warn!("Failed to write default configuration file: {}", e)
+            };
+        }
+        Self::load_from_disk()
     }
     // Accept any owned source type that implements `config::Source`.
     // This avoids passing a reference to a trait object which doesn't satisfy
     // the builder's `add_source<T: Source + Send + Sync + 'static>(T)` bound.
-    pub fn new_from_source<T>(source: T) -> Self
+    pub fn new_from_source<T>(source: T) -> AppResult<Self>
     where
         T: config::Source + Send + Sync + 'static,
     {
-        config::Config::builder()
+        Ok(config::Config::builder()
             .add_source(source)
-            .build()
-            .unwrap()
-            .try_deserialize::<Self>()
-            .unwrap_or_else(|err| {
-                // log is not yet initialized here
-                println!("{}", AppError::ConfigError(err));
-                exit(1)
-            })
-            .configure_default_extensions()
+            .build()?
+            .try_deserialize::<Self>()?
+            .configure_default_extensions())
     }
 
     /// new from yaml string
-    pub fn new_from_str(date_str: &str) -> Self {
+    pub fn new_from_str(date_str: &str) -> AppResult<Self> {
         Self::new_from_source(config::File::from_str(date_str, config::FileFormat::Yaml))
     }
     /// Configure default extensions for TOC generation.
@@ -167,14 +174,26 @@ impl Cofg {
     }
 
     /// if `reload` is true, reload config from disk
-    pub(crate) fn get(reload: bool) -> Self {
-        let cell = GLOBAL_COFG.get_or_init(|| RwLock::new(Self::load_from_disk()));
+    pub fn get(reload: bool) -> Self {
+        Self::get_global(reload).unwrap_or_else(|e| {
+            error!("Failed to get global configuration: {}", e);
+            Self::default()
+        })
+    }
 
+    /// if `reload` is true, reload config from disk
+    pub(crate) fn get_global(reload: bool) -> AppResult<Self> {
+        let cell = GLOBAL_COFG.get_or_init(|| {
+            debug!("Initializing global configuration");
+            RwLock::new(Self::load_from_disk_or_init().unwrap_or_else(|e| {
+                error!("Failed to load configuration from disk: {}", e);
+                Self::default()
+            }))
+        });
         if reload && let Ok(mut guard) = cell.write() {
-            *guard = Self::load_from_disk();
+            *guard = Self::load_from_disk_or_init()?;
         }
-
-        cell.read().map(|g| g.clone()).unwrap_or_default()
+        Ok(cell.read().map(|g| g.clone()).unwrap_or_default())
     }
 }
 

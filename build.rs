@@ -17,18 +17,25 @@ fn main() {
 
     let commit_hash = {
         if Path::new("./.git").exists() {
-            let output = Command::new("git")
-                .arg("rev-parse")
-                .arg("HEAD")
-                .output()
-                .expect("build.rs: Failed to execute command");
+            let output = Command::new("git").arg("rev-parse").arg("HEAD").output();
+            match output {
+                Ok(output) => {
+                    if output.status.success() {
+                        let commit_hash_str = String::from_utf8_lossy(&output.stdout);
+                        commit_hash_str.trim().to_string()
+                    } else {
+                        warn("Git command failed with output: {output:#?}");
+                        String::from("unknown")
+                    }
+                }
+                Err(e) => {
+                    println!(
+                        "cargo:warning=build.rs: Failed to execute git command = {}",
+                        e
+                    );
 
-            if output.status.success() {
-                let commit_hash_str = String::from_utf8_lossy(&output.stdout);
-                commit_hash_str.trim().to_string()
-            } else {
-                warn("Git command failed with output: {output:#?}");
-                String::from("unknown")
+                    String::from("unknown")
+                }
             }
         } else if !in_docker {
             warn("No .git directory found, skipping git versioning");
@@ -46,9 +53,12 @@ fn main() {
     };
     println!(
         "cargo:rustc-env=FEATURES={}",
-        var("CARGO_CFG_FEATURE").unwrap()
+        var("CARGO_CFG_FEATURE").unwrap_or_default()
     );
-    println!("cargo:rustc-env=PROFILE={}", var("PROFILE").unwrap());
+    println!(
+        "cargo:rustc-env=PROFILE={}",
+        var("PROFILE").unwrap_or("unknown".to_string())
+    );
     println!("cargo:rustc-env=commit_hash={commit_hash}");
     println!("cargo:rustc-env=env_suffix={env_suffix}");
 }

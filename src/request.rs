@@ -199,7 +199,15 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     debug!("{req:?}");
 
     let c = &Cofg::get(false);
-    let public_path = &Path::new(&c.public_path).canonicalize().unwrap();
+    let public_path = &Path::new(&c.public_path)
+        .canonicalize()
+        .unwrap_or_else(|e| {
+            warn!(
+                "Failed to canonicalize public_path: {} = {e}",
+                c.public_path
+            );
+            Path::new(&c.public_path).to_path_buf()
+        });
     // Resolve the target path under the configured public root.
     let filename_str = req.match_info().query("filename");
     let req_path_buf = Path::new(&c.public_path).join(filename_str);
@@ -209,15 +217,17 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         let index_file = public_path.join("index.html");
         if index_file.exists() {
             let f = read_to_string(index_file);
-            if let Ok(value) = f {
-                debug!("index exists=>show file");
-                actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
-                    .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-                    .body(value);
-            } else {
-                let err = f.err().unwrap();
-                warn!("{err}");
-                return server_error(err.to_string());
+            match f {
+                Ok(value) => {
+                    debug!("index exists=>show file");
+                    actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
+                        .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+                        .body(value);
+                }
+                Err(err) => {
+                    warn!("{err}");
+                    return server_error(err.to_string());
+                }
             }
         }
     }

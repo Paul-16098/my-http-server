@@ -112,10 +112,24 @@ pub(crate) fn md2html(
             }
         }
         // some test not initialize emojis
-        crate::emojis_init(None).expect("emojis not initialized");
+        if let Err(e) = crate::emojis_init(None) {
+            log::error!("emojis not initialized: {}", e);
+            return Err(crate::error::AppError::OtherError(format!(
+                "emojis not initialized: {}",
+                e
+            )));
+        }
         ast = markdown_ppp::ast_transform::Transform::transform_with(
             ast,
-            ReplaceGithubEmojis(EMOJIS.get().unwrap()),
+            match EMOJIS.get() {
+                Some(emojis) => ReplaceGithubEmojis(emojis),
+                None => {
+                    log::error!("EMOJIS static not initialized");
+                    return Err(crate::error::AppError::OtherError(
+                        "EMOJIS static not initialized".to_string(),
+                    ));
+                }
+            },
         )
     }
     log::trace!("ast={ast:#?}");
