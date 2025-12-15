@@ -2,7 +2,7 @@
 //!
 //! End-to-end tests for the markdown → HTML → template pipeline and full request flow.
 
-use crate::cofg::config::{BUILD_COFG, Cofg};
+use crate::cofg::config::Cofg;
 use crate::parser::{markdown::parser_md, md2html, templating::get_context};
 use std::fs;
 use std::sync::{Mutex, OnceLock};
@@ -47,7 +47,7 @@ fn test_md2html_basic_conversion() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let markdown = "# Hello World\n\nThis is a test.".to_string();
         md2html(markdown, &config, vec![])
     });
@@ -73,7 +73,7 @@ fn test_md2html_with_context_variables() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let markdown = "# Test Document".to_string();
         let template_data = vec!["title:My Title".to_string(), "author:John Doe".to_string()];
         md2html(markdown, &config, template_data)
@@ -98,7 +98,7 @@ fn test_md2html_with_path_context() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let markdown = "# Document".to_string();
         let template_data = vec!["path:docs/readme.md".to_string()];
         md2html(markdown, &config, template_data)
@@ -140,7 +140,7 @@ fn test_md2html_handles_empty_markdown() {
     fs::write(meta_dir.join("html-t.hbs"), template).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let markdown = "".to_string();
         md2html(markdown, &config, vec![])
     });
@@ -257,7 +257,7 @@ code
 
 #[test]
 fn test_template_context_type_inference_integration() {
-    let config = Cofg::new_from_str(BUILD_COFG);
+    let config = Cofg::default();
     let context = get_context(&config);
 
     // Context should always have server-version
@@ -289,7 +289,7 @@ fn test_template_context_env_vars_integration() {
     }
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let markdown = "# Title".to_string();
         let template_data = vec!["testvar:env:TEST_INTEGRATION_VAR".to_string()];
         md2html(markdown, &config, template_data)
@@ -332,7 +332,7 @@ fn test_template_body_injection() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let markdown = "# Test".to_string();
         md2html(markdown, &config, vec![])
     });
@@ -347,7 +347,7 @@ fn test_template_body_injection() {
 #[test]
 fn test_server_version_in_context() {
     // Test that server-version is always included
-    let config = Cofg::new_from_str(BUILD_COFG);
+    let config = Cofg::default();
     let context = get_context(&config);
 
     let data = context.data().as_object().unwrap();
@@ -371,7 +371,7 @@ fn test_multiple_template_data_entries() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let template_data = vec![
             "var1:value1".to_string(),
             "var2:123".to_string(),
@@ -400,7 +400,7 @@ fn test_template_data_override() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         let template_data = vec!["key:first".to_string(), "key:second".to_string()];
         md2html("# Test".to_string(), &config, template_data)
     });
@@ -451,7 +451,7 @@ fn test_template_rendering_error() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         md2html("# Test".to_string(), &config, vec![])
     });
 
@@ -554,7 +554,7 @@ fn test_full_request_flow_directory_toc() {
     fs::write(meta_dir.join("html-t.hbs"), template).unwrap();
 
     let toc = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::new_from_str(BUILD_COFG);
+        let config = Cofg::default();
         match get_toc(
             &public_path,
             &config,
