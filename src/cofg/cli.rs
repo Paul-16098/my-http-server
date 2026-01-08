@@ -13,17 +13,24 @@ use crate::error::AppError;
 #[command(version = crate::VERSION.to_string())]
 pub(crate) struct Args {
     #[arg(long)]
+    /// IP address to bind the server to
     pub(crate) ip: Option<String>,
     #[arg(long)]
+    /// Port number to bind the server to
     pub(crate) port: Option<u16>,
     #[arg(long)]
+    /// Path to TLS certificate file (PEM format)
     pub(crate) tls_cert: Option<String>,
     #[arg(long)]
+    /// Path to TLS private key file (PEM format)
     pub(crate) tls_key: Option<String>,
     #[arg()]
     /// Root directory for execution context
     /// config, templates, static files, etc. will be resolved relative to this path.
     pub(crate) root_dir: Option<String>,
+    #[arg(long, short, default_value_t = false)]
+    /// do not load configuration file from disk, only use defaults and CLI args
+    pub(crate) no_config: bool,
 }
 
 impl TryFrom<&Args> for super::config::CofgAddrs {

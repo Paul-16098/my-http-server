@@ -35,7 +35,7 @@ async fn docs() -> HttpResponse {
         (status = 500, description = "Failed to generate OpenAPI JSON document", content_type = "text/plain")
     )
 )]
-#[get("/raw")]
+#[get("/raw.json")]
 async fn raw_openapi() -> HttpResponse {
     let body = ApiDoc::openapi().to_json();
     match body {

@@ -8,6 +8,7 @@ fn test_try_from_args_with_valid_ip_and_port() {
         tls_cert: None,
         tls_key: None,
         root_dir: None,
+        no_config: false,
     };
 
     let result = CofgAddrs::try_from(&args);
@@ -25,6 +26,7 @@ fn test_try_from_args_with_missing_ip() {
         tls_cert: None,
         tls_key: None,
         root_dir: None,
+        no_config: false,
     };
 
     let result = CofgAddrs::try_from(&args);
@@ -43,6 +45,7 @@ fn test_try_from_args_with_missing_port() {
         tls_cert: None,
         tls_key: None,
         root_dir: None,
+        no_config: false,
     };
 
     let result = CofgAddrs::try_from(&args);
@@ -61,6 +64,7 @@ fn test_try_from_args_with_missing_ip_and_port() {
         tls_cert: None,
         tls_key: None,
         root_dir: None,
+        no_config: false,
     };
 
     let result = CofgAddrs::try_from(&args);
@@ -79,6 +83,7 @@ fn test_try_from_owned_args_with_valid_ip_and_port() {
         tls_cert: None,
         tls_key: None,
         root_dir: None,
+        no_config: false,
     };
 
     let result = CofgAddrs::try_from(args);
