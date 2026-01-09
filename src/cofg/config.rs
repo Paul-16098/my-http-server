@@ -1,9 +1,16 @@
 //! Configuration (Cofg)
 //!
-//! WHY: Centralized runtime configuration cached in a global `OnceCell<RwLock<_>>` so hot paths
-//! (HTTP request handling & markdown rendering) avoid disk IO / deserialization cost. A reload is
-//! only attempted when caller explicitly asks (`get(true)`) AND hot-reload is enabled. This keeps
-//! the steady-state fast while still offering a development-friendly live tweaking mode.
+//! WHY: Centralized runtime configuration with layered precedence:
+//! 1. Built-in defaults (embedded cofg.yaml)
+//! 2. Config file (./cofg.yaml or --config-path)
+//! 3. Environment variables (MYHTTP_* prefix)
+//! 4. CLI arguments (highest priority)
+//!
+//! Global caching via `OnceCell<RwLock<_>>` ensures hot paths (HTTP request handling & markdown
+//! rendering) avoid disk IO/deserialization cost. Hot reload respects the precedence chain and
+//! only reloads the file layer when `templating.hot_reload=true`.
+//!
+//! 中文：分層配置系統，優先級：內建預設→配置檔→環境變數→CLI參數。全局快取避免熱路徑IO開銷。
 
 use log::{debug, error, warn};
 use nest_struct::nest_struct;
@@ -101,7 +108,13 @@ pub(crate) struct Cofg {
 }
 
 // global cached config; allow refresh when hot_reload = true
-static GLOBAL_COFG: OnceLock<RwLock<Cofg>> = OnceLock::new();
+// Global cached config with CLI args for proper layered reload
+struct GlobalConfig {
+    config: Cofg,
+    cli_args: Option<super::cli::Args>,
+}
+
+static GLOBAL_COFG: OnceLock<RwLock<GlobalConfig>> = OnceLock::new();
 
 impl Default for Cofg {
     fn default() -> Self {
@@ -117,6 +130,92 @@ impl Default for Cofg {
 
 impl Cofg {
     /// Load configuration from disk.
+    /// Build layered configuration from CLI arguments.
+    ///
+    /// This is the primary entry point for loading configuration with full precedence chain:
+    /// 1. Built-in defaults (BUILD_COFG)
+    /// 2. Config file (if not --no-config)
+    /// 3. Environment variables (MYHTTP_* prefix)
+    /// 4. CLI overrides (highest priority)
+    ///
+    /// WHY: Explicit precedence chain makes config behavior predictable and testable.
+    pub fn new_layered(cli: &super::cli::Args) -> AppResult<Self> {
+        let mut builder = config::Config::builder()
+            // Layer 1: Built-in defaults
+            .add_source(config::File::from_str(BUILD_COFG, config::FileFormat::Yaml));
+
+        // Layer 2: Config file (unless --no-config)
+        if let Some(config_path) = cli.config_file_path() {
+            let path = std::path::Path::new(config_path);
+            if path.exists() {
+                debug!("Loading config from: {}", config_path);
+                builder = builder.add_source(config::File::from(path));
+            } else if !cli.no_config {
+                // Only warn if user didn't explicitly skip config
+                warn!("Config file not found: {}, using defaults", config_path);
+            }
+        }
+
+        // Layer 3: Environment variables with MYHTTP_ prefix
+        // Map nested config like "addrs.ip" to MYHTTP_ADDRS_IP (separator="_")
+        builder = builder.add_source(
+            config::Environment::with_prefix("MYHTTP")
+                .separator("_")
+                .try_parsing(true),
+        );
+
+        let mut cfg = builder
+            .build()?
+            .try_deserialize::<Self>()?
+            .configure_default_extensions();
+
+        // Layer 4: CLI overrides (highest priority)
+        cfg.apply_cli_overrides(cli)?;
+
+        Ok(cfg)
+    }
+
+    /// Apply CLI argument overrides to the configuration.
+    ///
+    /// WHY: Keep CLI override logic centralized and explicit.
+    pub(crate) fn apply_cli_overrides(&mut self, cli: &super::cli::Args) -> AppResult<()> {
+        // Server binding
+        if let Some(ref ip) = cli.ip {
+            self.addrs.ip = ip.clone();
+        }
+        if let Some(port) = cli.port {
+            self.addrs.port = port;
+        }
+
+        // TLS configuration (require both cert and key)
+        if let (Some(cert), Some(key)) = (&cli.tls_cert, &cli.tls_key) {
+            self.tls.cert = cert.clone();
+            self.tls.key = key.clone();
+            self.tls.enable = true;
+        }
+
+        // Public path
+        if let Some(ref path) = cli.public_path {
+            self.public_path = path.clone();
+        }
+
+        // Hot reload
+        if let Some(hot_reload) = cli.hot_reload {
+            self.templating.hot_reload = hot_reload;
+        }
+
+        // Validation: ensure rate limiting values are sane
+        if self.middleware.rate_limiting.burst_size == 0 {
+            warn!("burst_size of 0 is invalid; setting to 1");
+            self.middleware.rate_limiting.burst_size = 1;
+        }
+        if self.middleware.rate_limiting.seconds_per_request == 0 {
+            warn!("seconds_per_request of 0 is invalid; setting to 1");
+            self.middleware.rate_limiting.seconds_per_request = 1;
+        }
+
+        Ok(())
+    }
     /// WHY: Supports scenarios like admin commands or live reload utilities.
     pub fn load_from_disk() -> AppResult<Self> {
         Self::new_from_source(config::File::with_name("./cofg.yaml"))
@@ -169,31 +268,86 @@ impl Cofg {
         self
     }
 
+    // #[allow(dead_code)]
     pub(crate) fn new() -> Self {
-        Self::get(true)
+        Self::get(false)
     }
 
     /// if `reload` is true, reload config from disk
-    pub fn get(reload: bool) -> Self {
-        Self::get_global(reload).unwrap_or_else(|e| {
+    pub fn get(force_reload: bool) -> Self {
+        Self::get_global(force_reload).unwrap_or_else(|e| {
             error!("Failed to get global configuration: {}", e);
             Self::default()
         })
     }
 
-    /// if `reload` is true, reload config from disk
-    pub(crate) fn get_global(reload: bool) -> AppResult<Self> {
+    /// Get global configuration with optional forced reload.
+    ///
+    /// If `force_reload=true`, reloads config from file layer only (respects CLI/env overrides).
+    /// Hot reload is only allowed when `templating.hot_reload=true` in the config.
+    ///
+    /// WHY: Enforce hot reload guard to prevent accidental reloads in production.
+    pub(crate) fn get_global(force_reload: bool) -> AppResult<Self> {
         let cell = GLOBAL_COFG.get_or_init(|| {
             debug!("Initializing global configuration");
-            RwLock::new(Self::load_from_disk_or_init().unwrap_or_else(|e| {
-                error!("Failed to load configuration from disk: {}", e);
+            let config = Self::load_from_disk_or_init().unwrap_or_else(|e| {
+                warn!("Failed to load configuration from disk: {}", e);
                 Self::default()
-            }))
+            });
+            RwLock::new(GlobalConfig {
+                config,
+                cli_args: None,
+            })
         });
-        if reload && let Ok(mut guard) = cell.write() {
-            *guard = Self::load_from_disk_or_init()?;
+
+        // Attempt reload if requested
+        if force_reload {
+            if let Ok(guard) = cell.read() {
+                // Check if hot reload is enabled before allowing reload
+                if !guard.config.templating.hot_reload {
+                    debug!("Hot reload requested but not enabled in config");
+                    return Ok(guard.config.clone());
+                }
+            }
+
+            if let Ok(mut guard) = cell.write() {
+                // Reload with original CLI args if available
+                let new_config = if let Some(ref cli_args) = guard.cli_args {
+                    debug!("Reloading config with CLI args");
+                    Self::new_layered(cli_args)?
+                } else {
+                    debug!("Reloading config from disk");
+                    Self::load_from_disk_or_init()?
+                };
+                guard.config = new_config;
+            }
         }
-        Ok(cell.read().map(|g| g.clone()).unwrap_or_default())
+
+        Ok(cell.read().map(|g| g.config.clone()).unwrap_or_default())
+    }
+
+    /// Initialize global configuration with CLI arguments.
+    ///
+    /// This should be called once at startup to establish the config with full precedence chain.
+    ///
+    /// WHY: Store CLI args for proper reload behavior that respects original overrides.
+    pub fn init_global(cli: &super::cli::Args) -> AppResult<Self> {
+        let config = Self::new_layered(cli)?;
+
+        let cell = GLOBAL_COFG.get_or_init(|| {
+            RwLock::new(GlobalConfig {
+                config: config.clone(),
+                cli_args: Some(cli.clone()),
+            })
+        });
+
+        // Update if already initialized (e.g., from tests)
+        if let Ok(mut guard) = cell.write() {
+            guard.config = config.clone();
+            guard.cli_args = Some(cli.clone());
+        }
+
+        Ok(config)
     }
 }
 

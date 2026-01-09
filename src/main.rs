@@ -415,7 +415,23 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 #[actix_web::main]
 async fn main() -> AppResult<()> {
     logger_init();
-    let mut s = cofg::build_config_from_cli(Cofg::new(), &cli::Args::parse())?;
+
+    // Parse CLI arguments
+    let cli_args = cli::Args::parse();
+
+    // Handle root_dir early (change CWD before config load)
+    if let Some(ref dir) = cli_args.root_dir {
+        std::env::set_current_dir(dir).map_err(|e| {
+            error!("Failed to change directory to '{}': {}", dir, e);
+            crate::error::AppError::CliError(format!("ROOT_DIR must be a valid path: {}", e))
+        })?;
+        info!("Changed working directory to: {}", dir);
+    }
+
+    // Initialize global config with full layered precedence
+    let mut s = Cofg::init_global(&cli_args)?;
+
+    // Canonicalize public_path for consistent path resolution
     s.public_path = Path::new(&s.public_path)
         .canonicalize()
         .unwrap_or_else(|e| {
