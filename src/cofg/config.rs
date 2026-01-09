@@ -371,19 +371,23 @@ impl Cofg {
     }
     /// Configure default extensions for TOC generation.
     pub(crate) fn configure_default_extensions(mut self) -> Self {
-        if self.toc.ext.contains("<build-in>") {
-            self.toc.ext.remove("<build-in>");
-            self.toc.ext.extend(
-                ["html", "md", "pdf", "txt", "png"]
-                    .into_iter()
-                    .map(String::from),
-            );
-        }
-        if self.toc.ig.contains("<build-in>") {
-            self.toc.ig.remove("<build-in>");
-            self.toc
-                .ig
-                .extend(["node_modules"].into_iter().map(String::from));
+        // Accept markers for robustness: "<build-in>" (current default).
+        {
+            let marker = "<build-in>";
+            if self.toc.ext.contains(marker) {
+                self.toc.ext.remove(marker);
+                self.toc.ext.extend(
+                    ["html", "md", "pdf", "txt", "png"]
+                        .into_iter()
+                        .map(String::from),
+                );
+            }
+            if self.toc.ig.contains(marker) {
+                self.toc.ig.remove(marker);
+                self.toc
+                    .ig
+                    .extend(["node_modules"].into_iter().map(String::from));
+            }
         }
         self
     }

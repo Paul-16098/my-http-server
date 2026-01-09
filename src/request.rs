@@ -115,25 +115,17 @@ fn render_markdown_to_html_response(
 ) -> AppResult<actix_web::HttpResponse> {
     use actix_web::{HttpResponseBuilder, http::StatusCode};
     match read_to_string(req_path) {
-        Ok(file) => {
-            let engine = crate::parser::templating::get_engine(c)?;
-            let mut context = crate::parser::templating::get_context(c);
-            context.data_mut()["path"] = req_path.to_string_lossy().to_string().into();
-            let out = crate::parser::md2html(
-                engine.render_template_with_context(&file, &context)?,
-                c,
-                vec![format!(
-                    "path:{}",
+        Ok(md_source) => {
+            // Render Markdown directly into the HTML template with path context.
+            let rel = req_path
+                .strip_prefix(public_root)
+                .unwrap_or_else(|e| {
+                    warn!("{e}");
                     req_path
-                        .strip_prefix(public_root)
-                        .unwrap_or_else(|e| {
-                            warn!("{e}");
-                            req_path
-                        })
-                        .display()
-                )],
-            );
-            match out {
+                })
+                .to_path_buf();
+
+            match md2html(md_source, c, vec![format!("path:{}", rel.display())]) {
                 Ok(html) => Ok(HttpResponseBuilder::new(StatusCode::OK)
                     .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
                     .body(html)),
@@ -223,7 +215,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
             match f {
                 Ok(value) => {
                     debug!("index exists=>show file");
-                    actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
+                    return actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
                         .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
                         .body(value);
                 }
