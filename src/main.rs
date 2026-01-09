@@ -72,9 +72,33 @@ impl Default for Version {
 ///
 /// WHY: Keep side-effect setup isolated from `main()`. Directory creation early prevents
 /// per-request race to create it lazily. Logger configured with module paths for traceability.
-fn init(c: &Cofg) -> AppResult<()> {
-    create_dir_all(&c.public_path)?;
-    create_dir_all("./meta")?;
+fn init(_c: &Cofg) -> AppResult<()> {
+    if let Some(xdg_paths) = Cofg::get_xdg_paths() {
+        if let Some(parent) = xdg_paths.cofg.parent() {
+            create_dir_all(parent)?;
+        }
+
+        if !xdg_paths.cofg.exists() {
+            std::fs::write(&xdg_paths.cofg, include_str!("./cofg/cofg.yaml"))?;
+            info!("Created default XDG config at {}", xdg_paths.cofg.display());
+        }
+
+        if !xdg_paths.template_hbs.exists() {
+            std::fs::write(&xdg_paths.template_hbs, include_str!("../meta/html-t.hbs"))?;
+            info!(
+                "Created default XDG template at {}",
+                xdg_paths.template_hbs.display()
+            );
+        }
+
+        if !xdg_paths.page_404.exists() {
+            std::fs::write(&xdg_paths.page_404, include_str!("../meta/404.html"))?;
+            info!(
+                "Created default XDG 404 page at {}",
+                xdg_paths.page_404.display()
+            );
+        }
+    }
     if !Path::new("./meta/html-t.hbs").exists() {
         error!("missing required template: meta/html-t.hbs\nuse default");
         std::fs::write("./meta/html-t.hbs", include_str!("../meta/html-t.hbs"))?;

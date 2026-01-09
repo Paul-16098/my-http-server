@@ -7,18 +7,28 @@ use crate::parser::{markdown::parser_md, md2html, templating::get_context};
 use std::fs;
 use std::sync::{Mutex, OnceLock};
 use tempfile::TempDir;
+
+/// Empty emoji cache for testing (minimal valid JSON structure)
+const EMPTY_EMOJIS_JSON: &str = r#"{"unicode":{},"else":{}}"#;
+
 /// Serialize sections of tests that mutate process working directory.
 ///
 /// WHY: Several integration tests temporarily switch the process CWD to place
 /// template files under `./meta`. Running these in parallel can race because
 /// CWD is a global process state. This helper ensures such blocks are executed
 /// one-at-a-time without requiring a custom test runner or external flags.
+///
+/// Also creates `emojis.json` in the test directory to avoid GitHub API calls during tests.
 fn with_cwd_lock<R>(dir: &std::path::Path, f: impl FnOnce() -> R) -> R {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     let _g = LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
 
     let original_dir = std::env::current_dir().unwrap();
     std::env::set_current_dir(dir).unwrap();
+    
+    // Create minimal emojis.json to prevent GitHub API calls in tests
+    let _ = fs::write("./emojis.json", EMPTY_EMOJIS_JSON);
+    
     let res = f();
     std::env::set_current_dir(original_dir).unwrap();
     res

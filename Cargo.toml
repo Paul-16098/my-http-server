@@ -49,6 +49,7 @@
     actix-governor = { version = "0.10.0", features = [
         "log",
     ] }
+    directories = "6.0.0"
     utoipa = { version = "5.4.0", features = [
         "actix_extras",
     ], optional = true }

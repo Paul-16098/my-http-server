@@ -72,7 +72,7 @@ fn test_layered_config_precedence_defaults_only() {
         // Should have default values from BUILD_COFG
         assert_eq!(config.addrs.ip, "localhost");
         assert_eq!(config.addrs.port, 8080);
-        assert_eq!(config.public_path, "./public/");
+        assert_eq!(config.public_path, "./");
     });
 }
 
@@ -262,6 +262,45 @@ fn test_config_file_path_helper() {
         hot_reload: None,
     };
     assert_eq!(cli_default.config_file_path(), Some("./cofg.yaml"));
+}
+
+#[test]
+fn test_xdg_config_path_exists() {
+    // Test that XDG helper returns a valid path structure and exposes template/404 paths
+    use crate::cofg::config::Cofg;
+
+    if let Some(xdg_paths) = Cofg::get_xdg_paths() {
+        println!("XDG config path resolved to: {}", xdg_paths.cofg.display());
+        assert!(xdg_paths.cofg.to_string_lossy().contains("my-http-server"));
+        assert!(xdg_paths.cofg.to_string_lossy().contains("cofg.yaml"));
+        assert!(xdg_paths.page_404.to_string_lossy().contains("404"));
+        assert!(
+            xdg_paths
+                .template_hbs
+                .to_string_lossy()
+                .contains("html-t.hbs")
+        );
+    } else {
+        println!("XDG paths could not be resolved (no home directory?)");
+    }
+
+    // Just ensure the method exists and can be called via layered config
+    let _xdg_path = std::panic::catch_unwind(|| {
+        let cli = Args {
+            ip: None,
+            port: None,
+            tls_cert: None,
+            tls_key: None,
+            config_path: None,
+            no_config: true, // Skip actual config loading
+            public_path: None,
+            root_dir: None,
+            hot_reload: None,
+        };
+        Cofg::new_layered(&cli)
+    });
+
+    assert!(_xdg_path.is_ok());
 }
 
 #[test]

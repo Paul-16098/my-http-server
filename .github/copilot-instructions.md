@@ -43,9 +43,11 @@ GET /assets/logo.png → http_ext per-request cache → resolve path
 ### Configuration Caching (`Cofg::new()` & `Cofg::get()`)
 
 - Stored in global `OnceCell<RwLock<Cofg>>`
+- **Layered loading:** Built-in defaults → XDG config → local file → env vars → CLI overrides
 - **Normal mode:** Returns cached clone (zero IO cost)
 - **Hot reload mode** (`templating.hot_reload=true`, dev only): Caller can force reload via `get(true)`
-- **Why:** Keep hot paths fast (99% of requests use cached config); dev ergonomics without production cost
+- **XDG support:** Automatically loads from `$XDG_CONFIG_HOME/my-http-server/cofg.yaml` (Unix) or `%APPDATA%\my-http-server\cofg.yaml` (Windows)
+- **Why:** Keep hot paths fast (99% of requests use cached config); dev ergonomics without production cost; standard config location support
 
 ### Template Engine Lifecycle (`get_engine()`)
 
@@ -170,6 +172,7 @@ Each can be toggled; order matters for efficiency (expensive checks after filter
 3. Reference via `Cofg::new().field` in hot paths (cached, zero IO)
 4. Add integration test in [src/test/config.rs](../src/test/config.rs)
 5. Extend middleware chain in `build_server()` if it's a middleware toggle
+6. Config can be placed in: XDG config dir (`~/.config/my-http-server/cofg.yaml` or `%APPDATA%\my-http-server\cofg.yaml`), local `./cofg.yaml`, or via CLI args
 
 ### Rendering Markdown with Custom Context
 

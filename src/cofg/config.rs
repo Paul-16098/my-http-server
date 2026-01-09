@@ -23,6 +23,13 @@ use crate::error::AppResult;
 
 pub(crate) const BUILD_COFG: &str = include_str!("cofg.yaml");
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct XdgPaths {
+    pub(crate) cofg: std::path::PathBuf,
+    pub(crate) page_404: std::path::PathBuf,
+    pub(crate) template_hbs: std::path::PathBuf,
+}
+
 #[nest_struct]
 #[derive(PartialEq, Clone, Debug, serde::Deserialize)]
 pub(crate) struct Cofg {
@@ -129,14 +136,40 @@ impl Default for Cofg {
 }
 
 impl Cofg {
+    /// Get XDG config directory paths for my-http-server.
+    ///
+    /// Uses the `directories` crate to get platform-specific config directories:
+    /// - Linux/macOS: $XDG_CONFIG_HOME/my-http-server/{cofg.yaml,404.html,html-t.hbs}
+    /// - Windows: %LOCALAPPDATA%\my-http-server\config\{cofg.yaml,404.html,html-t.hbs}
+    ///
+    /// WHY: Follow XDG Base Directory specification and platform conventions for cross-platform config management
+    /// while keeping template and 404 assets alongside the config file.
+    pub(crate) fn get_xdg_paths() -> Option<XdgPaths> {
+        directories::ProjectDirs::from("", "", "my-http-server").map(|proj_dirs| {
+            let base = proj_dirs.config_local_dir();
+            XdgPaths {
+                cofg: base.join("cofg.yaml"),
+                page_404: base.join("404.html"),
+                template_hbs: base.join("html-t.hbs"),
+            }
+        })
+    }
+
+    /// Backward-compatible helper returning only the config path.
+    /// Prefer `get_xdg_paths()` when callers also need template/404 locations.
+    pub(crate) fn get_xdg_config_path() -> Option<std::path::PathBuf> {
+        Self::get_xdg_paths().map(|paths| paths.cofg)
+    }
+
     /// Load configuration from disk.
     /// Build layered configuration from CLI arguments.
     ///
     /// This is the primary entry point for loading configuration with full precedence chain:
     /// 1. Built-in defaults (BUILD_COFG)
-    /// 2. Config file (if not --no-config)
-    /// 3. Environment variables (MYHTTP_* prefix)
-    /// 4. CLI overrides (highest priority)
+    /// 2. XDG config directory (~/.config/my-http-server/cofg.yaml or %LOCALAPPDATA%\my-http-server\config\cofg.yaml)
+    /// 3. Local config file (./cofg.yaml or --config-path, unless --no-config)
+    /// 4. Environment variables (MYHTTP_* prefix)
+    /// 5. CLI overrides (highest priority)
     ///
     /// WHY: Explicit precedence chain makes config behavior predictable and testable.
     pub fn new_layered(cli: &super::cli::Args) -> AppResult<Self> {
@@ -144,7 +177,16 @@ impl Cofg {
             // Layer 1: Built-in defaults
             .add_source(config::File::from_str(BUILD_COFG, config::FileFormat::Yaml));
 
-        // Layer 2: Config file (unless --no-config)
+        // Layer 2: XDG config directory (unless --no-config)
+        if !cli.no_config
+            && let Some(xdg_path) = Self::get_xdg_config_path()
+            && xdg_path.exists()
+        {
+            debug!("Loading config from XDG path: {}", xdg_path.display());
+            builder = builder.add_source(config::File::from(xdg_path));
+        }
+
+        // Layer 3: Local config file (unless --no-config)
         if let Some(config_path) = cli.config_file_path() {
             let path = std::path::Path::new(config_path);
             if path.exists() {
@@ -156,7 +198,7 @@ impl Cofg {
             }
         }
 
-        // Layer 3: Environment variables with MYHTTP_ prefix
+        // Layer 4: Environment variables with MYHTTP_ prefix
         // Map nested config like "addrs.ip" to MYHTTP_ADDRS_IP (separator="_")
         builder = builder.add_source(
             config::Environment::with_prefix("MYHTTP")
@@ -169,7 +211,7 @@ impl Cofg {
             .try_deserialize::<Self>()?
             .configure_default_extensions();
 
-        // Layer 4: CLI overrides (highest priority)
+        // Layer 5: CLI overrides (highest priority)
         cfg.apply_cli_overrides(cli)?;
 
         Ok(cfg)
@@ -266,11 +308,6 @@ impl Cofg {
                 .extend(["node_modules"].into_iter().map(String::from));
         }
         self
-    }
-
-    // #[allow(dead_code)]
-    pub(crate) fn new() -> Self {
-        Self::get(false)
     }
 
     /// if `reload` is true, reload config from disk
