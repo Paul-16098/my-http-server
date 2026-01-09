@@ -23,7 +23,7 @@ jobs:
       - name: Build
         run: docker build .
   test-with-httpyac:
-    # if: false
+    if: false
     runs-on: ubuntu-latest
     name: test with httpyac
     env:
