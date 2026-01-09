@@ -28,6 +28,7 @@ pub(crate) struct XdgPaths {
     pub(crate) cofg: std::path::PathBuf,
     pub(crate) page_404: std::path::PathBuf,
     pub(crate) template_hbs: std::path::PathBuf,
+    pub(crate) emojis: std::path::PathBuf,
 }
 
 #[nest_struct]
@@ -112,6 +113,10 @@ pub(crate) struct Cofg {
     },
     /// Path to the public directory
     pub(crate) public_path: String,
+    /// Path to the 404 error page (default: ./meta/404.html)
+    pub(crate) page_404_path: String,
+    /// Path to the HTML template file (default: ./meta/html-t.hbs)
+    pub(crate) hbs_path: String,
 }
 
 // global cached config; allow refresh when hot_reload = true
@@ -139,11 +144,11 @@ impl Cofg {
     /// Get XDG config directory paths for my-http-server.
     ///
     /// Uses the `directories` crate to get platform-specific config directories:
-    /// - Linux/macOS: $XDG_CONFIG_HOME/my-http-server/{cofg.yaml,404.html,html-t.hbs}
-    /// - Windows: %LOCALAPPDATA%\my-http-server\config\{cofg.yaml,404.html,html-t.hbs}
+    /// - Linux/macOS: $XDG_CONFIG_HOME/my-http-server/{cofg.yaml,404.html,html-t.hbs,emojis.json}
+    /// - Windows: %LOCALAPPDATA%\my-http-server\config\{cofg.yaml,404.html,html-t.hbs,emojis.json}
     ///
     /// WHY: Follow XDG Base Directory specification and platform conventions for cross-platform config management
-    /// while keeping template and 404 assets alongside the config file.
+    /// while keeping template, 404 assets, and emoji cache alongside the config file.
     pub(crate) fn get_xdg_paths() -> Option<XdgPaths> {
         directories::ProjectDirs::from("", "", "my-http-server").map(|proj_dirs| {
             let base = proj_dirs.config_local_dir();
@@ -151,6 +156,7 @@ impl Cofg {
                 cofg: base.join("cofg.yaml"),
                 page_404: base.join("404.html"),
                 template_hbs: base.join("html-t.hbs"),
+                emojis: base.join("emojis.json"),
             }
         })
     }
@@ -241,6 +247,14 @@ impl Cofg {
             self.public_path = path.clone();
         }
 
+        // Error pages and templates
+        if let Some(ref path) = cli.page_404_path {
+            self.page_404_path = path.clone();
+        }
+        if let Some(ref path) = cli.hbs_path {
+            self.hbs_path = path.clone();
+        }
+
         // Hot reload
         if let Some(hot_reload) = cli.hot_reload {
             self.templating.hot_reload = hot_reload;
@@ -258,6 +272,70 @@ impl Cofg {
 
         Ok(())
     }
+
+    /// Resolve the 404 error page path following the configuration precedence chain.
+    ///
+    /// Returns the effective page_404_path after applying all layers:
+    /// 1. Config file value (default: ./meta/404.html)
+    /// 2. If the path exists, use it
+    /// 3. Otherwise, try XDG config directory path if available
+    /// 4. Finally fall back to default if none exist
+    ///
+    /// WHY: Allow flexible 404 page placement while respecting XDG conventions.
+    /// 中文：遵循配置分層優先級查詢404頁面，支援XDG標準位置。
+    pub fn resolve_page_404_path(&self) -> std::path::PathBuf {
+        let config_path = std::path::Path::new(&self.page_404_path);
+
+        // Check if config path exists
+        if config_path.exists() {
+            return config_path.to_path_buf();
+        }
+
+        // Try XDG path
+        if let Some(xdg_paths) = Self::get_xdg_paths()
+            && xdg_paths.page_404.exists()
+        {
+            debug!("Using 404 from XDG path: {}", xdg_paths.page_404.display());
+            return xdg_paths.page_404;
+        }
+
+        // Fall back to config value (may not exist, but caller will handle)
+        config_path.to_path_buf()
+    }
+
+    /// Resolve the HTML template path following the configuration precedence chain.
+    ///
+    /// Returns the effective hbs_path after applying all layers:
+    /// 1. Config file value (default: ./meta/html-t.hbs)
+    /// 2. If the path exists, use it
+    /// 3. Otherwise, try XDG config directory path if available
+    /// 4. Finally fall back to default if none exist
+    ///
+    /// WHY: Allow flexible template placement while respecting XDG conventions.
+    /// 中文：遵循配置分層優先級查詢模板檔案，支援XDG標準位置。
+    pub fn resolve_hbs_path(&self) -> std::path::PathBuf {
+        let config_path = std::path::Path::new(&self.hbs_path);
+
+        // Check if config path exists
+        if config_path.exists() {
+            return config_path.to_path_buf();
+        }
+
+        // Try XDG path
+        if let Some(xdg_paths) = Self::get_xdg_paths()
+            && xdg_paths.template_hbs.exists()
+        {
+            debug!(
+                "Using template from XDG path: {}",
+                xdg_paths.template_hbs.display()
+            );
+            return xdg_paths.template_hbs;
+        }
+
+        // Fall back to config value (may not exist, but caller will handle)
+        config_path.to_path_buf()
+    }
+
     /// WHY: Supports scenarios like admin commands or live reload utilities.
     pub fn load_from_disk() -> AppResult<Self> {
         Self::new_from_source(config::File::with_name("./cofg.yaml"))

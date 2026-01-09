@@ -90,3 +90,13 @@ api:
 
 # 公共目錄的路徑
 public_path: ./
+
+# 404 錯誤頁面的路徑（支持分層配置）
+# 配置優先級（低到高）：內建預設 → XDG 配置目錄 → 本地配置 → 環境變數 (MYHTTP_PAGE_404_PATH) → CLI 參數 (--page-404-path)
+# XDG 路徑：~/.config/my-http-server/404.html (Linux/macOS) 或 %LOCALAPPDATA%\my-http-server\config\404.html (Windows)
+page_404_path: ./meta/404.html
+
+# HTML 模板檔案的路徑（支持分層配置）
+# 配置優先級（低到高）：內建預設 → XDG 配置目錄 → 本地配置 → 環境變數 (MYHTTP_HBS_PATH) → CLI 參數 (--hbs-path)
+# XDG 路徑：~/.config/my-http-server/html-t.hbs (Linux/macOS) 或 %LOCALAPPDATA%\my-http-server\config\html-t.hbs (Windows)
+hbs_path: ./meta/html-t.hbs

@@ -23,7 +23,7 @@ pub(crate) struct Emojis {
 #[cfg(feature = "github_emojis")]
 pub(crate) static EMOJIS: OnceLock<Emojis> = OnceLock::new();
 
-/// Convert a single markdown string into full HTML page via template `html-t` (file: `./meta/html-t.hbs`).
+/// Convert a single markdown string into full HTML page via template `html-t` (file: configured via `hbs_path`).
 ///
 /// Steps:
 /// 1. Acquire (or rebuild) template engine
@@ -51,7 +51,7 @@ pub(crate) static EMOJIS: OnceLock<Emojis> = OnceLock::new();
 ///   - 模板檔案註冊/解析失敗（檔案缺失或模板語法錯誤）
 ///   - 模板渲染失敗（缺鍵/型別不符等）→ 包裝為 `AppError::RenderError`
 /// - Side effects:
-///   - 首次渲染若引擎尚未註冊 `html-t`，會以 `./meta/html-t.hbs` 進行註冊（讀檔）。
+///   - 首次渲染若引擎尚未註冊 `html-t`，會以 `hbs_path` 進行註冊（讀檔）。
 ///   - 以 `trace` 層級輸出 AST（大型文件可能產生大量日誌）。
 /// - Perf/Security notes:
 ///   - 正常模式引擎為快取重用；`hot_reload=true` 時每請求重建以反映模板改動。
@@ -68,8 +68,10 @@ pub(crate) fn md2html(
         set_context_value(&mut context, &template_data);
     }
     // Lazy 註冊模板：避免在未使用時就讀檔；同時配合 hot reload（引擎重建後將再次註冊）。
+    // 使用 resolve_hbs_path 以支持 XDG 配置目錄優先級
     if !engine.has_template("html-t") {
-        engine.register_template_file("html-t", "./meta/html-t.hbs")?;
+        let hbs_path = c.resolve_hbs_path();
+        engine.register_template_file("html-t", &hbs_path)?;
     }
     #[allow(unused_mut)]
     let mut ast = markdown::parser_md(md)?;

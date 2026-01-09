@@ -99,12 +99,6 @@ fn init(_c: &Cofg) -> AppResult<()> {
             );
         }
     }
-    if !Path::new("./meta/html-t.hbs").exists() {
-        error!("missing required template: meta/html-t.hbs\nuse default");
-        std::fs::write("./meta/html-t.hbs", include_str!("../meta/html-t.hbs"))?;
-        // exit and make user re-run to re-init
-        std::process::exit(1);
-    }
     #[cfg(feature = "github_emojis")]
     emojis_init(std::env::var("GITHUB_TOKEN").ok())?;
     Ok(())
@@ -114,8 +108,19 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
     use parser::{EMOJIS, Emojis};
     use std::collections::HashMap;
 
-    if !Path::new("./emojis.json").exists() {
-        info!("emoji json files not found, fetching from github api...");
+    // Determine emoji cache path with XDG fallback
+    let emoji_path = if let Some(xdg_paths) = cofg::config::Cofg::get_xdg_paths() {
+        // Ensure XDG directory exists
+        if let Some(parent) = xdg_paths.emojis.parent() {
+            std::fs::create_dir_all(parent).ok();
+        }
+        xdg_paths.emojis
+    } else {
+        Path::new("./emojis.json").to_path_buf()
+    };
+
+    if !emoji_path.exists() {
+        info!("emoji json file not found at {}, fetching from github api...", emoji_path.display());
         let mut resp = ureq::get("https://api.github.com/emojis")
             .header("User-Agent", "Paul-16098/my-http-server");
 
@@ -158,12 +163,13 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
             unicode: unicode_emojis,
             r#else: else_emojis,
         })?;
-        std::fs::write("./emojis.json", json)?;
+        std::fs::write(&emoji_path, json)?;
+        info!("Saved emoji cache to {}", emoji_path.display());
     } else {
-        info!("emoji json files found, skipping fetch.");
+        info!("emoji json file found at {}, skipping fetch.", emoji_path.display());
     }
-    let emojis_json = std::fs::read_to_string("./emojis.json").map_err(|e| {
-        error!("Failed to read emojis.json: {}", e);
+    let emojis_json = std::fs::read_to_string(&emoji_path).map_err(|e| {
+        error!("Failed to read emojis.json from {}: {}", emoji_path.display(), e);
         e
     })?;
     let emojis: parser::Emojis = serde_json::from_str(&emojis_json).map_err(|e| {

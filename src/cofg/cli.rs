@@ -57,6 +57,15 @@ pub(crate) struct Args {
     /// Config, templates, static files, etc. will be resolved relative to this path
     pub(crate) root_dir: Option<String>,
 
+    // === Error Pages and Templates ===
+    #[arg(long)]
+    /// Path to 404 error page file (overrides config file)
+    pub(crate) page_404_path: Option<String>,
+
+    #[arg(long)]
+    /// Path to HTML template file (overrides config file)
+    pub(crate) hbs_path: Option<String>,
+
     // === Development Options ===
     #[arg(long)]
     /// Enable hot reload for templates and config (overrides config file)

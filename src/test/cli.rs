@@ -11,6 +11,8 @@ fn test_try_from_args_with_valid_ip_and_port() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
@@ -32,6 +34,8 @@ fn test_try_from_args_with_missing_ip() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
@@ -54,6 +58,8 @@ fn test_try_from_args_with_missing_port() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
@@ -76,6 +82,8 @@ fn test_try_from_args_with_missing_ip_and_port() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
@@ -98,6 +106,8 @@ fn test_try_from_owned_args_with_valid_ip_and_port() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
@@ -119,6 +129,8 @@ fn test_config_file_path_with_no_config() {
         no_config: true,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
     assert_eq!(args.config_file_path(), None);
@@ -135,6 +147,8 @@ fn test_config_file_path_with_custom_path() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
     assert_eq!(args.config_file_path(), Some("/etc/myhttp/config.yaml"));
@@ -151,6 +165,8 @@ fn test_config_file_path_default() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
     assert_eq!(args.config_file_path(), Some("./cofg.yaml"));
@@ -168,6 +184,8 @@ fn test_config_file_path_no_config_overrides_path() {
         no_config: true,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
     assert_eq!(args.config_file_path(), None);
@@ -184,6 +202,8 @@ fn test_cli_with_tls_args() {
         no_config: true,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
@@ -202,6 +222,8 @@ fn test_cli_with_public_path() {
         no_config: true,
         public_path: Some("/var/www/html".to_string()),
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
@@ -219,6 +241,8 @@ fn test_cli_with_hot_reload() {
         no_config: true,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: Some(true),
     };
 

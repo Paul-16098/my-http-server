@@ -76,10 +76,13 @@ pub(crate) fn server_error(err_text: String) -> actix_web::HttpResponse {
         .body(err_text)
 }
 
-/// Prefer meta/404.html if available, otherwise a plain-text 404 response.
+/// Prefer configured 404 page if available, otherwise a plain-text 404 response.
+/// Respects configuration layering: checks local path first, then XDG config directory.
 async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
     use actix_web::http::StatusCode;
-    match actix_files::NamedFile::open_async("./meta/404.html").await {
+    let c = &Cofg::get(false);
+    let page_404_path = c.resolve_page_404_path();
+    match actix_files::NamedFile::open_async(&page_404_path).await {
         Ok(file) => {
             let mut res = file.into_response(req);
             res = res
@@ -91,7 +94,7 @@ async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
             res
         }
         Err(e) => {
-            warn!("failed to open 404.html: {e}");
+            warn!("failed to open {}: {e}", page_404_path.display());
             actix_web::HttpResponseBuilder::new(StatusCode::NOT_FOUND).body("404 Not Found")
         }
     }

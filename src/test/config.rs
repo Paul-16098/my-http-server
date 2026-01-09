@@ -64,6 +64,8 @@ fn test_layered_config_precedence_defaults_only() {
             no_config: true,
             public_path: None,
             root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
             hot_reload: None,
         };
 
@@ -95,6 +97,8 @@ fn test_layered_config_cli_overrides() {
             no_config: true,
             public_path: Some("./content/".to_string()),
             root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
             hot_reload: Some(true),
         };
 
@@ -127,6 +131,8 @@ fn test_layered_config_tls_requires_both() {
             no_config: true,
             public_path: None,
             root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
             hot_reload: None,
         };
 
@@ -142,6 +148,8 @@ fn test_layered_config_tls_requires_both() {
             no_config: true,
             public_path: None,
             root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
             hot_reload: None,
         };
 
@@ -170,6 +178,8 @@ fn test_layered_config_env_variables() {
             no_config: true,
             public_path: None,
             root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
             hot_reload: None,
         };
 
@@ -204,6 +214,8 @@ fn test_layered_config_cli_overrides_env() {
             no_config: true,
             public_path: None,
             root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
             hot_reload: None,
         };
 
@@ -220,6 +232,32 @@ fn test_layered_config_cli_overrides_env() {
 }
 
 #[test]
+fn test_config_page_404_path_and_hbs_path() {
+    with_env_lock(|| {
+        // Test that config loads with default paths for 404 and template
+        let cli = Args {
+            ip: None,
+            port: None,
+            tls_cert: None,
+            tls_key: None,
+            config_path: None,
+            no_config: true,
+            public_path: None,
+            root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
+            hot_reload: None,
+        };
+
+        let config = Cofg::new_layered(&cli).unwrap();
+
+        // Should have default values
+        assert_eq!(config.page_404_path, "./meta/404.html");
+        assert_eq!(config.hbs_path, "./meta/html-t.hbs");
+    });
+}
+
+#[test]
 fn test_config_file_path_helper() {
     // Test --no-config flag
     let cli_no_config = Args {
@@ -231,6 +269,8 @@ fn test_config_file_path_helper() {
         no_config: true,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
     assert_eq!(cli_no_config.config_file_path(), None);
@@ -245,6 +285,8 @@ fn test_config_file_path_helper() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
     assert_eq!(cli_custom.config_file_path(), Some("/custom/config.yaml"));
@@ -259,6 +301,8 @@ fn test_config_file_path_helper() {
         no_config: false,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
     assert_eq!(cli_default.config_file_path(), Some("./cofg.yaml"));
@@ -266,7 +310,7 @@ fn test_config_file_path_helper() {
 
 #[test]
 fn test_xdg_config_path_exists() {
-    // Test that XDG helper returns a valid path structure and exposes template/404 paths
+    // Test that XDG helper returns a valid path structure and exposes template/404/emojis paths
     use crate::cofg::config::Cofg;
 
     if let Some(xdg_paths) = Cofg::get_xdg_paths() {
@@ -279,6 +323,12 @@ fn test_xdg_config_path_exists() {
                 .template_hbs
                 .to_string_lossy()
                 .contains("html-t.hbs")
+        );
+        assert!(
+            xdg_paths
+                .emojis
+                .to_string_lossy()
+                .contains("emojis.json")
         );
     } else {
         println!("XDG paths could not be resolved (no home directory?)");
@@ -295,6 +345,8 @@ fn test_xdg_config_path_exists() {
             no_config: true, // Skip actual config loading
             public_path: None,
             root_dir: None,
+            page_404_path: None,
+            hbs_path: None,
             hot_reload: None,
         };
         Cofg::new_layered(&cli)
@@ -315,6 +367,8 @@ fn test_rate_limiting_validation() {
         no_config: true,
         public_path: None,
         root_dir: None,
+        page_404_path: None,
+        hbs_path: None,
         hot_reload: None,
     };
 
