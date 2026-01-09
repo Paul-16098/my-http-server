@@ -76,10 +76,13 @@ pub(crate) fn server_error(err_text: String) -> actix_web::HttpResponse {
         .body(err_text)
 }
 
-/// Prefer meta/404.html if available, otherwise a plain-text 404 response.
+/// Prefer configured 404 page if available, otherwise a plain-text 404 response.
+/// Respects configuration layering: checks local path first, then XDG config directory.
 async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
     use actix_web::http::StatusCode;
-    match actix_files::NamedFile::open_async("./meta/404.html").await {
+    let c = &Cofg::get(false);
+    let page_404_path = c.resolve_page_404_path();
+    match actix_files::NamedFile::open_async(&page_404_path).await {
         Ok(file) => {
             let mut res = file.into_response(req);
             res = res
@@ -91,7 +94,7 @@ async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
             res
         }
         Err(e) => {
-            warn!("failed to open 404.html: {e}");
+            warn!("failed to open {}: {e}", page_404_path.display());
             actix_web::HttpResponseBuilder::new(StatusCode::NOT_FOUND).body("404 Not Found")
         }
     }
@@ -112,25 +115,17 @@ fn render_markdown_to_html_response(
 ) -> AppResult<actix_web::HttpResponse> {
     use actix_web::{HttpResponseBuilder, http::StatusCode};
     match read_to_string(req_path) {
-        Ok(file) => {
-            let engine = crate::parser::templating::get_engine(c)?;
-            let mut context = crate::parser::templating::get_context(c);
-            context.data_mut()["path"] = req_path.to_string_lossy().to_string().into();
-            let out = crate::parser::md2html(
-                engine.render_template_with_context(&file, &context)?,
-                c,
-                vec![format!(
-                    "path:{}",
+        Ok(md_source) => {
+            // Render Markdown directly into the HTML template with path context.
+            let rel = req_path
+                .strip_prefix(public_root)
+                .unwrap_or_else(|e| {
+                    warn!("{e}");
                     req_path
-                        .strip_prefix(public_root)
-                        .unwrap_or_else(|e| {
-                            warn!("{e}");
-                            req_path
-                        })
-                        .display()
-                )],
-            );
-            match out {
+                })
+                .to_path_buf();
+
+            match md2html(md_source, c, vec![format!("path:{}", rel.display())]) {
                 Ok(html) => Ok(HttpResponseBuilder::new(StatusCode::OK)
                     .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
                     .body(html)),
@@ -196,10 +191,18 @@ fn render_toc_to_html_response(
 /// separate for TOC special-case.
 /// 中文：統一路徑處理；Markdown 即時轉換，其餘走靜態檔。
 pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Responder {
-    debug!("{req:#?}");
+    debug!("{req:?}");
 
     let c = &Cofg::get(false);
-    let public_path = &Path::new(&c.public_path).canonicalize().unwrap();
+    let public_path = &Path::new(&c.public_path)
+        .canonicalize()
+        .unwrap_or_else(|e| {
+            warn!(
+                "Failed to canonicalize public_path: {} = {e}",
+                c.public_path
+            );
+            Path::new(&c.public_path).to_path_buf()
+        });
     // Resolve the target path under the configured public root.
     let filename_str = req.match_info().query("filename");
     let req_path_buf = Path::new(&c.public_path).join(filename_str);
@@ -209,15 +212,17 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         let index_file = public_path.join("index.html");
         if index_file.exists() {
             let f = read_to_string(index_file);
-            if let Ok(value) = f {
-                debug!("index exists=>show file");
-                actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
-                    .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-                    .body(value);
-            } else {
-                let err = f.err().unwrap();
-                warn!("{err}");
-                return server_error(err.to_string());
+            match f {
+                Ok(value) => {
+                    debug!("index exists=>show file");
+                    return actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
+                        .append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+                        .body(value);
+                }
+                Err(err) => {
+                    warn!("{err}");
+                    return server_error(err.to_string());
+                }
             }
         }
     }

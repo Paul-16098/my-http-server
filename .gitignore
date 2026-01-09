@@ -60,3 +60,5 @@ $RECYCLE.BIN/
 *.cert
 
 cofg.yaml
+emojis.json
+.env

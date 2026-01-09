@@ -83,7 +83,6 @@ Successfully integrated the [actix-ip-filter](https://github.com/jhen0409/actix-
 
 - **File**: `docs/ip-filter.md` (new)
 - **Content**: Comprehensive bilingual (Chinese/English) documentation covering:
-
   - Overview and configuration
   - Whitelist, blacklist, and mixed mode usage
   - Glob pattern syntax and examples

@@ -1,6 +1,8 @@
 # Performance & Caching Notes
 
 > WHY: Document current perf characteristics & low-risk improvement knobs. 中文：描述現有快取與潛在優化點。
+> 参见：`.github/copilot-instructions.md`（性能与缓存设计概览）、`./key-functions.md`（关键函数）
+> 更新时间：2025-12-13
 
 ## 1. Existing Caches
 

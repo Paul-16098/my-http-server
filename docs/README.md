@@ -1,6 +1,7 @@
 # my-http-server 文件索引 / Documentation Index
 
 > 快速導覽專案文件，並對齊目前的路由、模板、與中介層行為。
+> 詳見根目錄 `.github/copilot-instructions.md` 以了解 AI 編碼代理指引。
 
 ## 快速開始 / Quick start
 
@@ -9,23 +10,21 @@
 
 相關：
 
+- 根目錄《.github/copilot-instructions.md》：AI 編碼代理指引（架構、模組責任、開發流程）
 - 根目錄《architecture.md》：整體架構與模組切面
 - 根目錄《README.md》：功能摘要與使用說明
 
 ## 文件地圖 / Docs map
 
 - Request 與流程
-
   - [Request Flow & Sequence](./request-flow.md)
   - [Key Functions & Design Rationale](./key-functions.md)
 
 - 模板與設定
-
   - [Config ↔ Template & Code Usage Map](./config-templating-map.md)
   - [Developer Guide（深入開發指引）](./developer-guide.md)
 
 - 效能與快取
-
   - [Performance & Caching Notes](./performance-cache.md)
 
 - 安全與中介層
@@ -35,12 +34,10 @@
 ## 常見重點 / Key behaviors
 
 - 路由：
-
   - `GET /`：若存在 `public/index.html` 直接回傳；否則產生 TOC 並以模板渲染。
   - `GET /{filename:.*}`：解析至 `public_path` 下；`.md` 以 `md2html` 渲染；目錄回 TOC；其餘為靜態檔；不存在則偏好 `meta/404.html`。
 
 - 模板：
-
   - `templating.value` 以 `name:value`/`name:env:ENV` DSL 注入 Context（型別推斷：bool→i64→string）；`templating.hot_reload=true` 時每請求重建模板引擎（Handlebars）。
 
 - 中介層順序（啟用時）：NormalizePath → Compress → Logger → BasicAuth → IP Filter → 處理器。

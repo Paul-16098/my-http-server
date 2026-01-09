@@ -1,3 +1,5 @@
+#[cfg(feature = "api")]
+mod api;
 mod cli;
 mod config;
 mod error;

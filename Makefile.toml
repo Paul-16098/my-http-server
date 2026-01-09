@@ -1,0 +1,18 @@
+[tasks.test]
+    args = [
+        "all-features",
+        "test",
+    ]
+    dependencies = [
+        "install-dep",
+        "build",
+    ]
+[tasks.clean]
+    dependencies = [
+        "clean-emojis",
+    ]
+[tasks.clean-emojis]
+    script = "rm -f ./emojis.json"
+
+[tasks.install-dep]
+    install_crate = "cargo-all-features"

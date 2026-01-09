@@ -4,13 +4,26 @@
 //! Hot reload & context assembly handled in internal modules. (Global HTML caching removed
 //! for simplicity: each request now re-renders Markdown.)
 
-use crate::parser::templating::set_context_value;
+#[cfg(feature = "github_emojis")]
+use std::collections::HashMap;
+#[cfg(feature = "github_emojis")]
 use std::sync::OnceLock;
+
+use crate::parser::templating::set_context_value;
 
 pub(crate) mod markdown;
 pub(crate) mod templating;
 
-/// Convert a single markdown string into full HTML page via template `html-t` (file: `./meta/html-t.hbs`).
+#[cfg(feature = "github_emojis")]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub(crate) struct Emojis {
+    pub(crate) unicode: HashMap<String, String>,
+    pub(crate) r#else: HashMap<String, String>,
+}
+#[cfg(feature = "github_emojis")]
+pub(crate) static EMOJIS: OnceLock<Emojis> = OnceLock::new();
+
+/// Convert a single markdown string into full HTML page via template `html-t` (file: configured via `hbs_path`).
 ///
 /// Steps:
 /// 1. Acquire (or rebuild) template engine
@@ -38,7 +51,7 @@ pub(crate) mod templating;
 ///   - 模板檔案註冊/解析失敗（檔案缺失或模板語法錯誤）
 ///   - 模板渲染失敗（缺鍵/型別不符等）→ 包裝為 `AppError::RenderError`
 /// - Side effects:
-///   - 首次渲染若引擎尚未註冊 `html-t`，會以 `./meta/html-t.hbs` 進行註冊（讀檔）。
+///   - 首次渲染若引擎尚未註冊 `html-t`，會以 `hbs_path` 進行註冊（讀檔）。
 ///   - 以 `trace` 層級輸出 AST（大型文件可能產生大量日誌）。
 /// - Perf/Security notes:
 ///   - 正常模式引擎為快取重用；`hot_reload=true` 時每請求重建以反映模板改動。
@@ -55,57 +68,71 @@ pub(crate) fn md2html(
         set_context_value(&mut context, &template_data);
     }
     // Lazy 註冊模板：避免在未使用時就讀檔；同時配合 hot reload（引擎重建後將再次註冊）。
+    // 使用 resolve_hbs_path 以支持 XDG 配置目錄優先級
     if !engine.has_template("html-t") {
-        engine.register_template_file("html-t", "./meta/html-t.hbs")?;
+        let hbs_path = c.resolve_hbs_path();
+        engine.register_template_file("html-t", &hbs_path)?;
     }
-
+    #[allow(unused_mut)]
     let mut ast = markdown::parser_md(md)?;
     // PERF: 只在 trace 開啟時輸出 AST；大型 Markdown 可能造成龐大日誌量。
     log::trace!("ast={ast:#?}");
-    if cfg!(feature = "github_emojis") {
-        static EMOJI_MAP: OnceLock<std::collections::HashMap<String, String>> = OnceLock::new();
-        let emojis = EMOJI_MAP.get_or_init(|| {
-            let data = include_str!("./../../emojis.json");
-            match serde_json::from_str::<std::collections::HashMap<String, String>>(data) {
-                Ok(map) => map,
-                Err(e) => {
-                    log::warn!("failed to parse emojis.json: {}", e);
-                    std::collections::HashMap::new()
-                }
-            }
-        });
-
-        struct ReplaceGithubEmojis<'a> {
-            emojis: &'a std::collections::HashMap<String, String>,
-        }
+    #[cfg(feature = "github_emojis")]
+    {
+        struct ReplaceGithubEmojis<'a>(&'a Emojis);
         impl<'a> markdown_ppp::ast_transform::Transformer for ReplaceGithubEmojis<'a> {
             fn transform_inline(
                 &mut self,
                 inline: markdown_ppp::ast::Inline,
             ) -> markdown_ppp::ast::Inline {
+                let e = self.0;
                 match inline {
                     markdown_ppp::ast::Inline::Text(code) => {
                         let mut text = code;
-                        for (k, v) in self.emojis.iter() {
+                        for (k, _v) in e.r#else.iter() {
                             let pat = format!(":{k}:");
                             if text.contains(&pat) {
-                                let rep = format!(
-                                    r#"<img class="emoji" alt="{pat}" src="{v}" style="width: 1em;">"#
+                                log::warn!(
+                                    "for security, github emoji replacement uses only unicode mapping; custom image replacement is not secure, so {pat} is skipped"
                                 );
-                                text = text.replace(&pat, &rep);
+                                // let rep = format!(
+                                //     r#"<img class="emoji" alt="{pat} emoji" src="{v}" style="width: 1em;">"#
+                                // );
+                                // text = text.replace(&pat, &rep);
                             }
                         }
-                        markdown_ppp::ast::Inline::Html(text)
+                        for (k, v) in e.unicode.iter() {
+                            let pat = format!(":{k}:");
+                            if text.contains(&pat) {
+                                text = text.replace(&pat, v);
+                            }
+                        }
+                        markdown_ppp::ast::Inline::Text(text)
                     }
                     other => self.walk_transform_inline(other),
                 }
             }
         }
-
+        // some test not initialize emojis
+        if let Err(e) = crate::emojis_init(None) {
+            log::error!("emojis not initialized: {}", e);
+            return Err(crate::error::AppError::OtherError(format!(
+                "emojis not initialized: {}",
+                e
+            )));
+        }
         ast = markdown_ppp::ast_transform::Transform::transform_with(
             ast,
-            ReplaceGithubEmojis { emojis },
-        );
+            match EMOJIS.get() {
+                Some(emojis) => ReplaceGithubEmojis(emojis),
+                None => {
+                    log::error!("EMOJIS static not initialized");
+                    return Err(crate::error::AppError::OtherError(
+                        "EMOJIS static not initialized".to_string(),
+                    ));
+                }
+            },
+        )
     }
     log::trace!("ast={ast:#?}");
     let html = markdown_ppp::html_printer::render_html(

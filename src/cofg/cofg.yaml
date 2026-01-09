@@ -29,24 +29,32 @@ middleware:
     # 是否啟用 HTTP 基本驗證
     enable: false
     users:
-      # 使用者清單（可選）
+      # # 使用者清單（可選）
       # - name: 使用者名稱
       #   passwords: 密碼（可選）
-      #   allow: 允許的路徑清單（可選）
+      #   allow: # 允許的路徑清單（可選）
       #     - /
-      #   disallow: 禁止的路徑清單（可選）
+      #   disallow: # 禁止的路徑清單（可選）
       #     - /disallow/
 
   ip_filter:
     # 是否啟用 IP 過濾
     enable: false
-    # 允許的 IP 或範圍（白名單模式，可選）
-    allow:
-      # - 127.0.0.1
-      # - 192.168.1.*
-    # 禁止的 IP 或範圍（黑名單模式，可選）
-    block:
-      # - 10.0.0.*
+    # 規則清單
+    rules:
+      # limit_to: 指定此規則適用的路徑（支援萬用字元 *，例如 "*" 代表所有路徑）。
+      # 只有當請求的路徑符合 limit_to 中的任一模式時，才會套用本規則的 allow/block 清單。
+      # 英文說明: limit_to specifies which paths this rule applies to (wildcards like "*" match all paths).
+      # The allow/block lists are only checked for requests matching these paths.
+      - limit_to:
+          - "*"
+        # 允許的 IP 或範圍（白名單模式，可選）
+        allow:
+          # - 127.0.0.1
+          # - 192.168.1.*
+        # 禁止的 IP 或範圍（黑名單模式，可選）
+        block:
+          # - 10.0.0.*
 
   rate_limiting:
     # 是否啟用速率限制
@@ -74,10 +82,21 @@ toc:
   ig:
     - <build-in>
 
+# 如果你沒有 features:api 刪除它
 api:
   # 啟用 API 端點（包括 Swagger UI 和 OpenAPI 文件）
   enable: true
   allow_edit: false
 
 # 公共目錄的路徑
-public_path: ./public/
+public_path: ./
+
+# 404 錯誤頁面的路徑（支持分層配置）
+# 配置優先級（低到高）：內建預設 → XDG 配置目錄 → 本地配置 → 環境變數 (MYHTTP_PAGE_404_PATH) → CLI 參數 (--page-404-path)
+# XDG 路徑：~/.config/my-http-server/404.html (Linux/macOS) 或 %LOCALAPPDATA%\my-http-server\config\404.html (Windows)
+page_404_path: ./meta/404.html
+
+# HTML 模板檔案的路徑（支持分層配置）
+# 配置優先級（低到高）：內建預設 → XDG 配置目錄 → 本地配置 → 環境變數 (MYHTTP_HBS_PATH) → CLI 參數 (--hbs-path)
+# XDG 路徑：~/.config/my-http-server/html-t.hbs (Linux/macOS) 或 %LOCALAPPDATA%\my-http-server\config\html-t.hbs (Windows)
+hbs_path: ./meta/html-t.hbs

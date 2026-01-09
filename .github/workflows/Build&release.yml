@@ -10,6 +10,11 @@ on:
       - dev
   pull_request:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - release-tag-and-backmerge.yml
+    types:
+      - completed
 
 env:
   ACTIONS_ID: ${{ github.run_id }}
@@ -19,50 +24,6 @@ permissions:
   attestations: write
 
 jobs:
-  test-with-httpyac:
-    # allow failed
-    if: false
-    runs-on: ubuntu-latest
-    name: test with httpyac
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c
-
-      - name: Install netcat
-        run: |
-          if ! command -v nc &> /dev/null; then
-            apt-get update && apt-get install -y netcat-openbsd
-          fi
-
-      - run: cargo b
-      - run: cargo run &
-
-      - name: Wait for server to be ready
-        run: |
-          for i in {1..10}; do
-            if nc -z localhost 8080; then
-              echo "Server is up!"
-              break
-            else
-              echo "Waiting for server..."
-              sleep 1
-            fi
-          done
-
-      - name: test
-        id: test
-        run: npx httpyac send test/test.http -a --bail --insecure --raw
-
-  test:
-    runs-on: ubuntu-latest
-    name: test
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - run: cargo test
-
   release:
     name: Release - ${{ matrix.platform.os-name }}
     strategy:

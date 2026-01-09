@@ -6,9 +6,9 @@
 
 use handlebars::{Context, Handlebars};
 
-use once_cell::sync::OnceCell;
+use log::error;
 use serde_json::json;
-use std::sync::RwLock;
+use std::sync::{OnceLock, RwLock};
 
 use crate::error::{AppError, AppResult};
 
@@ -69,7 +69,10 @@ pub(crate) fn get_context(c: &crate::cofg::config::Cofg) -> Context {
     let mut context = Context::wraps(json!({
       "server-version": env!("CARGO_PKG_VERSION")
     }))
-    .unwrap();
+    .unwrap_or_else(|e| {
+        error!("Failed to create template context: {}", e);
+        Context::null()
+    });
     if let Some(raw_str) = &c.templating.value {
         for data in raw_str {
             set_context_value(&mut context, data);
@@ -78,7 +81,7 @@ pub(crate) fn get_context(c: &crate::cofg::config::Cofg) -> Context {
 
     context
 }
-static ENGINE: OnceCell<RwLock<Handlebars>> = OnceCell::new();
+static ENGINE: OnceLock<RwLock<Handlebars>> = OnceLock::new();
 
 /// Retrieve (or rebuild under hot reload) the template engine.
 ///

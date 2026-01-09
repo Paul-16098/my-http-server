@@ -30,8 +30,16 @@ pub(crate) enum AppError {
     StripPrefixError(#[from] std::path::StripPrefixError),
     #[error("TLS Error: {0}")]
     TLSError(#[from] rustls_pki_types::pem::Error),
+    #[error("cli Error: {0}")]
+    CliError(String),
     #[error("Other error: {0}")]
     OtherError(String),
+}
+
+impl From<std::boxed::Box<dyn std::error::Error + 'static>> for AppError {
+    fn from(value: std::boxed::Box<dyn std::error::Error + 'static>) -> Self {
+        AppError::OtherError(value.to_string())
+    }
 }
 
 impl actix_web::Responder for AppError {
@@ -60,6 +68,7 @@ impl actix_web::ResponseError for AppError {
             | AppError::ConfigError(_)
             | AppError::StripPrefixError(_)
             | AppError::TLSError(_)
+            | AppError::CliError(_)
             | AppError::OtherError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
