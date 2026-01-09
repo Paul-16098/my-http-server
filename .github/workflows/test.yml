@@ -23,10 +23,11 @@ jobs:
       - name: Build
         run: docker build .
   test-with-httpyac:
-    # allow failed
-    if: false
+    # if: false
     runs-on: ubuntu-latest
     name: test with httpyac
+    env:
+      PORT: 1234
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -40,12 +41,13 @@ jobs:
           fi
 
       - run: cargo b
-      - run: cargo run &
+      - run: echo "PORT=${{ env.PORT }}" > .env
+      - run: cargo run  -- port ${{ env.PORT }} &
 
       - name: Wait for server to be ready
         run: |
           for i in {1..10}; do
-            if nc -z localhost 8080; then
+            if nc -z localhost ${{ env.PORT }}; then
               echo "Server is up!"
               break
             else
@@ -56,7 +58,9 @@ jobs:
 
       - name: test
         id: test
-        run: npx httpyac send test/test.http -a --bail --insecure --raw
+        run: npx httpyac send test/test.http -a -e ./.env
+
+      - run: rm ./.env
 
   cargo-test:
     runs-on: ubuntu-latest

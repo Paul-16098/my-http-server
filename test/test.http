@@ -1,49 +1,70 @@
 /*
 install [this](https://httpyac.github.io/guide/) and run test
 */
-@host=http://localhost:8080
+# @PORT=1234
+
+@host=http://localhost:{{PORT}}
 ?? status == 200
 ?? header content-type exists
 ###
 # test index
 GET /
-?? header content-type == text/html; charset=UTF-8
+?? header content-type == text/html; charset=utf-8
 
 ?? body == {{< ./index.html}}
 # >>! ./index.html
 
 HTTP/1.1 200  - OK
-x-frame-options: DENY
-content-length: 1475
-content-type: text/html; charset=UTF-8
+transfer-encoding: chunked
+connection: close
+vary: accept-encoding
+content-encoding: br
+content-type: text/html; charset=utf-8
+date: Fri, 09 Jan 2026 00:20:38 GMT
 ###
 # test /dir toc
 GET /dir
-?? header content-type == text/html; charset=UTF-8
+?? header content-type == text/html; charset=utf-8
 
 ?? body == {{< ./dir.html}}
 # >>! ./dir.html
 
-HTTP/1.1 404  - Not Found
-content-length: 0
-content-type: text/html
+HTTP/1.1 200  - OK
+transfer-encoding: chunked
+connection: close
+content-type: text/html; charset=utf-8
+vary: accept-encoding
+content-encoding: br
+date: Fri, 09 Jan 2026 00:20:39 GMT
 ###
 GET /dir/test.md
-?? header content-type == text/html; charset=UTF-8
+?? header content-type == text/html; charset=utf-8
 
 ?? body == {{< ./dir/test.md.html}}
 # >>! ./dir/test.md.html
 
-HTTP/1.1 404  - Not Found
-content-length: 0
-content-type: text/html
+HTTP/1.1 200  - OK
+transfer-encoding: chunked
+connection: close
+content-type: text/html; charset=utf-8
+vary: accept-encoding
+content-encoding: br
+date: Fri, 09 Jan 2026 00:20:39 GMT
 ###
 GET /dir/test.txt
-?? header content-type == text/plain; charset=UTF-8
+?? header content-type == text/plain; charset=utf-8
 
 ?? body == {{< ./dir/test.txt.html}}
 # >>! ./dir/test.txt.html
 
-HTTP/1.1 404  - Not Found
-content-length: 0
-content-type: text/html
+HTTP/1.1 200  - OK
+transfer-encoding: chunked
+connection: close
+accept-ranges: bytes
+last-modified: Sat, 11 Oct 2025 08:11:28 GMT
+content-disposition: inline; filename="test.txt"
+etag: "0:22:68ea1130:218714c0"
+content-encoding: br
+content-type: text/plain; charset=utf-8
+vary: accept-encoding
+date: Fri, 09 Jan 2026 00:20:39 GMT
