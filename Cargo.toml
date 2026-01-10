@@ -1,13 +1,20 @@
 [package]
     name = "my-http-server"
-    version = "4.1.0"
+    version = "4.1.1"
     edition = "2024"
     license-file = "./LICENSE.txt"
     readme = "./README.md"
     repository = "https://github.com/Paul-16098/my-http-server/"
+    description = "a server using actix-web, markdown-ppp, and handlebars"
     authors = [
         "Paul-16098",
     ]
+
+    [package.metadata.wix]
+        upgrade-guid = "5BFF95FD-A231-42D2-A585-62F661AB3D80"
+        path-guid    = "F403F12C-1127-43F7-B427-DA73B1322FF8"
+        license      = true
+        eula         = false
 
 [dependencies]
     actix-files = "0.6.8"
@@ -79,3 +86,8 @@
 [lints.clippy]
     unwrap_used = "warn"
     expect_used = "warn"
+
+# The profile that 'dist' will build with
+[profile.dist]
+    inherits = "release"
+    lto      = "thin"
