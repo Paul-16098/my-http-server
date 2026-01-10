@@ -69,7 +69,7 @@
 
         <Package Id='*'
             Keywords='Installer'
-            Description='a server by actix-web and use markdown-ppp,handlebars'
+            Description='a server using actix-web, markdown-ppp, and handlebars'
             Manufacturer='Paul-16098'
             InstallerVersion='450'
             Languages='1033'
