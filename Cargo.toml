@@ -5,6 +5,7 @@
     license-file = "./LICENSE.txt"
     readme = "./README.md"
     repository = "https://github.com/Paul-16098/my-http-server/"
+    description = "a server by actix-web and use markdown-ppp,handlebars"
     authors = [
         "Paul-16098",
     ]
@@ -12,7 +13,7 @@
     [package.metadata.wix]
         upgrade-guid = "5BFF95FD-A231-42D2-A585-62F661AB3D80"
         path-guid    = "F403F12C-1127-43F7-B427-DA73B1322FF8"
-        license      = false
+        license      = true
         eula         = false
 
 [dependencies]
