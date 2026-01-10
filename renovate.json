@@ -4,6 +4,6 @@
   "ignorePaths": [
     "**/node_modules/**",
     "**/bower_components/**",
-    "./.github/workflows/release.yml"
+    ".github/workflows/release.yml"
   ]
 }
