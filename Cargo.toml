@@ -1,6 +1,6 @@
 [package]
     name = "my-http-server"
-    version = "4.1.0"
+    version = "4.1.1"
     edition = "2024"
     license-file = "./LICENSE.txt"
     readme = "./README.md"
