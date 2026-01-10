@@ -9,6 +9,12 @@
         "Paul-16098",
     ]
 
+    [package.metadata.wix]
+        upgrade-guid = "5BFF95FD-A231-42D2-A585-62F661AB3D80"
+        path-guid    = "F403F12C-1127-43F7-B427-DA73B1322FF8"
+        license      = false
+        eula         = false
+
 [dependencies]
     actix-files = "0.6.8"
     actix-web = { version = "4.11.0", features = [
@@ -79,3 +85,8 @@
 [lints.clippy]
     unwrap_used = "warn"
     expect_used = "warn"
+
+# The profile that 'dist' will build with
+[profile.dist]
+    inherits = "release"
+    lto      = "thin"
