@@ -65,7 +65,7 @@ async fn meta() -> actix_web::web::Json<crate::Version> {
 )]
 #[get("/license")]
 async fn license() -> &'static str {
-    include_str!("../LICENSE.txt")
+    include_str!("../../LICENSE.txt")
 }
 #[scope("/file")]
 pub(crate) mod file {
