@@ -4,12 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link
-      rel="stylesheet"
-      type="text/css"
-      media="screen"
-      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css"
-    />
+    <link rel="stylesheet" type="text/css" media="screen"
+      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css" />
+    <style>
+      body.markdown-body {
+        margin: 1.5em;
+      }
+    </style>
     <title>{{path}}</title>
   </head>
   <body class="markdown-body">
@@ -18,10 +19,8 @@
     <hr />
     <a href="/">goto root</a>
     <footer style="text-align: center">
-      <a
-        style="color: rgba(0, 0, 0, 0.489)"
-        href="https://github.com/Paul-16098/my-http-server/"
-      >my-http-server v{{server-version}}</a>
+      <a style="color: rgba(0, 0, 0, 0.489)" href="https://github.com/Paul-16098/my-http-server/">my-http-server
+        v{{server-version}}</a>
     </footer>
   </body>
 </html>
