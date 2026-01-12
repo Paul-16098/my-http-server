@@ -35,7 +35,7 @@ jobs:
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           echo "Creating tag $tag"
           git tag -a "$tag" -m "Release $VERSION" -f
-          git push origin "$tag"
+          git push --force origin "$tag"
 
       - name: Back-merge main → dev via git merge
         id: backmerge
