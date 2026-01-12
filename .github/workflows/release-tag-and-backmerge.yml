@@ -33,14 +33,9 @@ jobs:
         run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          tag="v${VERSION}"
-          if git rev-parse "$tag" >/dev/null 2>&1; then
-            echo "Tag $tag already exists, skipping."
-          else
-            echo "Creating tag $tag"
-            git tag -a "$tag" -m "Release $VERSION"
-            git push origin "$tag"
-          fi
+          echo "Creating tag $tag"
+          git tag -a "$tag" -m "Release $VERSION" -f
+          git push origin "$tag"
 
       - name: Back-merge main → dev via git merge
         id: backmerge
