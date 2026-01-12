@@ -74,7 +74,8 @@ fn test_md2html_basic_conversion() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let markdown = "# Hello World\n\nThis is a test.".to_string();
         md2html(markdown, &config, vec![])
     });
@@ -100,7 +101,8 @@ fn test_md2html_with_context_variables() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let markdown = "# Test Document".to_string();
         let template_data = vec!["title:My Title".to_string(), "author:John Doe".to_string()];
         md2html(markdown, &config, template_data)
@@ -125,13 +127,15 @@ fn test_md2html_with_path_context() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        // Explicitly set template path to test directory to avoid XDG interference
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let markdown = "# Document".to_string();
         let template_data = vec!["path:docs/readme.md".to_string()];
         md2html(markdown, &config, template_data)
     });
 
-    assert!(result.is_ok());
+    assert!(result.is_ok(), "md2html failed: {:?}", result.err());
     let html = result.unwrap();
     assert!(html.contains("docs/readme.md"));
 }
@@ -167,7 +171,8 @@ fn test_md2html_handles_empty_markdown() {
     fs::write(meta_dir.join("html-t.hbs"), template).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let markdown = "".to_string();
         md2html(markdown, &config, vec![])
     });
@@ -316,7 +321,8 @@ fn test_template_context_env_vars_integration() {
     }
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let markdown = "# Title".to_string();
         let template_data = vec!["testvar:env:TEST_INTEGRATION_VAR".to_string()];
         md2html(markdown, &config, template_data)
@@ -359,7 +365,8 @@ fn test_template_body_injection() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let markdown = "# Test".to_string();
         md2html(markdown, &config, vec![])
     });
@@ -398,7 +405,8 @@ fn test_multiple_template_data_entries() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let template_data = vec![
             "var1:value1".to_string(),
             "var2:123".to_string(),
@@ -427,7 +435,8 @@ fn test_template_data_override() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         let template_data = vec!["key:first".to_string(), "key:second".to_string()];
         md2html("# Test".to_string(), &config, template_data)
     });
@@ -478,7 +487,8 @@ fn test_template_rendering_error() {
     fs::create_dir_all(&public_path).unwrap();
 
     let result = with_cwd_lock(temp_dir.path(), || {
-        let config = Cofg::default();
+        let mut config = Cofg::default();
+        config.hbs_path = "./meta/html-t.hbs".to_string();
         md2html("# Test".to_string(), &config, vec![])
     });
 
