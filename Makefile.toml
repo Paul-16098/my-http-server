@@ -33,13 +33,5 @@
         "main-test",
     ]
 
-[tasks.clean]
-    dependencies = [
-        "clean-emojis",
-    ]
-
-[tasks.clean-emojis]
-    script = "rm -f ./emojis.json"
-
 [tasks.install-dep]
     script = "cargo install cargo-all-features cargo-llvm-cov cargo-nextest"
