@@ -72,3 +72,10 @@ jobs:
         with:
           tool: cargo-make
       - run: cargo make test
+
+      - run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          git add lcov.info
+          git commit -m "Add coverage report" || echo "No changes to commit"
