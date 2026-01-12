@@ -1,18 +1,37 @@
-[tasks.test]
+[tasks.clean-test]
+    args = [
+        "llvm-cov",
+        "clean",
+        "--workspace",
+    ]
+[tasks.main-test]
     args = [
         "all-features",
-        "test",
+        "llvm-cov",
+        "--no-report",
+        "nextest",
     ]
+
+[tasks.test]
     dependencies = [
         "install-dep",
-        "build",
+        "clean-test",
     ]
+    args = [
+        "llvm-cov",
+        "report",
+        "--output-path",
+        "lcov.info",
+        "--lcov",
+    ]
+
 [tasks.clean]
     dependencies = [
         "clean-emojis",
     ]
+
 [tasks.clean-emojis]
     script = "rm -f ./emojis.json"
 
 [tasks.install-dep]
-    install_crate = "cargo-all-features"
+    script = "cargo install cargo-all-features cargo-llvm-cov cargo-nextest"
