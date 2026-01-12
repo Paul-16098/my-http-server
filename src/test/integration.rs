@@ -29,7 +29,9 @@ fn with_cwd_lock<R>(dir: &std::path::Path, f: impl FnOnce() -> R) -> R {
 
     // Create minimal emojis.json to prevent GitHub API calls in tests
     // Write to both local and XDG paths for comprehensive test coverage
-    let _ = fs::write("./emojis.json", EMPTY_EMOJIS_JSON);
+    if let Err(e) = fs::write("./emojis.json", EMPTY_EMOJIS_JSON) {
+        eprintln!("Warning: failed to write ./emojis.json: {}", e);
+    }
 
     // Clean up XDG config files to prevent interference with tests
     // Remove any existing XDG config that might cause issues in CI
@@ -37,8 +39,10 @@ fn with_cwd_lock<R>(dir: &std::path::Path, f: impl FnOnce() -> R) -> R {
         if let Some(parent) = xdg_paths.emojis.parent() {
             let _ = fs::create_dir_all(parent);
         }
-        // Write minimal emojis.json
-        let _ = fs::write(&xdg_paths.emojis, EMPTY_EMOJIS_JSON);
+        // Write minimal emojis.json with proper format
+        if let Err(e) = fs::write(&xdg_paths.emojis, EMPTY_EMOJIS_JSON) {
+            eprintln!("Warning: failed to write XDG emojis.json: {}", e);
+        }
         // Remove XDG config file if it exists to prevent interference
         let _ = fs::remove_file(&xdg_paths.cofg);
         // Remove XDG template and 404 files if they exist
