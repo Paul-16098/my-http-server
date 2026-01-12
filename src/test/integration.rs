@@ -30,7 +30,7 @@ fn with_cwd_lock<R>(dir: &std::path::Path, f: impl FnOnce() -> R) -> R {
     // Create minimal emojis.json to prevent GitHub API calls in tests
     // Write to both local and XDG paths for comprehensive test coverage
     let _ = fs::write("./emojis.json", EMPTY_EMOJIS_JSON);
-    
+
     // Clean up XDG config files to prevent interference with tests
     // Remove any existing XDG config that might cause issues in CI
     if let Some(xdg_paths) = crate::cofg::config::Cofg::get_xdg_paths() {
