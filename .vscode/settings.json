@@ -1,4 +1,7 @@
 {
   "cSpell.words": ["utoipa"],
-  "github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"]
+  "github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"],
+  "files.exclude": {
+    "lcov.info": true
+  }
 }
