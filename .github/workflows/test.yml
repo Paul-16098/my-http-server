@@ -79,3 +79,4 @@ jobs:
 
           git add lcov.info
           git commit -m "Add coverage report" || echo "No changes to commit"
+          git push
