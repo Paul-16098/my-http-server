@@ -178,13 +178,14 @@ impl Cofg {
     /// 5. CLI overrides (highest priority)
     ///
     /// WHY: Explicit precedence chain makes config behavior predictable and testable.
-    pub fn new_layered(cli: &super::cli::Args) -> AppResult<Self> {
+    pub fn new_layered(cli: &super::cli::Args, no_xdg: bool) -> AppResult<Self> {
         let mut builder = config::Config::builder()
             // Layer 1: Built-in defaults
             .add_source(config::File::from_str(BUILD_COFG, config::FileFormat::Yaml));
 
         // Layer 2: XDG config directory (unless --no-config)
         if !cli.no_config
+            && !no_xdg
             && let Some(xdg_path) = Self::get_xdg_config_path()
             && xdg_path.exists()
         {
@@ -433,7 +434,7 @@ impl Cofg {
                 // Reload with original CLI args if available
                 let new_config = if let Some(ref cli_args) = guard.cli_args {
                     debug!("Reloading config with CLI args");
-                    Self::new_layered(cli_args)?
+                    Self::new_layered(cli_args, false)?
                 } else {
                     debug!("Reloading config from disk");
                     Self::load_from_disk_or_init()?
@@ -450,8 +451,8 @@ impl Cofg {
     /// This should be called once at startup to establish the config with full precedence chain.
     ///
     /// WHY: Store CLI args for proper reload behavior that respects original overrides.
-    pub fn init_global(cli: &super::cli::Args) -> AppResult<Self> {
-        let config = Self::new_layered(cli)?;
+    pub fn init_global(cli: &super::cli::Args, no_xdg: bool) -> AppResult<Self> {
+        let config = Self::new_layered(cli, no_xdg)?;
 
         let cell = GLOBAL_COFG.get_or_init(|| {
             RwLock::new(GlobalConfig {

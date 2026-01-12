@@ -69,7 +69,7 @@ fn test_layered_config_precedence_defaults_only() {
             hot_reload: None,
         };
 
-        let config = Cofg::new_layered(&cli).unwrap();
+        let config = Cofg::new_layered(&cli, true).unwrap();
 
         // Should have default values from BUILD_COFG
         assert_eq!(config.addrs.ip, "localhost");
@@ -102,7 +102,7 @@ fn test_layered_config_cli_overrides() {
             hot_reload: Some(true),
         };
 
-        let config = Cofg::new_layered(&cli).unwrap();
+        let config = Cofg::new_layered(&cli, true).unwrap();
 
         // CLI values should override defaults
         assert_eq!(config.addrs.ip, "0.0.0.0");
@@ -136,7 +136,7 @@ fn test_layered_config_tls_requires_both() {
             hot_reload: None,
         };
 
-        let config = Cofg::new_layered(&cli_cert_only).unwrap();
+        let config = Cofg::new_layered(&cli_cert_only, true).unwrap();
         assert!(!config.tls.enable); // TLS not enabled with cert only
 
         let cli_both = Args {
@@ -153,7 +153,7 @@ fn test_layered_config_tls_requires_both() {
             hot_reload: None,
         };
 
-        let config = Cofg::new_layered(&cli_both).unwrap();
+        let config = Cofg::new_layered(&cli_both, true).unwrap();
         assert!(config.tls.enable); // TLS enabled with both
         assert_eq!(config.tls.cert, "cert.pem");
         assert_eq!(config.tls.key, "key.pem");
@@ -183,7 +183,7 @@ fn test_layered_config_env_variables() {
             hot_reload: None,
         };
 
-        let config = Cofg::new_layered(&cli).unwrap();
+        let config = Cofg::new_layered(&cli, true).unwrap();
 
         // Environment variables should override defaults
         assert_eq!(config.addrs.ip, "192.168.1.1");
@@ -219,7 +219,7 @@ fn test_layered_config_cli_overrides_env() {
             hot_reload: None,
         };
 
-        let config = Cofg::new_layered(&cli).unwrap();
+        let config = Cofg::new_layered(&cli, true).unwrap();
 
         // CLI should override environment
         assert_eq!(config.addrs.port, 4000);
@@ -249,7 +249,7 @@ fn test_config_page_404_path_and_hbs_path() {
             hot_reload: None,
         };
 
-        let config = Cofg::new_layered(&cli).unwrap();
+        let config = Cofg::new_layered(&cli, true).unwrap();
 
         // Should have default values
         assert_eq!(config.page_404_path, "./meta/404.html");
@@ -324,12 +324,7 @@ fn test_xdg_config_path_exists() {
                 .to_string_lossy()
                 .contains("html-t.hbs")
         );
-        assert!(
-            xdg_paths
-                .emojis
-                .to_string_lossy()
-                .contains("emojis.json")
-        );
+        assert!(xdg_paths.emojis.to_string_lossy().contains("emojis.json"));
     } else {
         println!("XDG paths could not be resolved (no home directory?)");
     }
@@ -349,7 +344,7 @@ fn test_xdg_config_path_exists() {
             hbs_path: None,
             hot_reload: None,
         };
-        Cofg::new_layered(&cli)
+        Cofg::new_layered(&cli, true)
     });
 
     assert!(_xdg_path.is_ok());
@@ -372,7 +367,7 @@ fn test_rate_limiting_validation() {
         hot_reload: None,
     };
 
-    let mut config = Cofg::new_layered(&cli).unwrap();
+    let mut config = Cofg::new_layered(&cli, true).unwrap();
 
     // Force invalid values
     config.middleware.rate_limiting.burst_size = 0;
