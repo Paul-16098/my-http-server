@@ -23,3 +23,5 @@ github-attestations = true
 cargo-auditable = true
 # Which actions to run on pull requests
 pr-run-mode = "upload"
+# Host jobs to run in CI
+host-jobs = ["./Generate-changelog"]

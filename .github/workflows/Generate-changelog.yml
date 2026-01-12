@@ -1,0 +1,28 @@
+name: Generate changelog
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      plan:
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  CHANGELOG:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: taiki-e/install-action@3522286d40783523f9c7880e33f785905b4c20d0 # v2.66.1
+        with:
+          tool: git-cliff
+
+      - name: Generate changelog
+        id: changelog
+        run: git cliff -o -v
