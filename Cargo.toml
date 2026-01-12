@@ -1,93 +1,104 @@
-[package]
-    name = "my-http-server"
-    version = "4.1.2"
-    edition = "2024"
-    license-file = "./LICENSE.txt"
-    readme = "./README.md"
-    repository = "https://github.com/Paul-16098/my-http-server/"
-    description = "a server using actix-web, markdown-ppp, and handlebars"
-    authors = [
-        "Paul-16098",
-    ]
+[[bin]]
+name = "my-http-server"
+path = "src/main.rs"
 
-    [package.metadata.wix]
-        upgrade-guid = "5BFF95FD-A231-42D2-A585-62F661AB3D80"
-        path-guid    = "F403F12C-1127-43F7-B427-DA73B1322FF8"
-        license      = true
-        eula         = false
+[package]
+name = "my-http-server"
+version = "4.1.3"
+edition = "2024"
+license-file = "./LICENSE.txt"
+readme = "./README.md"
+repository = "https://github.com/Paul-16098/my-http-server/"
+description = "a server using actix-web, markdown-ppp, and handlebars"
+authors = ["Paul-16098"]
+
+[package.metadata.wix]
+upgrade-guid = "5BFF95FD-A231-42D2-A585-62F661AB3D80"
+path-guid = "F403F12C-1127-43F7-B427-DA73B1322FF8"
+license = true
+eula = false
 
 [dependencies]
-    actix-files = "0.6.8"
-    actix-web = { version = "4.11.0", features = [
-        "rustls-0_23",
-    ] }
-    config = "0.15.18"
-    env_logger = "0.11.8"
-    log = "0.4.28"
-    markdown-ppp = { version = "2.7.1", features = [
-        "ast-serde",
-        "ast-transform",
-    ] }
-    nest_struct = "0.5.5"
-    nom = "8.0.0"
-    percent-encoding = "2.3.2"
-    serde = "1.0.228"
-    wax = { version = "0.6.0", features = [
-        "miette",
-        "walk",
-    ] }
-    thiserror = "2.0.17"
-    clap = { version = "4.5.49", features = [
-        "derive",
-        "string",
-    ] }
-    handlebars = "6.3.2"
-    serde_json = "1.0.145"
-    # https://github.com/Paul-16098/my-http-server/pull/21#issuecomment-3388671499
-    rustls = { version = "0.23", default-features = false, features = [
-        "ring",
-        "logging",
-        "std",
-        "tls12",
-    ] }
-    actix-web-httpauth = "0.8.2"
-    rustls-pki-types = "1.12.0"
-    actix-ip-filter = "0.3.2"
-    actix-governor = { version = "0.10.0", features = [
-        "log",
-    ] }
-    directories = "6.0.0"
-    utoipa = { version = "5.4.0", features = [
-        "actix_extras",
-    ], optional = true }
-    ureq = { version = "3.1.4", features = [
-        "json",
-    ], optional = true }
+actix-files = "0.6.8"
+config = "0.15.18"
+env_logger = "0.11.8"
+log = "0.4.28"
+nest_struct = "0.5.5"
+nom = "8.0.0"
+percent-encoding = "2.3.2"
+serde = "1.0.228"
+thiserror = "2.0.17"
+handlebars = "6.3.2"
+serde_json = "1.0.145"
+actix-web-httpauth = "0.8.2"
+rustls-pki-types = "1.12.0"
+actix-ip-filter = "0.3.2"
+directories = "6.0.0"
 
-[[bin]]
-    name = "my-http-server"
-    path = "src/main.rs"
+[dependencies.actix-web]
+version = "4.11.0"
+features = ["rustls-0_23"]
+
+[dependencies.markdown-ppp]
+version = "2.7.1"
+features = [
+    "ast-serde",
+    "ast-transform",
+]
+
+[dependencies.wax]
+version = "0.6.0"
+features = [
+    "miette",
+    "walk",
+]
+
+[dependencies.clap]
+version = "4.5.49"
+features = [
+    "derive",
+    "string",
+]
+
+[dependencies.rustls]
+version = "0.23"
+default-features = false
+features = [
+    "ring",
+    "logging",
+    "std",
+    "tls12",
+]
+
+[dependencies.actix-governor]
+version = "0.10.0"
+features = ["log"]
+
+[dependencies.utoipa]
+version = "5.4.0"
+features = ["actix_extras"]
+optional = true
+
+[dependencies.ureq]
+version = "3.1.4"
+features = ["json"]
+optional = true
 
 [features]
-    default = [
-        "github_emojis",
-        "api",
-    ]
-    github_emojis = [
-        "dep:ureq",
-    ]
-    api = [
-        "dep:utoipa",
-    ]
+default = [
+    "github_emojis",
+    "api",
+]
+github_emojis = ["dep:ureq"]
+api = ["dep:utoipa"]
 
 [dev-dependencies]
-    tempfile = "3.23.0"
+tempfile = "3.23.0"
 
 [lints.clippy]
-    unwrap_used = "warn"
-    expect_used = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
 
-# The profile that 'dist' will build with
 [profile.dist]
-    inherits = "release"
-    lto      = "thin"
+inherits = "release"
+lto = "thin"

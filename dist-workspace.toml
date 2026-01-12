@@ -21,7 +21,5 @@ install-updater = true
 github-attestations = true
 # Whether to embed dependency information using cargo-auditable
 cargo-auditable = true
-# Which actions to run on pull requests
-pr-run-mode = "upload"
 # Host jobs to run in CI
 host-jobs = ["./Generate-changelog"]
