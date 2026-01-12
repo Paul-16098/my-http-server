@@ -19,6 +19,7 @@ const EMPTY_EMOJIS_JSON: &str = r#"{"unicode":{},"else":{}}"#;
 /// one-at-a-time without requiring a custom test runner or external flags.
 ///
 /// Also creates `emojis.json` in both XDG directory and test directory to avoid GitHub API calls during tests.
+/// Additionally, cleans up any XDG config files that might interfere with tests.
 fn with_cwd_lock<R>(dir: &std::path::Path, f: impl FnOnce() -> R) -> R {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     let _g = LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
@@ -29,11 +30,20 @@ fn with_cwd_lock<R>(dir: &std::path::Path, f: impl FnOnce() -> R) -> R {
     // Create minimal emojis.json to prevent GitHub API calls in tests
     // Write to both local and XDG paths for comprehensive test coverage
     let _ = fs::write("./emojis.json", EMPTY_EMOJIS_JSON);
+    
+    // Clean up XDG config files to prevent interference with tests
+    // Remove any existing XDG config that might cause issues in CI
     if let Some(xdg_paths) = crate::cofg::config::Cofg::get_xdg_paths() {
         if let Some(parent) = xdg_paths.emojis.parent() {
             let _ = fs::create_dir_all(parent);
         }
+        // Write minimal emojis.json
         let _ = fs::write(&xdg_paths.emojis, EMPTY_EMOJIS_JSON);
+        // Remove XDG config file if it exists to prevent interference
+        let _ = fs::remove_file(&xdg_paths.cofg);
+        // Remove XDG template and 404 files if they exist
+        let _ = fs::remove_file(&xdg_paths.template_hbs);
+        let _ = fs::remove_file(&xdg_paths.page_404);
     }
 
     let res = f();
