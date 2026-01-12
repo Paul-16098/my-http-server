@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["utoipa"]
+  "cSpell.words": ["utoipa"],
+  "github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"]
 }
