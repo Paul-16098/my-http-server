@@ -22,4 +22,4 @@ jobs:
       - name: Generate changelog
         uses: orhun/git-cliff-action@v4
         with:
-          args: -o -v
+          args: -o
