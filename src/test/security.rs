@@ -9,6 +9,28 @@
 
 use actix_web::{test, App, http::StatusCode};
 use crate::request::main_req;
+use crate::cofg::config::Cofg;
+use crate::cofg::cli::Args;
+
+/// Initialize global config for security tests
+fn init_test_config() {
+    use clap::Parser;
+    
+    let args = Args::try_parse_from(&["test"]).unwrap_or_else(|_| Args::parse());
+    let _ = Cofg::init_global(&args, true);
+    
+    // Create a minimal emojis.json to prevent GitHub API calls
+    #[cfg(feature = "github_emojis")]
+    {
+        let emoji_path = std::path::Path::new("./emojis.json");
+        if !emoji_path.exists() {
+            let _ = std::fs::write(
+                emoji_path,
+                r#"{"unicode":{},"else":{}}"#
+            );
+        }
+    }
+}
 
 #[actix_web::test]
 async fn test_constant_time_eq_identical() {
@@ -120,6 +142,8 @@ async fn test_ct_eq_str_opt_one_none() {
 
 #[actix_web::test]
 async fn test_path_traversal_dotdot() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -143,6 +167,8 @@ async fn test_path_traversal_dotdot() {
 
 #[actix_web::test]
 async fn test_path_traversal_encoded() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -164,6 +190,8 @@ async fn test_path_traversal_encoded() {
 
 #[actix_web::test]
 async fn test_absolute_path_request() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -185,6 +213,8 @@ async fn test_absolute_path_request() {
 
 #[actix_web::test]
 async fn test_null_byte_injection() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -206,6 +236,8 @@ async fn test_null_byte_injection() {
 
 #[actix_web::test]
 async fn test_backslash_path_separator() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -266,6 +298,8 @@ async fn test_password_comparison_edge_cases() {
 
 #[actix_web::test]
 async fn test_hidden_files_access() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -287,6 +321,8 @@ async fn test_hidden_files_access() {
 
 #[actix_web::test]
 async fn test_config_file_access() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -313,6 +349,8 @@ async fn test_config_file_access() {
 
 #[actix_web::test]
 async fn test_directory_listing_disabled() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -355,6 +393,8 @@ async fn test_constant_time_comparison_properties() {
 
 #[actix_web::test]
 async fn test_case_sensitivity() {
+    init_test_config();
+
     let app = test::init_service(
         App::new().service(main_req)
     ).await;

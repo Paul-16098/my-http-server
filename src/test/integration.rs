@@ -6,12 +6,48 @@
 //! - Middleware (compression, normalization, logging)
 //! - Error responses (404, 500)
 //! - Index page behavior
+//!
+//! NOTE: These tests require initialization of global config which may trigger
+//! emoji fetching with github_emojis feature. Run with --no-default-features
+//! for faster, more reliable tests in CI environments.
 
 use actix_web::{test, App, http::StatusCode};
 use crate::request::main_req;
+use crate::cofg::config::Cofg;
+use crate::cofg::cli::Args;
+
+/// Initialize global config for integration tests to prevent hangs
+/// 
+/// WHY: Integration tests call main_req which accesses Cofg::get(false).
+/// This triggers global config initialization which may:
+/// 1. Try to create XDG directories
+/// 2. With github_emojis feature: fetch from GitHub API (network I/O)
+/// 
+/// Pre-initializing with minimal config prevents these blocking operations.
+fn init_test_config() {
+    use clap::Parser;
+    
+    // Initialize with minimal CLI args to avoid network calls and file I/O issues
+    let args = Args::try_parse_from(&["test"]).unwrap_or_else(|_| Args::parse());
+    let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
+    
+    // Create a minimal emojis.json to prevent GitHub API calls
+    #[cfg(feature = "github_emojis")]
+    {
+        let emoji_path = std::path::Path::new("./emojis.json");
+        if !emoji_path.exists() {
+            let _ = std::fs::write(
+                emoji_path,
+                r#"{"unicode":{},"else":{}}"#
+            );
+        }
+    }
+}
 
 #[actix_web::test]
 async fn test_static_file_serving() {
+    init_test_config();
+    
     // This test verifies that the server can handle static file requests
     // Note: Actual file serving depends on the configured public_path
     
@@ -34,6 +70,8 @@ async fn test_static_file_serving() {
 
 #[actix_web::test]
 async fn test_nonexistent_file() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -53,6 +91,8 @@ async fn test_nonexistent_file() {
 
 #[actix_web::test]
 async fn test_path_with_special_chars() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -73,6 +113,8 @@ async fn test_path_with_special_chars() {
 
 #[actix_web::test]
 async fn test_markdown_file_request() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -93,6 +135,8 @@ async fn test_markdown_file_request() {
 
 #[actix_web::test]
 async fn test_response_has_content_type() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -110,6 +154,8 @@ async fn test_response_has_content_type() {
 
 #[actix_web::test]
 async fn test_multiple_requests() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -128,6 +174,8 @@ async fn test_multiple_requests() {
 
 #[actix_web::test]
 async fn test_get_method_only() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -146,6 +194,8 @@ async fn test_get_method_only() {
 
 #[actix_web::test]
 async fn test_path_normalization() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -167,6 +217,8 @@ async fn test_path_normalization() {
 
 #[actix_web::test]
 async fn test_nested_path() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -185,6 +237,8 @@ async fn test_nested_path() {
 
 #[actix_web::test]
 async fn test_concurrent_requests() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -205,6 +259,8 @@ async fn test_concurrent_requests() {
 
 #[actix_web::test]
 async fn test_empty_path() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -221,6 +277,8 @@ async fn test_empty_path() {
 
 #[actix_web::test]
 async fn test_request_headers() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
@@ -253,6 +311,8 @@ async fn test_server_error_function() {
 
 #[actix_web::test]
 async fn test_large_path() {
+    init_test_config();
+    
     let app = test::init_service(
         App::new().service(main_req)
     ).await;
