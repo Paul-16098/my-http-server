@@ -255,6 +255,10 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         }
     } else if req_path.is_file() {
         debug!("no md");
+        if req_path.ends_with(".gitignore") {
+            warn!("access to .gitignore denied");
+            return respond_404(&req).await;
+        }
         match NamedFile::open_async(req_path).await {
             Ok(file) => file.into_response(&req),
             Err(err) => {
