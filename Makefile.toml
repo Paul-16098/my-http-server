@@ -1,4 +1,4 @@
-[tasks.clean-test]
+[tasks.clean-cov]
     command = "cargo"
     args = [
         "llvm-cov",
@@ -6,7 +6,7 @@
         "--workspace",
     ]
 
-[tasks.main-test]
+[tasks.main-cov]
     command = "cargo"
     args = [
         "all-features",
@@ -17,10 +17,10 @@
     ]
     dependencies = [
         "install-dep",
-        "clean-test",
+        "clean-cov",
     ]
 
-[tasks.test]
+[tasks.cov]
     command = "cargo"
     args = [
         "llvm-cov",
@@ -30,7 +30,17 @@
         "--lcov",
     ]
     dependencies = [
-        "main-test",
+        "main-cov",
+    ]
+
+[tasks.test]
+    command = "cargo"
+    args = [
+        "all-features",
+        "--",
+        "nextest",
+        "run",
+        "--no-fail-fast",
     ]
 
 [tasks.install-dep]

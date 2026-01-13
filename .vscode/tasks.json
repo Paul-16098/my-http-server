@@ -8,6 +8,14 @@
       "problemMatcher": ["$rustc"],
       "group": "test",
       "label": "rust: cargo make test"
+    },
+    {
+      "type": "cargo",
+      "command": "make",
+      "args": ["cov"],
+      "problemMatcher": ["$rustc"],
+      "group": "test",
+      "label": "rust: cargo make cov"
     }
   ]
 }
