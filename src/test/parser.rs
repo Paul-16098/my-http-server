@@ -259,8 +259,10 @@ async fn test_md2html_basic() {
         result.err()
     );
     let html = result.unwrap();
-    assert!(html.contains("<h1"), "Output should contain h1 tag");
-    assert!(html.contains("Test"), "Output should contain heading text");
+    assert_eq!(
+        html,
+        "<!DOCTYPE html><html><body><h1>Test</h1><p>Hello world!</p></body></html>",
+    );
 }
 
 #[actix_web::test]
