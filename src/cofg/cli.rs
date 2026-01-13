@@ -16,7 +16,7 @@ use clap::Parser;
 
 use crate::error::AppError;
 
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Debug, Clone, Default)]
 #[command(version = crate::VERSION.to_string())]
 #[command(about = "A lightweight HTTP server for serving static files and rendering Markdown")]
 pub(crate) struct Args {

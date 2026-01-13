@@ -230,6 +230,16 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         debug!("{}:!exists", req_path.display());
         return respond_404(&req).await;
     }
+    if ["cofg.yaml", ".gitignore", "Cargo.toml"]
+        .iter()
+        .any(|f| req_path.ends_with(f))
+    {
+        error!(
+            "!!! Access to restricted file: {} by {:?}",
+            req_path.display(),
+            req
+        );
+    }
     let req_path = &(match req_path.canonicalize() {
         Ok(p) => p,
         Err(e) => {

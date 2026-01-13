@@ -33,6 +33,16 @@
     dependencies = [
         "main-cov",
     ]
+[tasks.html-cov]
+    dependencies = [
+        "cov",
+    ]
+    command = "cargo"
+    args = [
+        "llvm-cov",
+        "report",
+        "--html",
+    ]
 
 [tasks.test]
     command = "cargo"
