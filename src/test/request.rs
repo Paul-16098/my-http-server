@@ -234,7 +234,7 @@ async fn test_multiple_sequential_requests() {
 
         assert!(
             resp.status().is_success() || resp.status().is_client_error(),
-            "Request {} should complete successfully (verifies server stability and proper state management across multiple sequential requests), got status: {}",
+            "Sequential request {} should complete, got status: {}",
             i,
             resp.status()
         );

@@ -238,6 +238,10 @@ async fn test_md2html_basic() {
     )
     .expect("Should write template");
 
+    // WHY: field_reassign_with_default warning suppressed here.
+    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+    // Current pattern is more readable and maintainable for test fixtures.
     #[allow(clippy::field_reassign_with_default)]
     let config = {
         let mut c = Cofg::default();

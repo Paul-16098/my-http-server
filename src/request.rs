@@ -230,6 +230,12 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         debug!("{}:!exists", req_path.display());
         return respond_404(&req).await;
     }
+    if ["cofg.yaml", ".gitignore", "Cargo.toml"]
+        .iter()
+        .any(|f| req_path.ends_with(f))
+    {
+        error!("!!! Access to restricted file: {}", req_path.display());
+    }
     let req_path = &(match req_path.canonicalize() {
         Ok(p) => p,
         Err(e) => {
@@ -255,12 +261,6 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         }
     } else if req_path.is_file() {
         debug!("no md");
-        for f in ["cofg.yaml", ".gitignore", "Cargo.toml"] {
-            if req_path.ends_with(f) {
-                warn!("access to {f} denied");
-                return respond_404(&req).await;
-            }
-        }
         match NamedFile::open_async(req_path).await {
             Ok(file) => file.into_response(&req),
             Err(err) => {

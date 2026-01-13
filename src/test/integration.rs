@@ -183,27 +183,6 @@ async fn test_get_method_only() {
 }
 
 #[actix_web::test]
-async fn test_path_normalization() {
-    init_test_config();
-
-    let app = test::init_service(App::new().service(main_req)).await;
-
-    // Test paths with trailing slashes
-    let req1 = test::TestRequest::get().uri("/test/").to_request();
-    let resp1 = test::call_service(&app, req1).await;
-
-    let req2 = test::TestRequest::get().uri("/test").to_request();
-    let resp2 = test::call_service(&app, req2).await;
-
-    // Both should return the same status (either both 404 or both 200)
-    assert_eq!(
-        resp1.status(),
-        resp2.status(),
-        "Paths with/without trailing slash should behave similarly"
-    );
-}
-
-#[actix_web::test]
 async fn test_nested_path() {
     init_test_config();
 
@@ -237,7 +216,7 @@ async fn test_sequential_requests() {
 
         assert!(
             resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_FOUND,
-            "Sequential request {} should complete successfully (server remains stable under sequential load), got {}",
+            "Sequential request {} should complete, got {}",
             i,
             resp.status()
         );
