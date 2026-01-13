@@ -11,25 +11,31 @@ use actix_web::{test, App, http::StatusCode};
 use crate::request::main_req;
 use crate::cofg::config::Cofg;
 use crate::cofg::cli::Args;
+use std::sync::Once;
+
+static INIT: Once = Once::new();
 
 /// Initialize global config for security tests
+/// Uses Once to ensure initialization happens only once across all tests.
 fn init_test_config() {
-    use clap::Parser;
-    
-    let args = Args::try_parse_from(&["test"]).unwrap_or_else(|_| Args::parse());
-    let _ = Cofg::init_global(&args, true);
-    
-    // Create a minimal emojis.json to prevent GitHub API calls
-    #[cfg(feature = "github_emojis")]
-    {
-        let emoji_path = std::path::Path::new("./emojis.json");
-        if !emoji_path.exists() {
-            let _ = std::fs::write(
-                emoji_path,
-                r#"{"unicode":{},"else":{}}"#
-            );
+    INIT.call_once(|| {
+        use clap::Parser;
+        
+        let args = Args::try_parse_from(&["test"]).unwrap_or_else(|_| Args::parse());
+        let _ = Cofg::init_global(&args, true);
+        
+        // Create a minimal emojis.json to prevent GitHub API calls
+        #[cfg(feature = "github_emojis")]
+        {
+            let emoji_path = std::path::Path::new("./emojis.json");
+            if !emoji_path.exists() {
+                let _ = std::fs::write(
+                    emoji_path,
+                    r#"{"unicode":{},"else":{}}"#
+                );
+            }
         }
-    }
+    });
 }
 
 #[actix_web::test]

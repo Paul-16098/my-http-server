@@ -15,6 +15,9 @@ use actix_web::{test, App, http::StatusCode};
 use crate::request::main_req;
 use crate::cofg::config::Cofg;
 use crate::cofg::cli::Args;
+use std::sync::Once;
+
+static INIT: Once = Once::new();
 
 /// Initialize global config for integration tests to prevent hangs
 /// 
@@ -24,24 +27,27 @@ use crate::cofg::cli::Args;
 /// 2. With github_emojis feature: fetch from GitHub API (network I/O)
 /// 
 /// Pre-initializing with minimal config prevents these blocking operations.
+/// Uses Once to ensure initialization happens only once across all tests.
 fn init_test_config() {
-    use clap::Parser;
-    
-    // Initialize with minimal CLI args to avoid network calls and file I/O issues
-    let args = Args::try_parse_from(&["test"]).unwrap_or_else(|_| Args::parse());
-    let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
-    
-    // Create a minimal emojis.json to prevent GitHub API calls
-    #[cfg(feature = "github_emojis")]
-    {
-        let emoji_path = std::path::Path::new("./emojis.json");
-        if !emoji_path.exists() {
-            let _ = std::fs::write(
-                emoji_path,
-                r#"{"unicode":{},"else":{}}"#
-            );
+    INIT.call_once(|| {
+        use clap::Parser;
+        
+        // Initialize with minimal CLI args to avoid network calls and file I/O issues
+        let args = Args::try_parse_from(&["test"]).unwrap_or_else(|_| Args::parse());
+        let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
+        
+        // Create a minimal emojis.json to prevent GitHub API calls
+        #[cfg(feature = "github_emojis")]
+        {
+            let emoji_path = std::path::Path::new("./emojis.json");
+            if !emoji_path.exists() {
+                let _ = std::fs::write(
+                    emoji_path,
+                    r#"{"unicode":{},"else":{}}"#
+                );
+            }
         }
-    }
+    });
 }
 
 #[actix_web::test]
@@ -161,13 +167,14 @@ async fn test_multiple_requests() {
     ).await;
     
     // Make multiple requests to ensure server handles them correctly
-    for _ in 0..5 {
+    for i in 0..5 {
         let req = test::TestRequest::get().uri("/").to_request();
         let resp = test::call_service(&app, req).await;
+        let status = resp.status();
         
         assert!(
-            resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_FOUND,
-            "Multiple requests should work correctly"
+            status == StatusCode::OK || status == StatusCode::NOT_FOUND,
+            "Request {} failed with status: {} (expected 200 or 404)", i, status
         );
     }
 }
