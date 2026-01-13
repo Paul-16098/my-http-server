@@ -93,10 +93,10 @@ jobs:
         with:
           tool: cargo-make
 
-      - run: cargo make test
+      - run: cargo make cov
 
-      - run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          git commit -am "[bot] coverage" || echo "no changes to commit"
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./lcov.info
