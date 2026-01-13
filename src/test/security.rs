@@ -7,47 +7,13 @@
 //! - Constant-time password comparison
 //! - Access control (allow/disallow paths)
 
-use crate::cofg::cli::Args;
-use crate::cofg::config::Cofg;
 use crate::request::main_req;
 use actix_web::{App, http::StatusCode, test};
-use std::sync::Once;
-
-static INIT: Once = Once::new();
 
 /// Initialize global config for security tests
-///
-/// Uses `Once` to ensure thread-safe initialization that runs exactly once per process lifetime.
-/// This prevents race conditions when tests run in parallel and avoids redundant initialization.
-///
-/// WHY: Tests trigger global config initialization which can cause:
-/// - Network calls to GitHub API (with github_emojis feature)
-/// - File I/O for XDG config directories
-/// - Race conditions if multiple tests initialize simultaneously
-///
-/// NOTE: `Once::call_once` guarantees the closure runs only once even across multiple test runs
-/// in the same process. This is intentional - tests are designed to share this global state.
-/// For test isolation, run tests in separate processes or use `--test-threads=1`.
+/// Uses shared helper from config module to ensure consistency across test suites
 fn init_test_config() {
-    INIT.call_once(|| {
-        use clap::Parser;
-
-        let args = Args::try_parse_from(["test"].as_ref()).unwrap_or_else(|_| Args::parse());
-        let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
-
-        // Create a minimal emojis.json stub to prevent GitHub API calls during testing
-        // WHY: The github_emojis feature would otherwise fetch emoji data from GitHub API,
-        // causing tests to hang or fail in CI environments without network access.
-        // This file is intentionally left after tests (not cleaned up) as it's small and
-        // can be reused across test runs. Add to .gitignore if needed.
-        #[cfg(feature = "github_emojis")]
-        {
-            let emoji_path = std::path::Path::new("./emojis.json");
-            if !emoji_path.exists() {
-                let _ = std::fs::write(emoji_path, r#"{"unicode":{},"else":{}}"#);
-            }
-        }
-    });
+    super::config::init_test_config();
 }
 
 #[actix_web::test]
@@ -330,14 +296,14 @@ async fn test_config_file_access() {
 }
 
 #[actix_web::test]
-async fn test_directory_request_handling() {
+async fn test_directory_request_without_crash() {
     init_test_config();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
     // Request a directory path
     // WHY: Verifies server handles directory requests without crashing
-    // NOTE: Test name reflects actual validation (request handling), not directory listing prevention
+    // This test validates graceful handling, not directory listing prevention
     let req = test::TestRequest::get().uri("/docs/").to_request();
     let resp = test::call_service(&app, req).await;
 

@@ -215,8 +215,19 @@ pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     diff == 0
 }
 
-/// Constant-time comparison for Option<&str>
-/// by ai
+/// Constant-time comparison for Option<&str>.
+///
+/// WHY: Wrap [`constant_time_eq`] for optional UTF-8 strings so that callers can
+/// compare potentially-secret values (e.g. API keys, tokens) without introducing
+/// obvious timing differences when one side is missing.
+///
+/// Behavior:
+/// - `Some(a)` vs `Some(b)`: compared in constant time using their `.as_bytes()`.
+/// - `None` vs `None`: considered equal.
+/// - Any `Some` vs `None` (or vice versa): considered not equal.
+///
+/// Security: Prevents timing attacks by ensuring comparison time doesn't leak
+/// information about the length or content of the strings being compared.
 pub(crate) fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),

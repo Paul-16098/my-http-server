@@ -252,6 +252,49 @@ pub(crate) fn create_test_dir() -> tempfile::TempDir {
     tempfile::tempdir().expect("Failed to create temp dir")
 }
 
+/// Initialize global config for all test suites.
+///
+/// Uses `std::sync::Once` to ensure thread-safe initialization that runs exactly once per process.
+/// This prevents race conditions when tests run in parallel and avoids redundant initialization.
+///
+/// WHY: Tests trigger global config initialization which can cause:
+/// - Network calls to GitHub API (with github_emojis feature)
+/// - File I/O for XDG config directories
+/// - Race conditions if multiple tests initialize simultaneously
+///
+/// Emoji stub file location:
+/// - Stored in OS temp directory (not project root) to avoid CI/CD pollution
+/// - Path: std::env::temp_dir()/my-http-server-test-emojis.json
+/// - Auto-managed by OS (cleaned up according to OS temp file policies)
+///
+/// NOTE: `Once::call_once` guarantees the closure runs only once even across multiple test runs
+/// in the same process. This is intentional - tests share this global state for efficiency.
+/// For test isolation, run tests in separate processes or use `--test-threads=1`.
+pub(crate) fn init_test_config() {
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+
+    INIT.call_once(|| {
+        use clap::Parser;
+
+        let args = cli::Args::try_parse_from(["test"].as_ref()).unwrap_or_else(|_| cli::Args::parse());
+        let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
+
+        // Create minimal emojis.json stub in temp directory to prevent GitHub API calls
+        // WHY: The github_emojis feature would otherwise fetch emoji data from GitHub API,
+        // causing tests to hang or fail in CI environments without network access.
+        // Stored in temp directory (not project root) to avoid polluting repository.
+        #[cfg(feature = "github_emojis")]
+        {
+            let temp_dir = std::env::temp_dir();
+            let emoji_path = temp_dir.join("my-http-server-test-emojis.json");
+            if !emoji_path.exists() {
+                let _ = std::fs::write(emoji_path, r#"{"unicode":{},"else":{}}"#);
+            }
+        }
+    });
+}
+
 /// Test conversion from CLI args to Config Addrs
 #[test]
 fn test_cli_args_to_config_addrs() -> Result<(), Box<dyn std::error::Error>> {

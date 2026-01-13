@@ -7,29 +7,13 @@
 //! - TOC generation
 //! - Static file serving
 
-use crate::cofg::cli::Args;
-use crate::cofg::config::Cofg;
 use crate::request::main_req;
 use actix_web::{App, http::StatusCode, test};
-use std::sync::Once;
 
-static INIT: Once = Once::new();
-
+/// Initialize global config for request tests
+/// Uses shared helper from config module to ensure consistency across test suites
 fn init_test_config() {
-    INIT.call_once(|| {
-        use clap::Parser;
-
-        let args = Args::try_parse_from(["test"].as_ref()).unwrap_or_else(|_| Args::parse());
-        let _ = Cofg::init_global(&args, true);
-
-        #[cfg(feature = "github_emojis")]
-        {
-            let emoji_path = std::path::Path::new("./emojis.json");
-            if !emoji_path.exists() {
-                let _ = std::fs::write(emoji_path, r#"{"unicode":{},"else":{}}"#);
-            }
-        }
-    });
+    super::config::init_test_config();
 }
 
 // Note: server_error function is primarily exercised via request handlers that return errors.

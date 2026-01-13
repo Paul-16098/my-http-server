@@ -11,40 +11,13 @@
 //! emoji fetching with github_emojis feature. Run with --no-default-features
 //! for faster, more reliable tests in CI environments.
 
-use crate::cofg::cli::Args;
-use crate::cofg::config::Cofg;
 use crate::request::main_req;
 use actix_web::{App, http::StatusCode, test};
-use std::sync::Once;
 
-static INIT: Once = Once::new();
-
-/// Initialize global config for integration tests to prevent hangs
-///
-/// WHY: Integration tests call main_req which accesses Cofg::get(false).
-/// This triggers global config initialization which may:
-/// 1. Try to create XDG directories
-/// 2. With github_emojis feature: fetch from GitHub API (network I/O)
-///
-/// Pre-initializing with minimal config prevents these blocking operations.
-/// Uses Once to ensure initialization happens only once across all tests.
+/// Initialize global config for integration tests
+/// Uses shared helper from config module to ensure consistency across test suites
 fn init_test_config() {
-    INIT.call_once(|| {
-        use clap::Parser;
-
-        // Initialize with minimal CLI args to avoid network calls and file I/O issues
-        let args = Args::try_parse_from(["test"].as_ref()).unwrap_or_else(|_| Args::parse());
-        let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
-
-        // Create a minimal emojis.json to prevent GitHub API calls
-        #[cfg(feature = "github_emojis")]
-        {
-            let emoji_path = std::path::Path::new("./emojis.json");
-            if !emoji_path.exists() {
-                let _ = std::fs::write(emoji_path, r#"{"unicode":{},"else":{}}"#);
-            }
-        }
-    });
+    super::config::init_test_config();
 }
 
 #[actix_web::test]
