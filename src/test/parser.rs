@@ -6,34 +6,41 @@
 //! - md2html integration (markdown → HTML → template)
 //! - TOC generation logic
 
+use markdown_ppp::ast::{
+    Block, CodeBlock,
+    CodeBlockKind::Fenced,
+    Document, Heading,
+    HeadingKind::Atx,
+    Inline::Text,
+    List,
+    ListBulletKind::Dash,
+    ListItem,
+    ListKind::{Bullet, Ordered},
+    ListOrderedKindOptions,
+};
+use simple_test_case::test_case;
+
 use crate::cofg::config::Cofg;
 use crate::parser::{markdown, md2html, templating};
 use crate::test::config::create_test_dir;
 use std::fs;
 
-#[actix_web::test]
-async fn test_markdown_parsing_basic() {
-    let md = "# Hello World\n\nThis is a test.".to_string();
-
-    let result = markdown::parser_md(md);
-    assert!(result.is_ok(), "Basic markdown should parse successfully");
-
-    let _ast = result.unwrap();
-    // AST Document type exists and is successfully parsed
-    // We just check that parsing succeeded
-}
-
-#[actix_web::test]
-async fn test_markdown_parsing_empty() {
-    let md = "".to_string();
-
-    let result = markdown::parser_md(md);
-    assert!(result.is_ok(), "Empty markdown should parse successfully");
-}
-
-#[actix_web::test]
-async fn test_markdown_parsing_with_code_block() {
-    let md = r#"
+#[test_case(
+    "# Hello World\n\nThis is a test.",
+    Document {
+        blocks: vec![
+            Block::Heading(Heading {
+                kind: Atx(1),
+                content: [Text("Hello World".to_string())].to_vec()
+            }),
+            Block::Paragraph([Text("This is a test.".to_string())].to_vec())
+        ]
+    }
+    ; "Basic markdown with heading and paragraph"
+)]
+#[test_case("", Document { blocks: vec![] }; "Empty markdown")]
+#[test_case(
+    r#"
 # Code Example
 
 ```rust
@@ -41,19 +48,22 @@ fn main() {
     println!("Hello, world!");
 }
 ```
-"#
-    .to_string();
-
-    let result = markdown::parser_md(md);
-    assert!(
-        result.is_ok(),
-        "Markdown with code block should parse successfully"
-    );
-}
-
-#[actix_web::test]
-async fn test_markdown_parsing_with_lists() {
-    let md = r#"
+"#,
+    Document {
+        blocks: vec![Block::Heading(Heading {
+            kind: Atx(1),
+            content: [Text("Code Example".to_string())].to_vec()
+        }), Block::CodeBlock(CodeBlock {
+            kind: Fenced {
+                info: Some("rust".to_string())
+            },
+            literal: "fn main() {\n    println!(\"Hello, world!\");\n}".to_string()
+        })]
+    }
+    ; "Markdown with code block"
+)]
+#[test_case(
+    r#"
 # Shopping List
 
 - Item 1
@@ -63,14 +73,60 @@ async fn test_markdown_parsing_with_lists() {
 1. First
 2. Second
 3. Third
-"#
-    .to_string();
+"#,
+    Document {
+        blocks: vec![
+            Block::Heading(Heading {
+                kind: Atx(1),
+                content: [Text("Shopping List".to_string())].to_vec()
+            }),
+            Block::List(List {
+                kind: Bullet(Dash),
+                items: vec![
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph([Text("Item 1".to_string())].to_vec())]
+                    },
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph([Text("Item 2".to_string())].to_vec())]
+                    },
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph([Text("Item 3".to_string())].to_vec())]
+                    }
+                ]
+            }),
+            Block::List(List {
+                kind: Ordered(ListOrderedKindOptions { start: 1 }),
+                items: vec![
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph([Text("First".to_string())].to_vec())]
+                    },
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph([Text("Second".to_string())].to_vec())]
+                    },
+                    ListItem {
+                        task: None,
+                        blocks: vec![Block::Paragraph([Text("Third".to_string())].to_vec())]
+                    }
+                ]
+            })
+        ]
+    }
+    ; "Markdown with lists"
+)]
+#[actix_web::test]
+async fn test_markdown_parsing(md: &'static str, expected_ast: Document) {
+    let md = md.to_string();
 
     let result = markdown::parser_md(md);
-    assert!(
-        result.is_ok(),
-        "Markdown with lists should parse successfully"
-    );
+    assert!(result.is_ok(), "Basic markdown should parse successfully");
+
+    let ast = result.unwrap();
+    assert_eq!(ast, expected_ast)
 }
 
 #[actix_web::test]

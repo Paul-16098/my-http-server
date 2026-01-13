@@ -215,7 +215,8 @@ pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     diff == 0
 }
 
-// Constant-time comparison for Option<&str>
+/// Constant-time comparison for Option<&str>
+/// by ai
 pub(crate) fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),

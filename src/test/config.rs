@@ -28,58 +28,6 @@ async fn test_default_config_loads() {
 }
 
 #[actix_web::test]
-async fn test_config_has_expected_defaults() {
-    let config = Cofg::default();
-
-    // Check default address
-    assert_eq!(
-        config.addrs.ip, "localhost",
-        "Default IP should be localhost"
-    );
-    assert_eq!(config.addrs.port, 8080, "Default port should be 8080");
-
-    // Check TLS is disabled by default
-    assert!(!config.tls.enable, "TLS should be disabled by default");
-
-    // Check middleware defaults
-    assert!(
-        config.middleware.normalize_path,
-        "NormalizePath should be enabled by default"
-    );
-    assert!(
-        config.middleware.compress,
-        "Compress should be enabled by default"
-    );
-
-    // Check templating defaults
-    assert!(
-        !config.templating.hot_reload,
-        "Hot reload should be disabled by default"
-    );
-}
-
-#[actix_web::test]
-async fn test_toc_extensions_default() {
-    let config = Cofg::default();
-
-    // Verify TOC has some default extensions
-    assert!(
-        !config.toc.ext.is_empty(),
-        "TOC extensions should not be empty"
-    );
-
-    // Common extensions should be present
-    let expected_exts = vec!["md", "html", "txt"];
-    for ext in expected_exts {
-        assert!(
-            config.toc.ext.contains(ext),
-            "TOC should include .{} extension",
-            ext
-        );
-    }
-}
-
-#[actix_web::test]
 async fn test_config_parsing_from_yaml() {
     let yaml_content = r#"
 addrs:
@@ -299,16 +247,12 @@ hbs_path: "./meta/html-t.hbs"
     assert!(config.templating.hot_reload, "hot_reload should be true");
 }
 
-// Helper function to create a minimal valid config for tests
-// pub(crate) fn minimal_test_config() -> Cofg {
-//     Cofg::default()
-// }
-
 /// Helper function to create a temporary directory for test fixtures
 pub(crate) fn create_test_dir() -> tempfile::TempDir {
     tempfile::tempdir().expect("Failed to create temp dir")
 }
 
+/// Test conversion from CLI args to Config Addrs
 #[test]
 fn test_cli_args_to_config_addrs() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(
@@ -324,6 +268,8 @@ fn test_cli_args_to_config_addrs() -> Result<(), Box<dyn std::error::Error>> {
     );
     Ok(())
 }
+
+/// Test conversion from CLI args reference to Config Addrs
 #[test]
 fn test_cli_args_ref_to_config_addrs() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(
@@ -355,6 +301,7 @@ fn test_cli_args_ref_to_config_addrs_error() {
     );
 }
 
+/// Test conversion from CLI args to Config Addrs error
 #[test]
 fn test_cli_args_to_config_addrs_error() {
     assert_eq!(

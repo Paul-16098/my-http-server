@@ -56,9 +56,19 @@ impl actix_web::ResponseError for AppError {
         match self {
             AppError::Io(e) => match e.kind() {
                 std::io::ErrorKind::NotFound => StatusCode::NOT_FOUND,
-                std::io::ErrorKind::PermissionDenied => StatusCode::FORBIDDEN,
-                std::io::ErrorKind::InvalidInput => StatusCode::BAD_REQUEST,
-                _ => StatusCode::INTERNAL_SERVER_ERROR,
+                // the server is not Permission to read a file
+                std::io::ErrorKind::PermissionDenied => {
+                    warn!("server Permission denied: {}", e);
+                    StatusCode::INTERNAL_SERVER_ERROR
+                }
+                std::io::ErrorKind::InvalidInput => {
+                    warn!("Invalid input error: {}", e);
+                    StatusCode::BAD_REQUEST
+                }
+                _ => {
+                    warn!("Unhandled IO error kind: {}", e);
+                    StatusCode::INTERNAL_SERVER_ERROR
+                }
             },
             AppError::GlobPatternError(_)
             | AppError::GlobWalkError(_)

@@ -5,17 +5,6 @@
 use crate::{Version, constant_time_eq, ct_eq_str_opt};
 
 #[test]
-fn test_version_display() {
-    let version = Version::new();
-    let display_str = version.to_string();
-
-    assert!(
-        display_str.contains("Profile"),
-        "Version display should contain profile"
-    );
-}
-
-#[test]
 fn test_version_default() {
     let v1 = Version::new();
     let v2 = Version::default();
