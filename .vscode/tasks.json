@@ -16,6 +16,14 @@
       "problemMatcher": ["$rustc"],
       "group": "test",
       "label": "rust: cargo make cov"
+    },
+    {
+      "type": "cargo",
+      "command": "make",
+      "args": ["html-cov"],
+      "problemMatcher": ["$rustc"],
+      "group": "test",
+      "label": "rust: cargo make html-cov"
     }
   ]
 }

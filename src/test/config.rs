@@ -6,44 +6,68 @@
 //! - XDG path resolution works correctly
 //! - Config precedence (built-in → file → env → CLI) works as expected
 
-use crate::cofg::config::Cofg;
+use crate::cofg::{
+    cli,
+    config::{Cofg, CofgAddrs},
+};
 
 #[actix_web::test]
 async fn test_default_config_loads() {
     let config = Cofg::default();
-    
+
     // Verify basic structure is present
-    assert!(!config.public_path.is_empty(), "public_path should not be empty");
-    assert!(!config.page_404_path.is_empty(), "page_404_path should not be empty");
+    assert!(
+        !config.public_path.is_empty(),
+        "public_path should not be empty"
+    );
+    assert!(
+        !config.page_404_path.is_empty(),
+        "page_404_path should not be empty"
+    );
     assert!(!config.hbs_path.is_empty(), "hbs_path should not be empty");
 }
 
 #[actix_web::test]
 async fn test_config_has_expected_defaults() {
     let config = Cofg::default();
-    
+
     // Check default address
-    assert_eq!(config.addrs.ip, "localhost", "Default IP should be localhost");
+    assert_eq!(
+        config.addrs.ip, "localhost",
+        "Default IP should be localhost"
+    );
     assert_eq!(config.addrs.port, 8080, "Default port should be 8080");
-    
+
     // Check TLS is disabled by default
     assert!(!config.tls.enable, "TLS should be disabled by default");
-    
+
     // Check middleware defaults
-    assert!(config.middleware.normalize_path, "NormalizePath should be enabled by default");
-    assert!(config.middleware.compress, "Compress should be enabled by default");
-    
+    assert!(
+        config.middleware.normalize_path,
+        "NormalizePath should be enabled by default"
+    );
+    assert!(
+        config.middleware.compress,
+        "Compress should be enabled by default"
+    );
+
     // Check templating defaults
-    assert!(!config.templating.hot_reload, "Hot reload should be disabled by default");
+    assert!(
+        !config.templating.hot_reload,
+        "Hot reload should be disabled by default"
+    );
 }
 
 #[actix_web::test]
 async fn test_toc_extensions_default() {
     let config = Cofg::default();
-    
+
     // Verify TOC has some default extensions
-    assert!(!config.toc.ext.is_empty(), "TOC extensions should not be empty");
-    
+    assert!(
+        !config.toc.ext.is_empty(),
+        "TOC extensions should not be empty"
+    );
+
     // Common extensions should be present
     let expected_exts = vec!["md", "html", "txt"];
     for ext in expected_exts {
@@ -106,7 +130,7 @@ hbs_path: "./meta/html-t.hbs"
 "#;
 
     let config = Cofg::new_from_str(yaml_content).expect("Should parse test YAML");
-    
+
     assert_eq!(config.addrs.ip, "0.0.0.0");
     assert_eq!(config.addrs.port, 3000);
     assert_eq!(config.tls.cert, "./cert.pem");
@@ -118,13 +142,22 @@ hbs_path: "./meta/html-t.hbs"
 async fn test_xdg_paths_available() {
     // This test checks that XDG path resolution doesn't panic
     let xdg_paths = Cofg::get_xdg_paths();
-    
+
     // On most systems, XDG paths should be available
     // But we don't assert it exists since it might not be available in all environments
     if let Some(paths) = xdg_paths {
-        assert!(!paths.cofg.as_os_str().is_empty(), "Config path should not be empty");
-        assert!(!paths.page_404.as_os_str().is_empty(), "404 page path should not be empty");
-        assert!(!paths.template_hbs.as_os_str().is_empty(), "Template path should not be empty");
+        assert!(
+            !paths.cofg.as_os_str().is_empty(),
+            "Config path should not be empty"
+        );
+        assert!(
+            !paths.page_404.as_os_str().is_empty(),
+            "404 page path should not be empty"
+        );
+        assert!(
+            !paths.template_hbs.as_os_str().is_empty(),
+            "Template path should not be empty"
+        );
     }
 }
 
@@ -132,7 +165,7 @@ async fn test_xdg_paths_available() {
 async fn test_config_clone() {
     let config1 = Cofg::default();
     let config2 = config1.clone();
-    
+
     // Verify cloning works and creates equal configs
     assert_eq!(config1, config2, "Cloned config should equal original");
     assert_eq!(config1.addrs.ip, config2.addrs.ip);
@@ -186,7 +219,7 @@ hbs_path: "./meta/html-t.hbs"
 "#;
 
     let config = Cofg::new_from_str(yaml_content).expect("Should parse YAML with empty extensions");
-    
+
     assert!(config.toc.ext.is_empty(), "TOC extensions should be empty");
     assert!(config.toc.ig.is_empty(), "TOC ignore list should be empty");
 }
@@ -239,24 +272,100 @@ hbs_path: "./meta/html-t.hbs"
 "#;
 
     let config = Cofg::new_from_str(yaml_content).expect("Should parse YAML");
-    
-    assert!(!config.middleware.normalize_path, "normalize_path should be false");
+
+    assert!(
+        !config.middleware.normalize_path,
+        "normalize_path should be false"
+    );
     assert!(!config.middleware.compress, "compress should be false");
-    assert!(!config.middleware.logger.enabling, "logger should be disabled");
-    assert!(config.middleware.http_base_authentication.enable, "auth should be enabled");
-    assert!(config.middleware.ip_filter.enable, "ip_filter should be enabled");
-    assert!(config.middleware.rate_limiting.enable, "rate_limiting should be enabled");
+    assert!(
+        !config.middleware.logger.enabling,
+        "logger should be disabled"
+    );
+    assert!(
+        config.middleware.http_base_authentication.enable,
+        "auth should be enabled"
+    );
+    assert!(
+        config.middleware.ip_filter.enable,
+        "ip_filter should be enabled"
+    );
+    assert!(
+        config.middleware.rate_limiting.enable,
+        "rate_limiting should be enabled"
+    );
     assert_eq!(config.middleware.rate_limiting.seconds_per_request, 2);
     assert_eq!(config.middleware.rate_limiting.burst_size, 5);
     assert!(config.templating.hot_reload, "hot_reload should be true");
 }
 
-/// Helper function to create a minimal valid config for tests
-pub(crate) fn minimal_test_config() -> Cofg {
-    Cofg::default()
-}
+// Helper function to create a minimal valid config for tests
+// pub(crate) fn minimal_test_config() -> Cofg {
+//     Cofg::default()
+// }
 
 /// Helper function to create a temporary directory for test fixtures
 pub(crate) fn create_test_dir() -> tempfile::TempDir {
     tempfile::tempdir().expect("Failed to create temp dir")
+}
+
+#[test]
+fn test_cli_args_to_config_addrs() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(
+        CofgAddrs::try_from(cli::Args {
+            ip: Some("127.0.0.1".to_string()),
+            port: Some(1634),
+            ..Default::default()
+        })?,
+        CofgAddrs {
+            ip: "127.0.0.1".to_string(),
+            port: 1634
+        }
+    );
+    Ok(())
+}
+#[test]
+fn test_cli_args_ref_to_config_addrs() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(
+        CofgAddrs::try_from(&cli::Args {
+            ip: Some("127.0.0.1".to_string()),
+            port: Some(1634),
+            ..Default::default()
+        })?,
+        CofgAddrs {
+            ip: "127.0.0.1".to_string(),
+            port: 1634
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn test_cli_args_ref_to_config_addrs_error() {
+    assert_eq!(
+        CofgAddrs::try_from(&cli::Args {
+            ip: Some("127.0.0.1".to_string()),
+            port: None,
+            ..Default::default()
+        })
+        .err()
+        .unwrap()
+        .to_string(),
+        crate::error::AppError::OtherError("ip or port is none".to_string()).to_string()
+    );
+}
+
+#[test]
+fn test_cli_args_to_config_addrs_error() {
+    assert_eq!(
+        CofgAddrs::try_from(cli::Args {
+            ip: Some("127.0.0.1".to_string()),
+            port: None,
+            ..Default::default()
+        })
+        .err()
+        .unwrap()
+        .to_string(),
+        crate::error::AppError::OtherError("ip or port is none".to_string()).to_string()
+    );
 }
