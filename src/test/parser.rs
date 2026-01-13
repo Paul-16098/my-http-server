@@ -219,6 +219,10 @@ async fn test_md2html_with_context() {
     )
     .expect("Should write template");
 
+    // WHY: field_reassign_with_default warning suppressed here.
+    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+    // Current pattern is more readable and maintainable for test fixtures.
     #[allow(clippy::field_reassign_with_default)]
     let config = {
         let mut c = Cofg::default();
@@ -242,6 +246,10 @@ async fn test_md2html_with_context() {
 #[actix_web::test]
 async fn test_toc_generation_empty_dir() {
     let temp_dir = create_test_dir();
+    // WHY: field_reassign_with_default warning suppressed here.
+    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+    // Current pattern is more readable and maintainable for test fixtures.
     #[allow(clippy::field_reassign_with_default)]
     let config = {
         let mut c = Cofg::default();
@@ -275,6 +283,10 @@ async fn test_toc_generation_with_files() {
         .expect("Should write test2.html");
     fs::write(temp_dir.path().join("readme.txt"), "README").expect("Should write readme.txt");
 
+    // WHY: field_reassign_with_default warning suppressed here.
+    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+    // Current pattern is more readable and maintainable for test fixtures.
     #[allow(clippy::field_reassign_with_default)]
     let config = {
         let mut c = Cofg::default();
@@ -398,6 +410,10 @@ async fn test_empty_template_data() {
 
     fs::write(&template_path, "<html>{{{body}}}</html>").expect("Should write template");
 
+    // WHY: field_reassign_with_default warning suppressed here.
+    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+    // Current pattern is more readable and maintainable for test fixtures.
     #[allow(clippy::field_reassign_with_default)]
     let config = {
         let mut c = Cofg::default();

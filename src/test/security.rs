@@ -16,15 +16,30 @@ use std::sync::Once;
 static INIT: Once = Once::new();
 
 /// Initialize global config for security tests
-/// Uses Once to ensure initialization happens only once across all tests.
+///
+/// Uses `Once` to ensure thread-safe initialization that runs exactly once per process lifetime.
+/// This prevents race conditions when tests run in parallel and avoids redundant initialization.
+///
+/// WHY: Tests trigger global config initialization which can cause:
+/// - Network calls to GitHub API (with github_emojis feature)
+/// - File I/O for XDG config directories
+/// - Race conditions if multiple tests initialize simultaneously
+///
+/// NOTE: `Once::call_once` guarantees the closure runs only once even across multiple test runs
+/// in the same process. This is intentional - tests are designed to share this global state.
+/// For test isolation, run tests in separate processes or use `--test-threads=1`.
 fn init_test_config() {
     INIT.call_once(|| {
         use clap::Parser;
 
         let args = Args::try_parse_from(["test"].as_ref()).unwrap_or_else(|_| Args::parse());
-        let _ = Cofg::init_global(&args, true);
+        let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
 
-        // Create a minimal emojis.json to prevent GitHub API calls
+        // Create a minimal emojis.json stub to prevent GitHub API calls during testing
+        // WHY: The github_emojis feature would otherwise fetch emoji data from GitHub API,
+        // causing tests to hang or fail in CI environments without network access.
+        // This file is intentionally left after tests (not cleaned up) as it's small and
+        // can be reused across test runs. Add to .gitignore if needed.
         #[cfg(feature = "github_emojis")]
         {
             let emoji_path = std::path::Path::new("./emojis.json");
@@ -303,10 +318,11 @@ async fn test_config_file_access() {
         let req = test::TestRequest::get().uri(path).to_request();
         let resp = test::call_service(&app, req).await;
 
-        // Config files should either not be in public_path or return 404
+        // Config files MUST NOT be accessible - should return 404 (not in public_path) or 403 (explicitly denied)
+        // Allowing 200 OK would be a security vulnerability
         assert!(
-            resp.status() == StatusCode::NOT_FOUND || resp.status() == StatusCode::OK,
-            "Config file {} response should be 404 or 200 (if in public), got {}",
+            resp.status() == StatusCode::NOT_FOUND || resp.status() == StatusCode::FORBIDDEN,
+            "Sensitive config file {} MUST be inaccessible (404/403 only), got {}",
             path,
             resp.status()
         );
@@ -314,17 +330,19 @@ async fn test_config_file_access() {
 }
 
 #[actix_web::test]
-async fn test_directory_listing_disabled() {
+async fn test_directory_request_handling() {
     init_test_config();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
-    // Request a directory path (should not list contents)
+    // Request a directory path
+    // WHY: Verifies server handles directory requests without crashing
+    // NOTE: Test name reflects actual validation (request handling), not directory listing prevention
     let req = test::TestRequest::get().uri("/docs/").to_request();
     let resp = test::call_service(&app, req).await;
 
     // Should either return 404 or serve index file if present
-    // Should NOT return a directory listing
+    // Server's directory listing behavior is controlled elsewhere (not validated by this test)
     assert!(
         resp.status() == StatusCode::NOT_FOUND || resp.status() == StatusCode::OK,
         "Directory request should return 404 or index, got {}",
@@ -354,25 +372,30 @@ async fn test_constant_time_comparison_properties() {
 }
 
 #[actix_web::test]
-async fn test_case_sensitivity() {
+async fn test_path_handling() {
     init_test_config();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
-    // Test that paths are case-sensitive (Unix-like behavior)
+    // Test that paths are handled correctly regardless of case
+    // Note: Case sensitivity depends on the underlying filesystem
+    // (case-sensitive on Unix/Linux, case-insensitive on Windows)
     let req1 = test::TestRequest::get().uri("/Test.txt").to_request();
     let resp1 = test::call_service(&app, req1).await;
 
     let req2 = test::TestRequest::get().uri("/test.txt").to_request();
     let resp2 = test::call_service(&app, req2).await;
 
-    // Both should be handled (whether they exist or not)
+    // Both requests should be handled without crashing
+    // (whether they exist or not depends on filesystem)
     assert!(
         resp1.status() == StatusCode::OK || resp1.status() == StatusCode::NOT_FOUND,
-        "Uppercase path should be handled"
+        "Path '/Test.txt' should be handled gracefully (got {})",
+        resp1.status()
     );
     assert!(
         resp2.status() == StatusCode::OK || resp2.status() == StatusCode::NOT_FOUND,
-        "Lowercase path should be handled"
+        "Path '/test.txt' should be handled gracefully (got {})",
+        resp2.status()
     );
 }

@@ -222,12 +222,13 @@ async fn test_nested_path() {
 }
 
 #[actix_web::test]
-async fn test_concurrent_requests() {
+async fn test_sequential_requests() {
     init_test_config();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
-    // Test sequential requests (simpler than concurrent for this test)
+    // Test that server handles multiple sequential requests correctly
+    // WHY: Validates server stability and state management across multiple requests
     for i in 0..10 {
         let req = test::TestRequest::get()
             .uri(&format!("/test{}.txt", i))
@@ -236,8 +237,9 @@ async fn test_concurrent_requests() {
 
         assert!(
             resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_FOUND,
-            "Request {} should complete",
-            i
+            "Sequential request {} should complete successfully (server remains stable under sequential load), got {}",
+            i,
+            resp.status()
         );
     }
 }
