@@ -211,7 +211,8 @@ async fn test_md2html_with_context() {
 #[actix_web::test]
 async fn test_toc_generation_empty_dir() {
     let temp_dir = create_test_dir();
-    let config = Cofg::default();
+    let mut config = Cofg::default();
+    config.public_path = temp_dir.path().to_string_lossy().to_string();
     
     // TOC generation on empty directory
     let result = markdown::get_toc(
@@ -220,7 +221,11 @@ async fn test_toc_generation_empty_dir() {
         Some("Test TOC".to_string())
     );
     
-    assert!(result.is_ok(), "TOC generation should succeed on empty dir");
+    if let Err(e) = &result {
+        eprintln!("TOC error: {:?}", e);
+    }
+    
+    assert!(result.is_ok(), "TOC generation should succeed on empty dir: {:?}", result.err());
     let toc = result.unwrap();
     assert!(toc.contains("Test TOC"), "TOC should include title");
 }
@@ -234,14 +239,20 @@ async fn test_toc_generation_with_files() {
     fs::write(temp_dir.path().join("test2.html"), "<h1>Test 2</h1>").expect("Should write test2.html");
     fs::write(temp_dir.path().join("readme.txt"), "README").expect("Should write readme.txt");
     
-    let config = Cofg::default();
+    let mut config = Cofg::default();
+    config.public_path = temp_dir.path().to_string_lossy().to_string();
+    
     let result = markdown::get_toc(
         temp_dir.path(),
         &config,
         Some("Files".to_string())
     );
     
-    assert!(result.is_ok(), "TOC generation should succeed with files");
+    if let Err(e) = &result {
+        eprintln!("TOC error: {:?}", e);
+    }
+    
+    assert!(result.is_ok(), "TOC generation should succeed with files: {:?}", result.err());
     let toc = result.unwrap();
     
     // Check that files with recognized extensions are included
