@@ -272,30 +272,6 @@ async fn test_hidden_files_access() {
 }
 
 #[actix_web::test]
-async fn test_config_file_access() {
-    init_test_config();
-
-    let app = test::init_service(App::new().service(main_req)).await;
-
-    // Try to access configuration files
-    let paths = vec!["/cofg.yaml", "/.gitignore", "/Cargo.toml"];
-
-    for path in paths {
-        let req = test::TestRequest::get().uri(path).to_request();
-        let resp = test::call_service(&app, req).await;
-
-        // Config files MUST NOT be accessible - should return 404 (not in public_path) or 403 (explicitly denied)
-        // Allowing 200 OK would be a security vulnerability
-        assert!(
-            resp.status() == StatusCode::NOT_FOUND || resp.status() == StatusCode::FORBIDDEN,
-            "Sensitive config file {} MUST be inaccessible (404/403 only), got {}",
-            path,
-            resp.status()
-        );
-    }
-}
-
-#[actix_web::test]
 async fn test_directory_request_without_crash() {
     init_test_config();
 

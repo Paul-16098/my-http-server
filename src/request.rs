@@ -234,7 +234,11 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         .iter()
         .any(|f| req_path.ends_with(f))
     {
-        error!("!!! Access to restricted file: {}", req_path.display());
+        error!(
+            "!!! Access to restricted file: {} by {:?}",
+            req_path.display(),
+            req
+        );
     }
     let req_path = &(match req_path.canonicalize() {
         Ok(p) => p,
