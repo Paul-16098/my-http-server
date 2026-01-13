@@ -42,7 +42,6 @@
         "llvm-cov",
         "report",
         "--html",
-        "--open",
     ]
 
 [tasks.test]
