@@ -120,7 +120,10 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
     };
 
     if !emoji_path.exists() {
-        info!("emoji json file not found at {}, fetching from github api...", emoji_path.display());
+        info!(
+            "emoji json file not found at {}, fetching from github api...",
+            emoji_path.display()
+        );
         let mut resp = ureq::get("https://api.github.com/emojis")
             .header("User-Agent", "Paul-16098/my-http-server");
 
@@ -166,10 +169,17 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
         std::fs::write(&emoji_path, json)?;
         info!("Saved emoji cache to {}", emoji_path.display());
     } else {
-        info!("emoji json file found at {}, skipping fetch.", emoji_path.display());
+        info!(
+            "emoji json file found at {}, skipping fetch.",
+            emoji_path.display()
+        );
     }
     let emojis_json = std::fs::read_to_string(&emoji_path).map_err(|e| {
-        error!("Failed to read emojis.json from {}: {}", emoji_path.display(), e);
+        error!(
+            "Failed to read emojis.json from {}: {}",
+            emoji_path.display(),
+            e
+        );
         e
     })?;
     let emojis: parser::Emojis = serde_json::from_str(&emojis_json).map_err(|e| {
@@ -205,7 +215,19 @@ pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     diff == 0
 }
 
-// Constant-time comparison for Option<&str>
+/// Constant-time comparison for Option<&str>.
+///
+/// WHY: Wrap [`constant_time_eq`] for optional UTF-8 strings so that callers can
+/// compare potentially-secret values (e.g. API keys, tokens) without introducing
+/// obvious timing differences when one side is missing.
+///
+/// Behavior:
+/// - `Some(a)` vs `Some(b)`: compared in constant time using their `.as_bytes()`.
+/// - `None` vs `None`: considered equal.
+/// - Any `Some` vs `None` (or vice versa): considered not equal.
+///
+/// Security: Prevents timing attacks by ensuring comparison time doesn't leak
+/// information about the length or content of the strings being compared.
 pub(crate) fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
     match (a, b) {
         (Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
@@ -459,7 +481,7 @@ async fn main() -> AppResult<()> {
     }
 
     // Initialize global config with full layered precedence
-    let mut s = Cofg::init_global(&cli_args)?;
+    let mut s = Cofg::init_global(&cli_args, false)?;
 
     // Canonicalize public_path for consistent path resolution
     s.public_path = Path::new(&s.public_path)

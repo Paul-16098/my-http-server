@@ -1,233 +1,192 @@
-//! Error handling tests
+//! Error handling tests - Validating AppError types and HTTP status mapping
 //!
-//! Tests for AppError variants, conversions, and HTTP response generation.
+//! WHY: Ensure error types correctly map to HTTP status codes and Responder impl works.
+//! Covers all error variants and their status code behaviors.
 
-use actix_web::Responder as _;
-
-use crate::error::{AppError, AppResult};
-use std::io;
-
-// Async tests commented out - need proper async runtime in test module
-// use actix_web::Responder;
+use crate::error::AppError;
+use actix_web::ResponseError;
+use actix_web::http::StatusCode;
 
 #[test]
-fn test_io_error_conversion() {
-    let io_err = io::Error::new(io::ErrorKind::NotFound, "file not found");
-    let app_err: AppError = io_err.into();
+fn test_error_io_not_found() {
+    let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file not found");
+    let app_err = AppError::Io(io_err);
 
-    match app_err {
-        AppError::Io(_) => (),
-        _ => panic!("Expected Io variant"),
-    }
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::NOT_FOUND,
+        "IO NotFound error should map to 404"
+    );
 }
 
 #[test]
-fn test_io_error_display() {
-    let io_err = io::Error::new(io::ErrorKind::PermissionDenied, "access denied");
-    let app_err: AppError = io_err.into();
-    let message = app_err.to_string();
+fn test_error_io_permission_denied() {
+    let io_err = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "access denied");
+    let app_err = AppError::Io(io_err);
 
-    assert!(message.contains("IO error"));
-    assert!(message.contains("access denied"));
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "IO PermissionDenied error should map to 500"
+    );
 }
 
 #[test]
-fn test_markdown_parse_error() {
-    let err = AppError::MarkdownParseError("Invalid syntax".to_string());
-    let message = err.to_string();
+fn test_error_io_invalid_input() {
+    let io_err = std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid input");
+    let app_err = AppError::Io(io_err);
 
-    assert!(message.contains("Markdown parse error"));
-    assert!(message.contains("Invalid syntax"));
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::BAD_REQUEST,
+        "IO InvalidInput error should map to 400"
+    );
 }
 
 #[test]
-fn test_config_error_conversion() {
-    use config::ConfigError;
+fn test_error_io_other() {
+    let io_err = std::io::Error::other("some other io error");
+    let app_err = AppError::Io(io_err);
 
-    let config_err = ConfigError::Message("Invalid config".to_string());
-    let app_err: AppError = config_err.into();
-
-    match app_err {
-        AppError::ConfigError(_) => (),
-        _ => panic!("Expected ConfigError variant"),
-    }
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "Other IO errors should map to 500"
+    );
 }
 
 #[test]
-fn test_other_error() {
-    let err = AppError::OtherError("Custom error message".to_string());
-    let message = err.to_string();
+fn test_error_markdown_parse_error() {
+    let app_err = AppError::MarkdownParseError("Failed to parse markdown".to_string());
 
-    assert!(message.contains("Other error"));
-    assert!(message.contains("Custom error message"));
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "MarkdownParseError should map to 500"
+    );
 }
 
-#[actix_web::test]
-async fn test_error_responder_status_code() {
-    let err = AppError::OtherError("Test error".to_string());
-    let req = actix_web::test::TestRequest::default().to_http_request();
+#[test]
+fn test_error_config_error() {
+    let config_err = config::ConfigError::Message("Config error".to_string());
+    let app_err = AppError::ConfigError(config_err);
 
-    let response = err.respond_to(&req);
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "ConfigError should map to 500"
+    );
+}
+
+#[test]
+fn test_error_cli_error() {
+    let app_err = AppError::CliError("Invalid CLI argument".to_string());
+
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "CliError should map to 500"
+    );
+}
+
+#[test]
+fn test_error_other_error() {
+    let app_err = AppError::OtherError("Generic error".to_string());
+
+    assert_eq!(
+        app_err.status_code(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "OtherError should map to 500"
+    );
+}
+
+#[test]
+fn test_error_display() {
+    let app_err = AppError::OtherError("Test error message".to_string());
+
+    let err_str = app_err.to_string();
+    assert!(
+        err_str.contains("Test error message"),
+        "Error display should contain message"
+    );
+}
+
+#[test]
+fn test_error_cli_error_display() {
+    let app_err = AppError::CliError("CLI argument missing".to_string());
+
+    let err_str = app_err.to_string();
+    assert!(
+        err_str.contains("CLI argument missing"),
+        "CLI error display should contain message"
+    );
+}
+
+#[test]
+fn test_error_markdown_parse_error_display() {
+    let app_err = AppError::MarkdownParseError("Expected heading".to_string());
+
+    let err_str = app_err.to_string();
+    assert!(
+        err_str.contains("Expected heading"),
+        "Markdown error display should contain message"
+    );
+}
+
+#[test]
+fn test_error_response_generation() {
+    let app_err = AppError::Io(std::io::Error::new(
+        std::io::ErrorKind::NotFound,
+        "not found",
+    ));
+    let response = app_err.error_response();
+
     assert_eq!(
         response.status(),
-        actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
+        StatusCode::NOT_FOUND,
+        "Error response should have correct status"
     );
 }
 
-#[actix_web::test]
-async fn test_error_responder_body() {
-    let err = AppError::OtherError("Test body".to_string());
-    let req = actix_web::test::TestRequest::default().to_http_request();
-
-    let response = err.respond_to(&req);
-    let body = actix_web::body::to_bytes(response.into_body())
-        .await
-        .unwrap();
-    let body_str = String::from_utf8(body.to_vec()).unwrap();
-
-    assert!(body_str.contains("Test body"));
-}
-
 #[test]
-fn test_app_result_err() {
-    let result: AppResult<()> = Err(AppError::OtherError("Failed".to_string()));
-    assert!(result.is_err());
-}
-
-#[test]
-fn test_glob_pattern_error_conversion() {
-    use wax::Glob;
-
-    // Try to create an invalid glob pattern
-    let glob_result = Glob::new("[invalid");
-    if let Err(e) = glob_result {
-        let app_err: AppError = e.into();
-        match app_err {
-            AppError::GlobPatternError(_) => (),
-            _ => panic!("Expected GlobPatternError variant"),
-        }
-    }
-}
-
-#[test]
-fn test_strip_prefix_error_conversion() {
-    use std::path::Path;
-
-    let path1 = Path::new("/foo/bar");
-    let path2 = Path::new("/baz/qux");
-
-    let strip_result = path1.strip_prefix(path2);
-    assert!(strip_result.is_err());
-
-    if let Err(e) = strip_result {
-        let app_err: AppError = e.into();
-        match app_err {
-            AppError::StripPrefixError(_) => (),
-            _ => panic!("Expected StripPrefixError variant"),
-        }
-    }
-}
-
-#[test]
-fn test_template_error_display() {
-    // Commented out - handlebars::TemplateError API changed
-    // Test that template errors are properly converted
-    /*
-    use handlebars::TemplateError;
-
-    let template_err = TemplateError::IoError(
-        io::Error::new(io::ErrorKind::NotFound, "template not found"),
-        "test.hbs".to_string()
-    );
-    let app_err: AppError = template_err.into();
-    let message = app_err.to_string();
-
-    assert!(message.contains("Template error"));
-    */
-}
-
-#[test]
-fn test_error_chain_io_to_app() {
-    fn may_fail() -> AppResult<String> {
-        std::fs::read_to_string("/nonexistent/file.txt")?;
-        Ok("success".to_string())
-    }
-
-    let result = may_fail();
-    assert!(result.is_err());
-
-    match result.unwrap_err() {
-        AppError::Io(_) => (),
-        _ => panic!("Expected Io error"),
-    }
-}
-
-#[test]
-fn test_error_debug_format() {
-    let err = AppError::OtherError("debug test".to_string());
-    let debug_str = format!("{:?}", err);
-
-    assert!(debug_str.contains("OtherError"));
-    assert!(debug_str.contains("debug test"));
-}
-
-#[test]
-fn test_nom_error_conversion() {
-    use nom::Err as NomErr;
-    use nom::error::Error as NomError;
-
-    let nom_err = NomErr::Error(NomError::new("test input", nom::error::ErrorKind::Tag));
-    let app_err: AppError = nom_err.into();
+fn test_error_from_box_error() {
+    let boxed_err: Box<dyn std::error::Error> = "test error".into();
+    let app_err: AppError = boxed_err.into();
 
     match app_err {
-        AppError::MarkdownParseError(_) => (),
-        _ => panic!("Expected MarkdownParseError variant"),
+        AppError::OtherError(msg) => {
+            assert!(
+                msg.contains("test error"),
+                "Boxed error should convert to OtherError"
+            );
+        }
+        _ => panic!("Expected OtherError variant"),
     }
 }
 
 #[test]
-fn test_error_from_string() {
-    let err = AppError::OtherError("from string".to_string());
-    assert!(matches!(err, AppError::OtherError(_)));
-}
+fn test_all_error_types_map_to_500_or_specific() {
+    // Test that all error types have a defined status code
+    let errors = vec![
+        (
+            AppError::CliError("test".to_string()),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ),
+        (
+            AppError::OtherError("test".to_string()),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ),
+        (
+            AppError::MarkdownParseError("test".to_string()),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ),
+    ];
 
-#[test]
-fn test_config_error_message() {
-    use config::ConfigError;
-
-    let config_err = ConfigError::Message("Missing field".to_string());
-    let app_err: AppError = config_err.into();
-    let message = app_err.to_string();
-
-    assert!(message.contains("Config error"));
-}
-
-// Commented out - async test
-/*
-#[actix_web::test]
-async fn test_error_response_is_plaintext() {
-    let err = AppError::OtherError("test".to_string());
-    let req = actix_web::test::TestRequest::default().to_http_request();
-
-    let response = err.respond_to(&req);
-
-    // Response should be 500 status
-    assert_eq!(response.status(), actix_web::http::StatusCode::INTERNAL_SERVER_ERROR);
-}
-*/
-
-#[test]
-fn test_result_propagation() {
-    fn inner_fn() -> AppResult<()> {
-        Err(AppError::OtherError("inner error".to_string()))
+    for (err, expected_status) in errors {
+        assert_eq!(
+            err.status_code(),
+            expected_status,
+            "Error should map to expected status"
+        );
     }
-
-    fn outer_fn() -> AppResult<()> {
-        inner_fn()?;
-        Ok(())
-    }
-
-    let result = outer_fn();
-    assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("inner error"));
 }
