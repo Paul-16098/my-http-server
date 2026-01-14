@@ -1,5 +1,6 @@
 name: Generate changelog
 on:
+  push:
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -26,3 +27,10 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: git cliff -o -v
+
+      - run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git add *
+          git commit -m "chore: update changelog"
+          git push origin HEAD:main

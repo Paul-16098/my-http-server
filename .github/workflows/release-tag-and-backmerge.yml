@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }} # 使用 PAT 以触发其他 workflows
 
       - name: TOML Reader
         id: read_toml
@@ -29,6 +30,7 @@ jobs:
       - name: Create and push tag
         env:
           VERSION: ${{ steps.read_toml.outputs.value }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }} # 使用 PAT 推送 tag
         shell: bash
         run: |
           git config user.name "${GITHUB_ACTOR}"
@@ -36,63 +38,14 @@ jobs:
           tag="v${VERSION}"
           echo "Creating tag $tag"
           git tag -a "$tag" -m "Release $VERSION" -f
-          git push --force origin "$tag"
+          # 使用 PAT 推送，这样会触发 release.yml
+          git push --force "https://${GITHUB_ACTOR}:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$tag"
 
       - name: Back-merge main → dev via git merge
         id: backmerge
         shell: bash
         run: |
-          set -e
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          # Ensure we have up-to-date refs
-          git fetch origin dev main
-          # Create/update local dev branch tracking origin/dev
-          git checkout -B dev origin/dev
-          # Try merging origin/main into dev; on conflict, abort and expose output without failing the job
-          set +e
-          git merge --no-ff --no-edit origin/main
-          status=$?
-          if [ $status -ne 0 ]; then
-            echo "conflict=true" >> "$GITHUB_OUTPUT"
-            git merge --abort || true
-            exit 0
-          fi
-          set -e
-          # Push only if there are new commits compared to origin/dev
-          if ! git diff --quiet origin/dev..HEAD; then
-            git push origin dev
-          fi
-          echo "merged=true" >> "$GITHUB_OUTPUT"
-
-      - name: Open back-merge PR main → dev (if not exists)
-        if: steps.backmerge.outputs.merged != 'true'
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const head = 'main';
-            const base = 'dev';
-            const version = process.env.VERSION || '${{ steps.read_toml.outputs.value }}';
-            const title = `chore: back-merge v${version} into dev`;
-            const list = await github.rest.pulls.list({ owner, repo, state: 'open', head: `${owner}:${head}`, base });
-            if (list.data.length > 0) {
-              core.info('Back-merge PR already exists.');
-            } else {
-              const pr = await github.rest.pulls.create({ owner, repo, head, base, title, body: `Automated back-merge after releasing v${version} to main.` });
-              core.info(`Created PR #${pr.data.number}`);
-            }
-
-      - name: Close release → dev PR (if exists)
-        if: steps.backmerge.outputs.merged != 'true'
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const releaseHead = context.payload.pull_request.head.ref; // e.g., release-3.0.3
-            const prs = await github.rest.pulls.list({ owner, repo, state: 'open', head: `${owner}:${releaseHead}`, base: 'dev' });
-            for (const pr of prs.data) {
-              await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: 'Closing in favor of automatic main → dev back-merge after release.' });
-              await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
-              core.info(`Closed PR #${pr.number}`);
-            }
+          git checkout dev
+          git merge main --no-ff -m "chore: back-merge main → dev after release"
