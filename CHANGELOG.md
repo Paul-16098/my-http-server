@@ -70,8 +70,6 @@
 
 - Update taiki-e/install-action action to v2.66.3 (#84) by @renovate[bot] in [#84](https://github.com/Paul-16098/my-http-server/pull/84)
 
-- Update taiki-e/install-action action to v2.66.4
-
 
 ### Other
 
@@ -116,6 +114,10 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @C
 - Merge pull request #83 from Paul-16098/copilot/add-test-coverage
 
 Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098 in [#83](https://github.com/Paul-16098/my-http-server/pull/83)
+
+- Merge pull request #86 from Paul-16098/renovate/taiki-e-install-action-2.x
+
+chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate[bot] in [#86](https://github.com/Paul-16098/my-http-server/pull/86)
 
 
 ### Refactor
