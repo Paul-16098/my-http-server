@@ -70,6 +70,8 @@
 
 - Update taiki-e/install-action action to v2.66.3 (#84) by @renovate[bot] in [#84](https://github.com/Paul-16098/my-http-server/pull/84)
 
+- Update taiki-e/install-action action to v2.66.4
+
 
 ### Other
 
@@ -166,6 +168,8 @@ Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098
 - Update changelog by @Paul-16098
 
 - *changelog*: Update header formatting and bullet style for contributors by @Paul-16098
+
+- Update changelog by @Paul-16098
 
 
 ## \[4.1.1\] - 2026-01-10
