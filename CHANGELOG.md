@@ -1,4 +1,6 @@
-## [unreleased]
+# CHANGELOG
+
+## \[unreleased\]
 
 ### Features
 
@@ -52,19 +54,19 @@
 
 ### Deps
 
-- Update taiki-e/install-action action to v2.66.2 (#82) by @renovate[bot] in #82
+- Update taiki-e/install-action action to v2.66.2 (#82) by @renovate[bot] in [#82](https://github.com/Paul-16098/my-http-server/pull/82)
 
-- Update docker/metadata-action action to v5.10.0 (#78) by @renovate[bot] in #78
+- Update docker/metadata-action action to v5.10.0 (#78) by @renovate[bot] in [#78](https://github.com/Paul-16098/my-http-server/pull/78)
 
-- Update actions/cache action to v5 (#80) by @renovate[bot] in #80
+- Update actions/cache action to v5 (#80) by @renovate[bot] in [#80](https://github.com/Paul-16098/my-http-server/pull/80)
 
-- Update docker/build-push-action action to v6.18.0 (#76) by @renovate[bot] in #76
+- Update docker/build-push-action action to v6.18.0 (#76) by @renovate[bot] in [#76](https://github.com/Paul-16098/my-http-server/pull/76)
 
-- Update sigstore/cosign-installer action to v4 (#81) by @renovate[bot] in #81
+- Update sigstore/cosign-installer action to v4 (#81) by @renovate[bot] in [#81](https://github.com/Paul-16098/my-http-server/pull/81)
 
-- Update docker/login-action action to v3.6.0 (#77) by @renovate[bot] in #77
+- Update docker/login-action action to v3.6.0 (#77) by @renovate[bot] in [#77](https://github.com/Paul-16098/my-http-server/pull/77)
 
-- Update taiki-e/install-action action to v2.66.3 (#84) by @renovate[bot] in #84
+- Update taiki-e/install-action action to v2.66.3 (#84) by @renovate[bot] in [#84](https://github.com/Paul-16098/my-http-server/pull/84)
 
 
 ### Other
@@ -75,7 +77,7 @@
 
 - Merge pull request #73 from Paul-16098/dev
 
-v4.1.2 by @Paul-16098 in #73
+v4.1.2 by @Paul-16098 in [#73](https://github.com/Paul-16098/my-http-server/pull/73)
 
 - Merge branch 'main' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -109,7 +111,7 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @C
 
 - Merge pull request #83 from Paul-16098/copilot/add-test-coverage
 
-Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098 in #83
+Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098 in [#83](https://github.com/Paul-16098/my-http-server/pull/83)
 
 
 ### Refactor
@@ -155,8 +157,12 @@ Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098
 
 - *workflows*: Update push command in changelog generation workflow by @Paul-16098
 
+- Update changelog by @Paul-16098
 
-## [4.1.1] - 2026-01-10
+- *changelog*: Update changelog template for better formatting and links by @Paul-16098
+
+
+## \[4.1.1\] - 2026-01-10
 
 ### Bug Fixes
 
@@ -169,10 +175,10 @@ Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098
 
 - Merge pull request #67 from Paul-16098:dev
 
-Add GitHub Attestations and update my-http-server version by @Paul-16098 in #67
+Add GitHub Attestations and update my-http-server version by @Paul-16098 in [#67](https://github.com/Paul-16098/my-http-server/pull/67)
 
 
-## [4.1.2] - 2026-01-12
+## \[4.1.2\] - 2026-01-12
 
 ### Features
 
@@ -206,7 +212,7 @@ chore(dist): enable GitHub Attestations and cargo-auditable in dist-workspace.to
 
 ### Deps
 
-- Update taiki-e/install-action action to v2.66.1 (#72) by @renovate[bot] in #72
+- Update taiki-e/install-action action to v2.66.1 (#72) by @renovate[bot] in [#72](https://github.com/Paul-16098/my-http-server/pull/72)
 
 
 ### Other
@@ -215,7 +221,7 @@ chore(dist): enable GitHub Attestations and cargo-auditable in dist-workspace.to
 
 - Merge pull request #66 from Paul-16098/renovate/taiki-e-install-action-2.x
 
-chore(deps): update taiki-e/install-action action to v2.66.0 by @renovate[bot] in #66
+chore(deps): update taiki-e/install-action action to v2.66.0 by @renovate[bot] in [#66](https://github.com/Paul-16098/my-http-server/pull/66)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -239,7 +245,7 @@ chore(deps): update taiki-e/install-action action to v2.66.0 by @renovate[bot] i
 - *workflow*: Remove obsolete Build&release workflow file by @Paul-16098
 
 
-## [4.1.0] - 2026-01-09
+## \[4.1.0\] - 2026-01-09
 
 ### Features
 
@@ -299,39 +305,39 @@ fix(swagger): update Swagger UI dependencies to latest version by @Paul-16098
 
 ### Deps
 
-- Update rust crate actix-files to v0.6.9 (#48) by @renovate[bot] in #48
+- Update rust crate actix-files to v0.6.9 (#48) by @renovate[bot] in [#48](https://github.com/Paul-16098/my-http-server/pull/48)
 
-- Update taiki-e/install-action action to v2.62.59 (#47) by @renovate[bot] in #47
+- Update taiki-e/install-action action to v2.62.59 (#47) by @renovate[bot] in [#47](https://github.com/Paul-16098/my-http-server/pull/47)
 
 - Update rust toolchain setup action to v1.15.2 by @Paul-16098
 
-- Update rust crate rustls-pki-types to v1.13.1 (#50) by @renovate[bot] in #50
+- Update rust crate rustls-pki-types to v1.13.1 (#50) by @renovate[bot] in [#50](https://github.com/Paul-16098/my-http-server/pull/50)
 
-- Update taiki-e/install-action action to v2.62.63 (#51) by @renovate[bot] in #51
+- Update taiki-e/install-action action to v2.62.63 (#51) by @renovate[bot] in [#51](https://github.com/Paul-16098/my-http-server/pull/51)
 
-- Update rust crate log to v0.4.29 (#52) by @renovate[bot] in #52
+- Update rust crate log to v0.4.29 (#52) by @renovate[bot] in [#52](https://github.com/Paul-16098/my-http-server/pull/52)
 
-- Update rust crate markdown-ppp to v2.8.0 (#53) by @renovate[bot] in #53
+- Update rust crate markdown-ppp to v2.8.0 (#53) by @renovate[bot] in [#53](https://github.com/Paul-16098/my-http-server/pull/53)
 
-- Update taiki-e/install-action action to v2.62.66 (#54) by @renovate[bot] in #54
+- Update taiki-e/install-action action to v2.62.66 (#54) by @renovate[bot] in [#54](https://github.com/Paul-16098/my-http-server/pull/54)
 
-- Update rust crate markdown-ppp to v2.8.1 (#55) by @renovate[bot] in #55
+- Update rust crate markdown-ppp to v2.8.1 (#55) by @renovate[bot] in [#55](https://github.com/Paul-16098/my-http-server/pull/55)
 
 - Update taiki-e/install-action action to v2.63.1 by @renovate[bot]
 
 - Update rust crate rustls to v0.23.36 by @renovate[bot]
 
-- Update rust crate clap to v4.5.54 (#62) by @renovate[bot] in #62
+- Update rust crate clap to v4.5.54 (#62) by @renovate[bot] in [#62](https://github.com/Paul-16098/my-http-server/pull/62)
 
-- Update rust crate rustls-pki-types to v1.13.2 (#58) by @renovate[bot] in #58
+- Update rust crate rustls-pki-types to v1.13.2 (#58) by @renovate[bot] in [#58](https://github.com/Paul-16098/my-http-server/pull/58)
 
-- Update rust crate serde_json to v1.0.149 (#59) by @renovate[bot] in #59
+- Update rust crate serde_json to v1.0.149 (#59) by @renovate[bot] in [#59](https://github.com/Paul-16098/my-http-server/pull/59)
 
-- Update rust crate tempfile to v3.24.0 (#60) by @renovate[bot] in #60
+- Update rust crate tempfile to v3.24.0 (#60) by @renovate[bot] in [#60](https://github.com/Paul-16098/my-http-server/pull/60)
 
-- Update taiki-e/install-action action to v2.65.15 (#57) by @renovate[bot] in #57
+- Update taiki-e/install-action action to v2.65.15 (#57) by @renovate[bot] in [#57](https://github.com/Paul-16098/my-http-server/pull/57)
 
-- Update rust crate handlebars to v6.4.0 (#61) by @renovate[bot] in #61
+- Update rust crate handlebars to v6.4.0 (#61) by @renovate[bot] in [#61](https://github.com/Paul-16098/my-http-server/pull/61)
 
 
 ### Other
@@ -354,27 +360,27 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @C
 
 - Merge pull request #43 from Paul-16098/copilot/parliamentary-pig
 
-Add file operations API endpoints (info, list, exists) by @Paul-16098 in #43
+Add file operations API endpoints (info, list, exists) by @Paul-16098 in [#43](https://github.com/Paul-16098/my-http-server/pull/43)
 
 - Merge pull request #45 from Paul-16098/renovate/taiki-e-install-action-2.x
 
-chore(deps): update taiki-e/install-action action to v2.62.57 by @renovate[bot] in #45
+chore(deps): update taiki-e/install-action action to v2.62.57 by @renovate[bot] in [#45](https://github.com/Paul-16098/my-http-server/pull/45)
 
 - Merge pull request #46 from Paul-16098:refactor(github-emojis)
 
-refactor: update dependencies and improve emoji handling logic by @Paul-16098 in #46
+refactor: update dependencies and improve emoji handling logic by @Paul-16098 in [#46](https://github.com/Paul-16098/my-http-server/pull/46)
 
 - Merge pull request #49 from Paul-16098/renovate/actix-web-4.x-lockfile
 
-chore(deps): update rust crate actix-web to v4.12.1 by @renovate[bot] in #49
+chore(deps): update rust crate actix-web to v4.12.1 by @renovate[bot] in [#49](https://github.com/Paul-16098/my-http-server/pull/49)
 
 - Merge pull request #56 from Paul-16098:renovate/taiki-e-install-action-2.x
 
-chore(deps): update taiki-e/install-action action to v2.63.1 by @Paul-16098 in #56
+chore(deps): update taiki-e/install-action action to v2.63.1 by @Paul-16098 in [#56](https://github.com/Paul-16098/my-http-server/pull/56)
 
 - Merge pull request #63 from Paul-16098/renovate/rustls-0.x-lockfile
 
-chore(deps): update rust crate rustls to v0.23.36 by @Paul-16098 in #63
+chore(deps): update rust crate rustls to v0.23.36 by @Paul-16098 in [#63](https://github.com/Paul-16098/my-http-server/pull/63)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -389,11 +395,11 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com>
 ---------
 
 Co-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot in #65
+Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot in [#65](https://github.com/Paul-16098/my-http-server/pull/65)
 
 - Merge pull request #64 from Paul-16098/release-5.0.0
 
-release-5.0.0 by @Paul-16098 in #64
+release-5.0.0 by @Paul-16098 in [#64](https://github.com/Paul-16098/my-http-server/pull/64)
 
 
 ### Refactor
@@ -433,7 +439,7 @@ release-5.0.0 by @Paul-16098 in #64
 - *ci*: Update test workflow to use dynamic port and remove unnecessary comments by @Paul-16098
 
 
-## [4.0.0] - 2025-11-21
+## \[4.0.0\] - 2025-11-21
 
 ### Features
 
@@ -488,40 +494,40 @@ fix(tests): update assertion for TOC test to check for non-empty result by @Paul
 
 - Update rust crate rustls to v0.23.34 by @renovate[bot]
 
-- Update rust crate clap to v4.5.50 (#30) by @renovate[bot] in #30
+- Update rust crate clap to v4.5.50 (#30) by @renovate[bot] in [#30](https://github.com/Paul-16098/my-http-server/pull/30)
 
-- Update rust crate rustls-pki-types to v1.13.0 (#33) by @renovate[bot] in #33
+- Update rust crate rustls-pki-types to v1.13.0 (#33) by @renovate[bot] in [#33](https://github.com/Paul-16098/my-http-server/pull/33)
 
-- Update rust crate clap to v4.5.51 (#34) by @renovate[bot] in #34
+- Update rust crate clap to v4.5.51 (#34) by @renovate[bot] in [#34](https://github.com/Paul-16098/my-http-server/pull/34)
 
-- Update rust crate rustls to v0.23.35 (#35) by @renovate[bot] in #35
+- Update rust crate rustls to v0.23.35 (#35) by @renovate[bot] in [#35](https://github.com/Paul-16098/my-http-server/pull/35)
 
-- Update docker/dockerfile docker tag to v1.20 (#37) by @renovate[bot] in #37
+- Update docker/dockerfile docker tag to v1.20 (#37) by @renovate[bot] in [#37](https://github.com/Paul-16098/my-http-server/pull/37)
 
-- Update rust crate config to v0.15.19 (#36) by @renovate[bot] in #36
+- Update rust crate config to v0.15.19 (#36) by @renovate[bot] in [#36](https://github.com/Paul-16098/my-http-server/pull/36)
 
-- Update rust crate clap to v4.5.52 (#39) by @renovate[bot] in #39
+- Update rust crate clap to v4.5.52 (#39) by @renovate[bot] in [#39](https://github.com/Paul-16098/my-http-server/pull/39)
 
-- Update rust crate actix-web to v4.12.0 (#38) by @renovate[bot] in #38
+- Update rust crate actix-web to v4.12.0 (#38) by @renovate[bot] in [#38](https://github.com/Paul-16098/my-http-server/pull/38)
 
 - Update dependencies in Cargo.lock by @Paul-16098
 
-- Update actions/checkout action to v6 (#41) by @renovate[bot] in #41
+- Update actions/checkout action to v6 (#41) by @renovate[bot] in [#41](https://github.com/Paul-16098/my-http-server/pull/41)
 
-- Update rust crate clap to v4.5.53 (#40) by @renovate[bot] in #40
+- Update rust crate clap to v4.5.53 (#40) by @renovate[bot] in [#40](https://github.com/Paul-16098/my-http-server/pull/40)
 
 
 ### Other
 
 - Merge pull request #28 from Paul-16098/main
 
-chore: back-merge v3.2.0 into dev by @Paul-16098 in #28
+chore: back-merge v3.2.0 into dev by @Paul-16098 in [#28](https://github.com/Paul-16098/my-http-server/pull/28)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Merge pull request #29 from Paul-16098/renovate/actix-governor-0.x
 
-fix(deps): update rust crate actix-governor to 0.10.0 by @Paul-16098 in #29
+fix(deps): update rust crate actix-governor to 0.10.0 by @Paul-16098 in [#29](https://github.com/Paul-16098/my-http-server/pull/29)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -533,7 +539,7 @@ Co-authored-by: Copilot Autofix powered by AI <62310815+github-advanced-security
 
 - Merge pull request #32 from Paul-16098:renovate/rustls-0.x-lockfile
 
-chore(deps): update rust crate rustls to v0.23.34 by @Paul-16098 in #32
+chore(deps): update rust crate rustls to v0.23.34 by @Paul-16098 in [#32](https://github.com/Paul-16098/my-http-server/pull/32)
 
 - 👷 ci(test-with-httpyac): add for act by @Paul-16098
 
@@ -541,7 +547,7 @@ chore(deps): update rust crate rustls to v0.23.34 by @Paul-16098 in #32
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
-- V4.0.0 by @Paul-16098 in #42
+- V4.0.0 by @Paul-16098 in [#42](https://github.com/Paul-16098/my-http-server/pull/42)
 
 
 ### Refactor
@@ -585,13 +591,13 @@ chore(deps): update rust crate rustls to v0.23.34 by @Paul-16098 in #32
 - Update package version to 4.0.0 by @Paul-16098
 
 
-## [3.2.0] - 2025-10-11
+## \[3.2.0\] - 2025-10-11
 
 ### Other
 
 - Merge pull request #24 from Paul-16098/main
 
-chore: back-merge v3.1.0 into dev by @Paul-16098 in #24
+chore: back-merge v3.1.0 into dev by @Paul-16098 in [#24](https://github.com/Paul-16098/my-http-server/pull/24)
 
 - 使用 TOML 讀取器替換從 Cargo.toml 提取版本的自定義腳本 by @Paul-16098
 
@@ -605,7 +611,7 @@ chore: back-merge v3.1.0 into dev by @Paul-16098 in #24
 
 - 修改未授權錯誤訊息，統一用戶名和密碼的提示內容 by @Paul-16098
 
-- Merge pull request #25 from Paul-16098/feat/add-http-base-auth by @Paul-16098 in #25
+- Merge pull request #25 from Paul-16098/feat/add-http-base-auth by @Paul-16098 in [#25](https://github.com/Paul-16098/my-http-server/pull/25)
 
 - Initial plan by @Copilot
 
@@ -625,7 +631,7 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @C
 
 - Merge pull request #26 from Paul-16098/copilot/add-ip-filter-functionality
 
-Add IP filter functionality using actix-ip-filter by @Paul-16098 in #26
+Add IP filter functionality using actix-ip-filter by @Paul-16098 in [#26](https://github.com/Paul-16098/my-http-server/pull/26)
 
 - 新增 actix-governor 套件，更新配置以支援速率限制功能，並調整 IP 過濾器設定 by @Paul-16098
 
@@ -637,7 +643,7 @@ Add IP filter functionality using actix-ip-filter by @Paul-16098 in #26
 
 - Merge pull request #27 from Paul-16098/release-3.2.0
 
-v3.2.0 by @Paul-16098 in #27
+v3.2.0 by @Paul-16098 in [#27](https://github.com/Paul-16098/my-http-server/pull/27)
 
 
 ### Documentation
@@ -645,7 +651,7 @@ v3.2.0 by @Paul-16098 in #27
 - Consolidate and enhance documentation across multiple files by @Paul-16098
 
 
-## [3.1.0] - 2025-10-10
+## \[3.1.0\] - 2025-10-10
 
 ### Features
 
@@ -692,7 +698,7 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @C
 
 - Merge pull request #22 from Paul-16098/feature/use-handlebars
 
-feat(templating): migrate to Handlebars and align pipeline, config, tests, and docs by @Paul-16098 in #22
+feat(templating): migrate to Handlebars and align pipeline, config, tests, and docs by @Paul-16098 in [#22](https://github.com/Paul-16098/my-http-server/pull/22)
 
 - Merge branch 'dev' into copilot/add-tls-support by @Paul-16098
 
@@ -712,7 +718,7 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @C
 
 - Merge pull request #21 from Paul-16098/copilot/add-tls-support
 
-Add TLS/HTTPS support with rustls by @Paul-16098 in #21
+Add TLS/HTTPS support with rustls by @Paul-16098 in [#21](https://github.com/Paul-16098/my-http-server/pull/21)
 
 - 更新工作流程配置，為推送事件添加分支條件 by @Paul-16098
 
@@ -720,7 +726,7 @@ Add TLS/HTTPS support with rustls by @Paul-16098 in #21
 
 - Merge pull request #23 from Paul-16098:release-3.1.0
 
-v3.1.0 by @Paul-16098 in #23
+v3.1.0 by @Paul-16098 in [#23](https://github.com/Paul-16098/my-http-server/pull/23)
 
 
 ### Refactor
@@ -759,7 +765,7 @@ v3.1.0 by @Paul-16098 in #23
 - Update .dockerignore and Dockerfile for improved build context and meta inclusion by @Paul-16098
 
 
-## [3.0.3] - 2025-10-07
+## \[3.0.3\] - 2025-10-07
 
 ### Features
 
@@ -802,13 +808,13 @@ v3.1.0 by @Paul-16098 in #23
 
 - Merge pull request #14 from Paul-16098/release-3.0.2
 
-release: 3.0.2 by @Paul-16098 in #14
+release: 3.0.2 by @Paul-16098 in [#14](https://github.com/Paul-16098/my-http-server/pull/14)
 
 - Merge remote-tracking branch 'origin/main' into dev by @Paul-16098
 
 - Merge pull request #15 from Paul-16098/renovate/docker-dockerfile-1.x
 
-chore(deps): update docker/dockerfile docker tag to v1.19 by @Paul-16098 in #15
+chore(deps): update docker/dockerfile docker tag to v1.19 by @Paul-16098 in [#15](https://github.com/Paul-16098/my-http-server/pull/15)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -816,19 +822,19 @@ chore(deps): update docker/dockerfile docker tag to v1.19 by @Paul-16098 in #15
 
 - Merge pull request #16 from Paul-16098:feature/add-dir-toc
 
-feat(toc): add directory TOC + cofg refactor by @Paul-16098 in #16
+feat(toc): add directory TOC + cofg refactor by @Paul-16098 in [#16](https://github.com/Paul-16098/my-http-server/pull/16)
 
-- Merge pull request #17 from Paul-16098/release-3.0.3 by @Paul-16098 in #17
+- Merge pull request #17 from Paul-16098/release-3.0.3 by @Paul-16098 in [#17](https://github.com/Paul-16098/my-http-server/pull/17)
 
 - Merge pull request #18 from Paul-16098/release-3.0.3
 
-chore: back-merge release 3.0.3 into dev by @Paul-16098 in #18
+chore: back-merge release 3.0.3 into dev by @Paul-16098 in [#18](https://github.com/Paul-16098/my-http-server/pull/18)
 
 - Merge pull request #19 from Paul-16098/renovate/actions-checkout-5.x
 
-chore(deps): update actions/checkout action to v5 by @Paul-16098 in #19
+chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#19](https://github.com/Paul-16098/my-http-server/pull/19)
 
-- Merge pull request #20 from Paul-16098/renovate/actions-github-script-8.x by @Paul-16098 in #20
+- Merge pull request #20 from Paul-16098/renovate/actions-github-script-8.x by @Paul-16098 in [#20](https://github.com/Paul-16098/my-http-server/pull/20)
 
 
 ### Refactor
@@ -863,7 +869,7 @@ test(cli): update tests to reflect changes in Args conversion logic by @Paul-160
 - Auto-tag on main merge and open maindev back-merge PR; close releasedev PRs by @Paul-16098
 
 
-## [3.0.2] - 2025-09-29
+## \[3.0.2\] - 2025-09-29
 
 ### Features
 
@@ -905,29 +911,29 @@ feat: 新增 Dependabot 配置以自動更新依賴 by @Paul-16098
 
 - Merge pull request #7 from Paul-16098/feature/http-request-caching
 
-feat(http): add per-request HttpRequest cached helpers; integrate in main; add tests by @Paul-16098 in #7
+feat(http): add per-request HttpRequest cached helpers; integrate in main; add tests by @Paul-16098 in [#7](https://github.com/Paul-16098/my-http-server/pull/7)
 
 - Merge pull request #8 from Paul-16098/feature/docs-internal-architecture
 
-feat(docs): internal architecture & rendering flow documentation by @Paul-16098 in #8
+feat(docs): internal architecture & rendering flow documentation by @Paul-16098 in [#8](https://github.com/Paul-16098/my-http-server/pull/8)
 
 - Add renovate.json by @renovate[bot]
 
 - Merge pull request #9 from Paul-16098/renovate/configure
 
-chore: Configure Renovate by @Paul-16098 in #9
+chore: Configure Renovate by @Paul-16098 in [#9](https://github.com/Paul-16098/my-http-server/pull/9)
 
 - Merge pull request #10 from Paul-16098/renovate/docker-dockerfile-1.x
 
-chore(deps): update docker/dockerfile docker tag to v1.18 by @Paul-16098 in #10
+chore(deps): update docker/dockerfile docker tag to v1.18 by @Paul-16098 in [#10](https://github.com/Paul-16098/my-http-server/pull/10)
 
 - Merge pull request #11 from Paul-16098/renovate/rust-1.x
 
-chore(deps): update rust docker tag to v1.90.0 by @Paul-16098 in #11
+chore(deps): update rust docker tag to v1.90.0 by @Paul-16098 in [#11](https://github.com/Paul-16098/my-http-server/pull/11)
 
 - Merge pull request #13 from Paul-16098/renovate/actions-checkout-5.x
 
-chore(deps): update actions/checkout action to v5 by @Paul-16098 in #13
+chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#13](https://github.com/Paul-16098/my-http-server/pull/13)
 
 
 ### Refactor
@@ -941,7 +947,7 @@ chore(deps): update actions/checkout action to v5 by @Paul-16098 in #13
 
 
 
-* @renovate[bot] made their first contribution## [3.0.1] - 2025-09-19
+* @renovate[bot] made their first contribution## \[3.0.1\] - 2025-09-19
 
 ### Features
 
@@ -969,7 +975,7 @@ chore(deps): update actions/checkout action to v5 by @Paul-16098 in #13
 
 - Merge pull request #3 from Paul-16098/release-3.0.0
 
-release-3.0.0: version bump and dependency alignment by @Paul-16098 in #3
+release-3.0.0: version bump and dependency alignment by @Paul-16098 in [#3](https://github.com/Paul-16098/my-http-server/pull/3)
 
 - Initial plan by @Copilot
 
@@ -977,11 +983,11 @@ release-3.0.0: version bump and dependency alignment by @Paul-16098 in #3
 
 Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-- Merge pull request #6 from Paul-16098/copilot/fix-5 by @Paul-16098 in #6
+- Merge pull request #6 from Paul-16098/copilot/fix-5 by @Paul-16098 in [#6](https://github.com/Paul-16098/my-http-server/pull/6)
 
 - Merge pull request #4 from Paul-16098:feat/clap
 
-Add CLI argument parsing and enhance configuration management by @Paul-16098 in #4
+Add CLI argument parsing and enhance configuration management by @Paul-16098 in [#4](https://github.com/Paul-16098/my-http-server/pull/4)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -1009,7 +1015,7 @@ Add CLI argument parsing and enhance configuration management by @Paul-16098 in 
 
 
 
-* @Copilot made their first contribution## [3.0.0] - 2025-09-17
+* @Copilot made their first contribution## \[3.0.0\] - 2025-09-17
 
 ### Features
 
@@ -1102,7 +1108,7 @@ docs: 更新 README.md，添加 CI/CD 狀態徽章 by @Paul-16098
 
 - Merge pull request #1 from Paul-16098:feat/templating
 
-feat(templating): add templating by @Paul-16098 in #1
+feat(templating): add templating by @Paul-16098 in [#1](https://github.com/Paul-16098/my-http-server/pull/1)
 
 - *parser*: 重構 `parser::md2html` by @Paul-16098
 
@@ -1116,7 +1122,7 @@ feat(templating): add templating by @Paul-16098 in #1
 
 - Merge pull request #2 from Paul-16098:feature/docker-compose-dockerfile-improvements
 
-Improve Docker/Compose, add default templates, refactor server routing by @Paul-16098 in #2
+Improve Docker/Compose, add default templates, refactor server routing by @Paul-16098 in [#2](https://github.com/Paul-16098/my-http-server/pull/2)
 
 - *3.0.0*: Bump version and align dependencies; minor config tweak by @Paul-16098
 
