@@ -1,3 +1,5 @@
+<!-- markdownlint-disable-file MD034 MD012 MD024 -->
+
 # CHANGELOG
 
 ## \[unreleased\]
@@ -160,6 +162,10 @@ Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098
 - Update changelog by @Paul-16098
 
 - *changelog*: Update changelog template for better formatting and links by @Paul-16098
+
+- Update changelog by @Paul-16098
+
+- *changelog*: Update header formatting and bullet style for contributors by @Paul-16098
 
 
 ## \[4.1.1\] - 2026-01-10
@@ -947,7 +953,7 @@ chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#13](https:
 
 
 
-* @renovate[bot] made their first contribution## \[3.0.1\] - 2025-09-19
+- @renovate[bot] made their first contribution## \[3.0.1\] - 2025-09-19
 
 ### Features
 
@@ -1015,7 +1021,7 @@ Add CLI argument parsing and enhance configuration management by @Paul-16098 in 
 
 
 
-* @Copilot made their first contribution## \[3.0.0\] - 2025-09-17
+- @Copilot made their first contribution## \[3.0.0\] - 2025-09-17
 
 ### Features
 
@@ -1173,4 +1179,4 @@ bump: 2.0.0 by @Paul-16098
 
 
 
-* @Paul-16098 made their first contribution
+- @Paul-16098 made their first contribution
