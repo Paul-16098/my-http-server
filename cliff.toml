@@ -4,7 +4,9 @@
 [changelog]
     # A Tera template to be rendered for each release in the changelog.
     # See https://keats.github.io/tera/docs/#introduction
-    header = """# CHANGELOG
+    header = """<!-- markdownlint-disable-file MD034 MD012 MD024 -->
+
+# CHANGELOG
 
 """
     body = """
@@ -24,7 +26,7 @@
     {% endfor %}
 {% endfor %}
 {% for contributor in github.contributors | filter(attribute="is_first_time", value=true) %}
-  * @{{ contributor.username }} made their first contribution{% if contributor.pr_number %} in #{{ contributor.pr_number }}{% endif %}
+  - @{{ contributor.username }} made their first contribution{% if contributor.pr_number %} in #{{ contributor.pr_number }}{% endif %}
 {%- endfor -%}
 
 """
