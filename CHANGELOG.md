@@ -173,6 +173,10 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate[bot] i
 
 - Update changelog by @Paul-16098
 
+- Update changelog by @Paul-16098
+
+- *gitattributes*: Add merge strategy for CHANGELOG.md by @Paul-16098
+
 
 ## \[4.1.1\] - 2026-01-10
 
