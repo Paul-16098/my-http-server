@@ -191,6 +191,10 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - *changelog*: Update changelog by @Paul-16098
 
+- *changelog*: Update changelog by @Paul-16098
+
+- *Makefile*: Add --locked flag to cargo install command by @Paul-16098
+
 
 ## \[4.1.1\] - 2026-01-10
 
