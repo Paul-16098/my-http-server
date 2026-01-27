@@ -129,6 +129,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
 
 ### Refactor
 
@@ -195,17 +197,11 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - *workflow*: Add branches to trigger changelog generation by @Paul-16098
 
-- *changelog*: Update changelog by @Paul-16098
-
-- *changelog*: Update changelog by @Paul-16098
-
 - *Makefile*: Add --locked flag to cargo install command by @Paul-16098
 
-- *changelog*: Update changelog by @Paul-16098
+- *changelog*: Skip changelog updates for specific commit message by @Paul-16098
 
-- *changelog*: Update changelog by @Paul-16098
-
-- *changelog*: Update changelog by @Paul-16098
+- *changelog*: Add GITHUB_TOKEN environment variable for changelog generation by @Paul-16098
 
 
 ## \[4.1.1\] - 2026-01-10
