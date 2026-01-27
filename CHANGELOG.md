@@ -72,6 +72,8 @@
 
 - Update taiki-e/install-action action to v2.66.3 (#84) by @renovate\[bot] in [#84](https://github.com/Paul-16098/my-http-server/pull/84)
 
+- Update taiki-e/install-action action to v2.67.13 (#87) by @renovate\[bot] in [#87](https://github.com/Paul-16098/my-http-server/pull/87)
+
 
 ### Other
 
@@ -194,6 +196,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *changelog*: Update changelog by @Paul-16098
 
 - *Makefile*: Add --locked flag to cargo install command by @Paul-16098
+
+- *changelog*: Update changelog by @Paul-16098
 
 
 ## \[4.1.1\] - 2026-01-10
