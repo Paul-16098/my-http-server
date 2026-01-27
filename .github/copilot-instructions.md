@@ -41,13 +41,28 @@ HTTP Request
 ### Configuration Caching (Performance Critical)
 
 - **Pattern:** `OnceCell<RwLock<Cofg>>` + lazy initialization
+- **Initialization entry point:** `Cofg::init_global(&cli_args, no_xdg)` called once in `main()` **before** handler construction
+  - `cli_args`: Parsed CLI arguments (highest precedence)
+  - `no_xdg`: Boolean flag; if `true`, skip XDG directory creation (used in tests to avoid I/O)
 - **Behavior:**
-  - First call to `Cofg::new()` → loads from file/env/CLI, fills cell
-  - Subsequent calls → cheap clone from cached value (no IO)
-  - **Hot reload:** Only if caller uses `Cofg::get(true)` AND `templating.hot_reload=true` → forces reload
+  - First call to `Cofg::new()` → loads from file/env/CLI per precedence, fills cell
+  - Subsequent calls to `Cofg::new()` or `Cofg::get(false)` → cheap clone from cached value (no IO)
+  - **Hot reload:** `Cofg::get(true)` forces reload only if `templating.hot_reload=true`
 - **Why:** HTTP requests are hot path; avoid per-request config parsing
 
 **Location:** `src/cofg/config.rs::static COFG_ONCE_CELL`
+
+### XDG Paths & File Initialization
+
+- **Pattern:** `Cofg::get_xdg_paths()` returns `Option<XdgPaths>` with 4 canonical locations:
+  - `cofg` → Configuration file (`$XDG_CONFIG_HOME/my-http-server/cofg.yaml` or `./cofg.yaml`)
+  - `template_hbs` → HTML template (`$XDG_CONFIG_HOME/my-http-server/html-t.hbs` or `./meta/html-t.hbs`)
+  - `page_404` → 404 error page (`$XDG_CONFIG_HOME/my-http-server/404.html` or `./meta/404.html`)
+  - `emojis` → Emoji cache JSON (only if feature `github_emojis` enabled)
+- **Initialization:** `init(&config)` in `main()` creates all XDG directories & default files on first run
+- **Why:** Enables XDG-compliant config storage; backward-compatible with local `./meta/` and `./cofg.yaml`
+
+**Location:** `src/cofg/config.rs::get_xdg_paths()` and `src/main.rs::init()`
 
 ### Template Engine Caching
 
@@ -73,12 +88,20 @@ Small derived values cached to prevent repeated computation:
 
 ## Configuration System (Layered Precedence)
 
+### Initialization Sequence in `main()`
+
+1. **Parse CLI arguments** (via `clap`)
+2. **Handle `--root-dir <path>` first** (if provided, changes CWD before config load) — enables deployment in custom directories
+3. **Call `Cofg::init_global(&cli_args, false)`** — initiates config layering
+4. **Canonicalize `public_path`** — ensures consistent path resolution
+5. **Call `init(&config)`** — creates XDG dirs, initializes emoji cache if enabled
+
 ### Precedence Order (Lowest → Highest)
 
 1. **Built-in defaults** → `src/cofg/cofg.yaml` (embedded via `include_str!`)
-2. **Config file** → `./cofg.yaml` or `--config-path`
+2. **Config file** → `./cofg.yaml`, `--config-path`, or XDG location; skipped if `--no-config` flag set
 3. **Environment variables** → `MYHTTP_*` prefix (e.g., `MYHTTP_ADDRS_PORT=3000`)
-4. **CLI arguments** → Highest priority (e.g., `--hot-reload true`)
+4. **CLI arguments** → Highest priority (e.g., `--hot-reload true`, `--port 3000`)
 
 ### Key Config Sections
 
@@ -153,6 +176,15 @@ pub(crate) enum AppError {
 3. Implement or derive Display message
 4. Update `ResponseError::status_code()` if non-500 mapping needed
 
+### Security: Constant-Time Comparison Functions
+
+- **`constant_time_eq(a: &[u8], b: &[u8]) -> bool`** — Prevents timing attacks on auth secrets by comparing in constant time regardless of mismatch position
+- **`ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool`** — Wrapper for optional UTF-8 strings; handles `None` vs `Some` securely
+
+**Usage:** Always use these for comparing credentials in `http_base_authentication` middleware instead of `==`
+
+**Location:** `src/main.rs`
+
 ---
 
 ## Testing Conventions
@@ -170,6 +202,22 @@ pub(crate) enum AppError {
 
 **Guideline:** Tests live in `src/test/{module_name}.rs` matching the corresponding `src/{module_name}.rs`
 
+### Test Setup Pattern
+
+```rust
+#[tokio::test]
+async fn test_example() {
+    // Always call init_test_config() to set up global state (logger, config)
+    env_logger::builder().is_test(true).init();
+    crate::test::config::init_test_config();
+
+    // Create config with hot_reload disabled for predictable behavior
+    let mut config = Cofg::default();
+    config.templating.hot_reload = false;
+    // ... test logic
+}
+```
+
 ### Running Tests
 
 - **All:** `cargo make test` (wraps `cargo nextest run --all-features`)
@@ -177,53 +225,55 @@ pub(crate) enum AppError {
 - **HTML coverage:** `cargo make html-cov`
 - **Specific:** `cargo test --test {name}` or `cargo nextest run {filter}`
 
-### Test Setup Pattern
+### Key Test Guidelines
 
-```rust
-#[tokio::test]
-async fn test_example() {
-    // Use config fixtures (with hot_reload = false for predictability)
-    let mut config = Cofg::default();
-    config.templating.hot_reload = false;
-    // ... test logic
-}
-```
+- Always pass `no_xdg=true` to `Cofg::init_global()` in tests to skip XDG filesystem operations
+- Set `templating.hot_reload = false` to avoid cache rebuild flakiness
+- Use `init_test_config()` helper to ensure consistent test environment across test suites
 
 ---
 
 ## Key Patterns & Conventions
 
-### 1. Result Type Alias
+### 1. CLI Arguments & Deployment
+
+- **`--root-dir <path>`**: Changes working directory before config load; enables deployment in subdirectories without path munging. Always processed first in `main()`.
+- **`--no-config`**: Skips config file entirely; use only defaults + env vars + CLI args (useful for containerized/immutable deploys).
+- **`--config-path <path>`**: Override config file location (default: `./cofg.yaml` or XDG location).
+- **`--hot-reload <bool>`**: Force enable/disable hot reload (overrides config).
+- **Example:** `my-http-server --root-dir /app/srv --no-config --ip 0.0.0.0 --port 8080` for containerized deployment
+
+### 2. Result Type Alias
 
 - Use `type AppResult<T> = Result<T, AppError>` throughout
 - Enables `?` operator without wrapping
 
-### 2. Hot Reload Guard
+### 3. Hot Reload Guard
 
 - Always set `hot_reload = false` in tests to avoid flaky behavior from cache rebuilds
 - In production, `hot_reload = true` is opt-in via config or CLI
 
-### 3. Path Resolution
+### 4. Path Resolution
 
 - Use `cached_public_req_path()` in handlers to safely decode URI and resolve disk path
 - Always validate against `public_root` to prevent path traversal
 
-### 4. Markdown → HTML Pipeline
+### 5. Markdown → HTML Pipeline
 
 - Always call `md2html()` function (don't inline engine/context logic)
 - Pass template variables as `Vec<String>` with `name:value` syntax
 - Template context is immutable per request (no shared mutation)
 
-### 5. Configuration & Initialization
+### 6. Configuration & Initialization
 
 - Call `Cofg::new()` to get cached config (or `Cofg::get(true)` to force reload)
 - Call `config.resolve_hbs_path()` to get XDG-aware template path
 - Call `config.resolve_404_path()` for 404 page
 
-### 6. Middleware Chain
+### 7. Middleware Chain
 
 - Declared in `main.rs::build_server()`
-- Order matters: normalization → logging → auth → IP filter → compression
+- Order matters: rate limiting → logging → normalize path → compression → auth → IP filter
 - Each middleware wraps the previous; error handling is centralized via `AppError` responder
 
 ---
@@ -265,11 +315,17 @@ async fn test_example() {
 3. **Test in `src/test/parser.rs`**
 4. **Check template `meta/html-t.hbs`** matches new context keys
 
-### Enabling Features
+## Enabling Features
 
 - **GitHub Emojis:** Feature `github_emojis` → read `EMOJIS` OnceLock in `parser/mod.rs`
+  - On first run, fetches from GitHub API (`https://api.github.com/emojis`).
+  - Cache saved to `$XDG_CONFIG_HOME/my-http-server/emojis.json` or `./emojis.json`.
+  - Optionally set `GITHUB_TOKEN` env var to avoid API rate limiting.
+  - Parses unicode vs. image emoji; separates into `unicode` and `r#else` maps.
 - **OpenAPI/Swagger:** Feature `api` → see `src/api/mod.rs`
-- **Run with all:** `cargo test --all-features`
+  - Mounts under `/api` scope; includes Swagger UI at `/api`.
+  - Supports read-only file info and listing endpoints.
+  - **Run with all:** `cargo test --all-features`
 
 ---
 
@@ -290,10 +346,20 @@ async fn test_example() {
 4. **XDG Config Paths:**
    - Config searches: `$XDG_CONFIG_HOME/my-http-server/cofg.yaml` first, then falls back to `./cofg.yaml`
    - Use `config.resolve_*` methods to respect precedence
+   - On first run, `init()` creates all XDG directories + default files automatically
 
 5. **Template File Lazy Registration:**
    - `html-t` template registered on first render only if missing
    - Hot reload triggers re-registration because engine is rebuilt
+
+6. **Emoji Cache Initialization:**
+   - Only fetches when cache file is missing (runs once per deployment)
+   - Requires network access to GitHub API on first run
+   - Can be pre-populated by providing `emojis.json` in config directory
+
+7. **Test XDG Behavior:**
+   - Tests use `no_xdg=true` flag to ensure isolation (avoids writing to real XDG paths)
+   - If a test needs to verify XDG behavior, handle file I/O manually with `tempfile::TempDir`
 
 ---
 
