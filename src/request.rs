@@ -57,7 +57,7 @@
 //! - 效能：`Cofg::new()` 走快取；Markdown 每請求解析，未來可用 (path, mtime) 快取。
 //! - 安全：目前未強制 canonical prefix；若內容根不受信，建議新增 traversal 防護。
 
-use std::{fs::read_to_string, path::Path, process::exit};
+use std::{fs::read_to_string, path::Path};
 
 use actix_files::NamedFile;
 use actix_web::{Responder, http::header, mime};
