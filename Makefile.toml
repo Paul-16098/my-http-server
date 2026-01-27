@@ -21,6 +21,7 @@
     ]
 
 [tasks.cov]
+    env = { "RUST_LOG" = "debug" }
     install_crate = "cargo-llvm-cov"
     command = "cargo"
     args = [
@@ -45,6 +46,7 @@
     ]
 
 [tasks.test]
+    env = { "RUST_LOG" = "debug" }
     command = "cargo"
     args = [
         "all-features",
