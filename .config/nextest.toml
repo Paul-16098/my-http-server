@@ -1,0 +1,6 @@
+[profile.default]
+    retries = 3
+[profile.ci]
+    inherits   = "default"
+    junit.path = "junit.xml"
+    fail-fast  = false

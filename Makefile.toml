@@ -13,7 +13,7 @@
         "llvm-cov",
         "--no-report",
         "nextest",
-        "--no-fail-fast",
+        "-p ci",
     ]
     dependencies = [
         "install-dep",
@@ -53,7 +53,6 @@
         "--",
         "nextest",
         "run",
-        "--no-fail-fast",
     ]
     dependencies = [
         "install-dep",
