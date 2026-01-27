@@ -125,6 +125,7 @@ async fn test_path_traversal_dotdot() {
     let req = test::TestRequest::get().uri("/../etc/passwd").to_request();
     let resp = test::call_service(&app, req).await;
 
+    println!("Response for path traversal test: {:?}", resp);
     // Should not allow access to files outside public_path
     // Should return 404 or be blocked
     assert!(
