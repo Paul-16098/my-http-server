@@ -257,6 +257,8 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         Ok(p) => p,
         Err(e) => {
             eprintln!("{}", e);
+            eprintln!("Failed to strip_prefix req_path: {}", req_path.display());
+            eprint!("public_path: {}", public_path.display());
             error!("{}", e);
             exit(1);
         }
