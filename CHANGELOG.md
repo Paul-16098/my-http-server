@@ -181,6 +181,10 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - Update changelog by @Paul-16098
 
+- Update changelog by @Paul-16098
+
+- *changelog*: Update commit message format for changelog updates by @Paul-16098
+
 
 ## \[4.1.1\] - 2026-01-10
 
