@@ -303,17 +303,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
             .wrap(middleware::Condition::new(
                 middleware_cofg.logger.enabling,
                 middleware::Logger::new(&middleware_cofg.logger.format)
-                    .custom_request_replace("url", |req| {
-                        let u = &req.uri().to_string();
-                        let mut u = percent_encoding::percent_decode(u.as_bytes())
-                            .decode_utf8()
-                            .unwrap_or(std::borrow::Cow::Borrowed(u))
-                            .to_string();
-                        if u.starts_with('/') {
-                            u.remove(0);
-                        }
-                        u
-                    })
+                    .custom_request_replace("url", |req| req.uri().to_string())
                     .log_target("http-log"),
             ))
             .wrap(middleware::Condition::new(

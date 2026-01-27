@@ -204,10 +204,9 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
             Path::new(&c.public_path).to_path_buf()
         });
     // Resolve the target path under the configured public root.
-    let filename_str = req.match_info().query("filename");
+    let filename_str = req.path().to_string();
     let req_path_buf = Path::new(&c.public_path).join(filename_str);
     let req_path = &req_path_buf;
-    debug!("req_path: {}", req_path.display());
     if req_path == public_path {
         let index_file = public_path.join("index.html");
         if index_file.exists() {
