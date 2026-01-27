@@ -65,6 +65,8 @@
 
 - *request*: Improve error logging for path resolution failures by @Paul-16098
 
+- *request*: Improve error logging for path resolution failures by @Paul-16098
+
 
 ### Deps
 
