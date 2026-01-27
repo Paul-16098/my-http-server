@@ -61,6 +61,8 @@
 
 - *tests*: Add debug logging for coverage and test tasks by @Paul-16098
 
+- *workflow*: Update toml-action version to specific commit by @Paul-16098
+
 
 ### Deps
 
