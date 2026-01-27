@@ -57,6 +57,8 @@
 
 - *request*: Simplify URL handling in main_req function by @Paul-16098
 
+- *request*: Handle root path correctly and improve error logging by @Paul-16098
+
 
 ### Deps
 
