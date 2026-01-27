@@ -121,6 +121,8 @@ Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098
 
 chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] in [#86](https://github.com/Paul-16098/my-http-server/pull/86)
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
 
 ### Refactor
 
@@ -184,6 +186,10 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - Update changelog by @Paul-16098
 
 - *changelog*: Update commit message format for changelog updates by @Paul-16098
+
+- *workflow*: Add branches to trigger changelog generation by @Paul-16098
+
+- *changelog*: Update changelog by @Paul-16098
 
 
 ## \[4.1.1\] - 2026-01-10
