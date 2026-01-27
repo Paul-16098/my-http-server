@@ -55,6 +55,8 @@
 
 - *changelog*: Escape brackets in contributor username by @Paul-16098
 
+- *request*: Simplify URL handling in main_req function by @Paul-16098
+
 
 ### Deps
 
