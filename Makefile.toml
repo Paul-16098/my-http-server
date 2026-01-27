@@ -13,7 +13,8 @@
         "llvm-cov",
         "--no-report",
         "nextest",
-        "-p ci",
+        "--profile",
+        "ci",
     ]
     dependencies = [
         "install-dep",
