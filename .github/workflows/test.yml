@@ -86,7 +86,7 @@ jobs:
           path: target
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: taiki-e/install-action@0f9abeadd7b421a211fafd01ed6005a20d796e1e # v2.66.4
+      - uses: taiki-e/install-action@710817a1645ef40daad5bcde7431ceccf6cc3528 # v2.67.13
         with:
           tool: cargo-make
 
