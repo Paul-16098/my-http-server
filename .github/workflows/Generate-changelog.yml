@@ -1,9 +1,9 @@
 name: Generate changelog
 on:
   push:
-    branches:
-      - main
-      - dev
+    # Trigger only on version tag pushes
+    tags:
+      - "v*"
   workflow_dispatch:
   workflow_call:
     inputs:
