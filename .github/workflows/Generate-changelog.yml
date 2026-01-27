@@ -1,6 +1,9 @@
 name: Generate changelog
 on:
   push:
+    branches:
+      - main
+      - dev
   workflow_dispatch:
   workflow_call:
     inputs:
