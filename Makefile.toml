@@ -58,4 +58,4 @@
     ]
 
 [tasks.install-dep]
-    script = "cargo install cargo-all-features cargo-nextest"
+    script = "cargo install cargo-all-features cargo-nextest --locked"
