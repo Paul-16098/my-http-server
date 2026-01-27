@@ -4,6 +4,8 @@ on:
     # Trigger only on version tag pushes
     tags:
       - "v*"
+  schedule:
+    - cron: "0 0 * * *" # Every Sunday at midnight
   workflow_dispatch:
   workflow_call:
     inputs:
