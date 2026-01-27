@@ -30,7 +30,8 @@ async fn test_root_path_request() {
 
     assert!(
         resp.status() == StatusCode::OK || resp.status() == StatusCode::NOT_FOUND,
-        "Root request should return 200 or 404"
+        "Root request should return 200 or 404, got: {}",
+        resp.status()
     );
 }
 

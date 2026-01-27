@@ -194,6 +194,101 @@ async fn test_null_byte_injection() {
 }
 
 #[actix_web::test]
+async fn test_newline_injection() {
+    init_test_config();
+
+    let app = test::init_service(App::new().service(main_req)).await;
+
+    // Try newline injection (URL encoded as %0A)
+    let req = test::TestRequest::get().uri("/a%0Ab").to_request();
+    let resp = test::call_service(&app, req).await;
+
+    // Should reject paths with newline characters
+    assert_eq!(
+        resp.status(),
+        StatusCode::BAD_REQUEST,
+        "Newline injection should be rejected with 400 Bad Request, got {}",
+        resp.status()
+    );
+}
+
+#[actix_web::test]
+async fn test_carriage_return_injection() {
+    init_test_config();
+
+    let app = test::init_service(App::new().service(main_req)).await;
+
+    // Try carriage return injection (URL encoded as %0D)
+    let req = test::TestRequest::get().uri("/test%0Dfile.txt").to_request();
+    let resp = test::call_service(&app, req).await;
+
+    // Should reject paths with carriage return characters
+    assert_eq!(
+        resp.status(),
+        StatusCode::BAD_REQUEST,
+        "Carriage return injection should be rejected with 400 Bad Request, got {}",
+        resp.status()
+    );
+}
+
+#[actix_web::test]
+async fn test_tab_injection() {
+    init_test_config();
+
+    let app = test::init_service(App::new().service(main_req)).await;
+
+    // Try tab injection (URL encoded as %09)
+    let req = test::TestRequest::get().uri("/test%09file.txt").to_request();
+    let resp = test::call_service(&app, req).await;
+
+    // Should reject paths with tab characters
+    assert_eq!(
+        resp.status(),
+        StatusCode::BAD_REQUEST,
+        "Tab injection should be rejected with 400 Bad Request, got {}",
+        resp.status()
+    );
+}
+
+#[actix_web::test]
+async fn test_vertical_tab_injection() {
+    init_test_config();
+
+    let app = test::init_service(App::new().service(main_req)).await;
+
+    // Try vertical tab injection (URL encoded as %0B)
+    let req = test::TestRequest::get().uri("/test%0Bfile.txt").to_request();
+    let resp = test::call_service(&app, req).await;
+
+    // Should reject paths with vertical tab characters
+    assert_eq!(
+        resp.status(),
+        StatusCode::BAD_REQUEST,
+        "Vertical tab injection should be rejected with 400 Bad Request, got {}",
+        resp.status()
+    );
+}
+
+#[actix_web::test]
+async fn test_form_feed_injection() {
+    init_test_config();
+
+    let app = test::init_service(App::new().service(main_req)).await;
+
+    // Try form feed injection (URL encoded as %0C)
+    let req = test::TestRequest::get().uri("/test%0Cfile.txt").to_request();
+    let resp = test::call_service(&app, req).await;
+
+    // Should reject paths with form feed characters
+    assert_eq!(
+        resp.status(),
+        StatusCode::BAD_REQUEST,
+        "Form feed injection should be rejected with 400 Bad Request, got {}",
+        resp.status()
+    );
+}
+
+#[actix_web::test]
 async fn test_backslash_path_separator() {
     init_test_config();
 

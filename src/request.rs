@@ -69,6 +69,16 @@ use crate::{
     parser::{markdown::get_toc, md2html},
 };
 
+/// Validate that a path string does not contain control characters.
+/// 
+/// Control characters (0x00-0x1F, 0x7F) in file paths can be used for path injection attacks
+/// and should be rejected.
+/// 
+/// Returns `true` if the path is safe (no control characters), `false` otherwise.
+fn is_path_safe(path: &str) -> bool {
+    !path.chars().any(|c| c.is_control())
+}
+
 /// return `500 INTERNAL_SERVER_ERROR` with header plaintext utf-8
 pub(crate) fn server_error(err_text: String) -> actix_web::HttpResponse {
     actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR)
@@ -205,6 +215,19 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
         });
     // Resolve the target path under the configured public root.
     let filename_str = req.match_info().query("filename");
+    
+    // Security: Reject paths containing control characters (0x00-0x1F, 0x7F)
+    // WHY: URL-decoded control characters (e.g., %0A → newline) can be used for path injection attacks
+    if !is_path_safe(filename_str) {
+        warn!(
+            "Rejected path with control characters: {:?}",
+            filename_str
+        );
+        return actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::BAD_REQUEST)
+            .insert_header(actix_web::http::header::ContentType::plaintext())
+            .body("Invalid path: control characters not allowed");
+    }
+    
     let req_path_buf = Path::new(&c.public_path).join(filename_str);
     let req_path = &req_path_buf;
     debug!("req_path: {}", req_path.display());
