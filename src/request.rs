@@ -224,8 +224,8 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     // WHY: URL-decoded control characters (e.g., %0A → newline) can be used for path injection attacks
     if !is_path_safe(filename_str) {
         warn!(
-            "Rejected path with control characters (length: {} bytes)",
-            filename_str.len()
+            "Rejected path with control characters: {}",
+            req.uri().path()
         );
         return actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::BAD_REQUEST)
             .insert_header(actix_web::http::header::ContentType::plaintext())
