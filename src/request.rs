@@ -256,10 +256,9 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     let req_strip_prefix_path = match req_path.strip_prefix(public_path) {
         Ok(p) => p,
         Err(e) => {
-            debug!("req_path: {}", req_path.display());
-            debug!("public_path: {}", public_path.display());
-            warn!("{e}");
-            exit(1)
+            eprintln!("{}", e);
+            error!("{}", e);
+            exit(1);
         }
     };
 
