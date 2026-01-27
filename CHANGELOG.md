@@ -63,6 +63,8 @@
 
 - *workflow*: Update toml-action version to specific commit by @Paul-16098
 
+- *request*: Improve error logging for path resolution failures by @Paul-16098
+
 
 ### Deps
 
@@ -138,6 +140,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+- Merge branches 'dev' and 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 
 ### Refactor
