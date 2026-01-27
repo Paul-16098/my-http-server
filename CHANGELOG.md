@@ -74,6 +74,8 @@
 
 - Update taiki-e/install-action action to v2.67.13 (#87) by @renovate\[bot] in [#87](https://github.com/Paul-16098/my-http-server/pull/87)
 
+- Update rust crate thiserror to v2.0.18 (#89) by @renovate\[bot] in [#89](https://github.com/Paul-16098/my-http-server/pull/89)
+
 
 ### Other
 
@@ -196,6 +198,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *changelog*: Update changelog by @Paul-16098
 
 - *Makefile*: Add --locked flag to cargo install command by @Paul-16098
+
+- *changelog*: Update changelog by @Paul-16098
 
 - *changelog*: Update changelog by @Paul-16098
 
