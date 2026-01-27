@@ -59,6 +59,8 @@
 
 - *request*: Handle root path correctly and improve error logging by @Paul-16098
 
+- *tests*: Add debug logging for coverage and test tasks by @Paul-16098
+
 
 ### Deps
 
