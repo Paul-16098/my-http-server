@@ -57,7 +57,7 @@
 //! - 效能：`Cofg::new()` 走快取；Markdown 每請求解析，未來可用 (path, mtime) 快取。
 //! - 安全：目前未強制 canonical prefix；若內容根不受信，建議新增 traversal 防護。
 
-use std::{fs::read_to_string, path::Path};
+use std::{fs::read_to_string, path::Path, process::exit};
 
 use actix_files::NamedFile;
 use actix_web::{Responder, http::header, mime};
@@ -204,7 +204,14 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
             Path::new(&c.public_path).to_path_buf()
         });
     // Resolve the target path under the configured public root.
-    let filename_str = req.path().to_string();
+
+    // path is "/" -> ""
+    // WHY: 8c648dc7d9dcbf6769238ead8810aa7f324aaf7d
+    let filename_str = if req.path() == "/" {
+        "".to_string()
+    } else {
+        req.path().to_string()
+    };
     let req_path_buf = Path::new(&c.public_path).join(filename_str);
     let req_path = &req_path_buf;
     if req_path == public_path {
@@ -249,8 +256,10 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
     let req_strip_prefix_path = match req_path.strip_prefix(public_path) {
         Ok(p) => p,
         Err(e) => {
+            debug!("req_path: {}", req_path.display());
+            debug!("public_path: {}", public_path.display());
             warn!("{e}");
-            req_path
+            exit(1)
         }
     };
 
