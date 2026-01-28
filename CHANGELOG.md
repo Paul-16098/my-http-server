@@ -30,6 +30,12 @@
 
 - *tests*: Enhance test configuration initialization for consistency and security by @Paul-16098
 
+- *config*: Enhance configuration caching and XDG path initialization by @Paul-16098
+
+- *docs*: 更新架構與資料流文檔，增強配置流程與初始化序列說明 by @Paul-16098
+
+- *tests*: 添加 Codecov 结果上传步骤并更新 nextest 配置 by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -67,6 +73,18 @@
 
 - *request*: Improve error logging for path resolution failures by @Paul-16098
 
+- *request*: Improve error handling for path traversal attacks by @Paul-16098
+
+- Delete lcov.info by @Paul-16098
+
+- *security*: Enhance path traversal protection and update test assertions by @Paul-16098
+
+- *tests*: 修复 nextest 命令中的参数格式，确保正确使用 --profile by @Paul-16098
+
+- *tests*: 更新 Codecov 测试结果上传步骤，修复文件参数和报告类型 by @Paul-16098
+
+- *tests*: 更新 Codecov 上传的测试结果文件路径至 ./target/nextest/ci/junit.xml by @Paul-16098
+
 
 ### Deps
 
@@ -89,6 +107,8 @@
 - Update rust crate thiserror to v2.0.18 (#89) by @renovate\[bot] in [#89](https://github.com/Paul-16098/my-http-server/pull/89)
 
 - Update rust crate rustls-pki-types to v1.14.0 (#88) by @renovate\[bot] in [#88](https://github.com/Paul-16098/my-http-server/pull/88)
+
+- Update taiki-e/install-action action to v2.67.14 (#91) by @renovate\[bot] in [#91](https://github.com/Paul-16098/my-http-server/pull/91)
 
 
 ### Other
@@ -145,6 +165,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - Merge branches 'dev' and 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
 
 ### Refactor
 
@@ -165,6 +187,12 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *integration, parser, request, security*: Improve test coverage and stability with sequential request handling and enhanced config initialization by @Paul-16098
 
 - *md2html*: Update assertion to check full HTML output for basic markdown by @Paul-16098
+
+- *security*: Add debug output for path traversal test response by @Paul-16098
+
+- *security*: Add response body output for path traversal test by @Paul-16098
+
+- *security*: Add response body output for path traversal test by @Paul-16098
 
 
 ### Miscellaneous Tasks
@@ -216,6 +244,16 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *changelog*: Skip changelog updates for specific commit message by @Paul-16098
 
 - *changelog*: Add GITHUB_TOKEN environment variable for changelog generation by @Paul-16098
+
+- *workflow*: Update trigger to only activate on version tag pushes by @Paul-16098
+
+- *workflow*: Add cron schedule for changelog generation by @Paul-16098
+
+- *workflow*: Remove comment from cron schedule by @Paul-16098
+
+- *request*: Remove unused import for process exit by @Paul-16098
+
+- *rust*: Simplify caching by enabling all crates caching by @Paul-16098
 
 
 ## \[4.1.1\] - 2026-01-10
