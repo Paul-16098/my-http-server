@@ -11,6 +11,7 @@ use std::path::Path;
 
 use log::{debug, trace};
 use wax::Glob;
+use wax::walk::Entry as _;
 
 use crate::error::AppResult;
 use crate::{cofg::config::Cofg, error};

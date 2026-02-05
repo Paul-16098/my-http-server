@@ -17,7 +17,7 @@ pub(crate) enum AppError {
     #[error("Glob pattern error: {0}")]
     GlobPatternError(#[from] wax::BuildError),
     #[error("Glob walk error: {0}")]
-    GlobWalkError(#[from] wax::WalkError),
+    GlobWalkError(#[from] wax::walk::WalkError),
     #[error("Template error: {0}")]
     TemplateError(#[from] handlebars::TemplateError),
     #[error("Render error: {0}")]
