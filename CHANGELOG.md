@@ -85,6 +85,8 @@
 
 - *tests*: 更新 Codecov 上传的测试结果文件路径至 ./target/nextest/ci/junit.xml by @Paul-16098
 
+- *deps*: Update rust crate wax to 0.7.0 (#94) by @renovate\[bot] in [#94](https://github.com/Paul-16098/my-http-server/pull/94)
+
 
 ### Deps
 
@@ -109,6 +111,12 @@
 - Update rust crate rustls-pki-types to v1.14.0 (#88) by @renovate\[bot] in [#88](https://github.com/Paul-16098/my-http-server/pull/88)
 
 - Update taiki-e/install-action action to v2.67.14 (#91) by @renovate\[bot] in [#91](https://github.com/Paul-16098/my-http-server/pull/91)
+
+- Update taiki-e/install-action action to v2.67.19 (#93) by @renovate\[bot] in [#93](https://github.com/Paul-16098/my-http-server/pull/93)
+
+- Bump bytes in the cargo group across 1 directory (#95) by @dependabot\[bot] in [#95](https://github.com/Paul-16098/my-http-server/pull/95)
+
+- Update rust crate clap to v4.5.56 (#92) by @renovate\[bot] in [#92](https://github.com/Paul-16098/my-http-server/pull/92)
 
 
 ### Other
@@ -255,8 +263,11 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - *rust*: Simplify caching by enabling all crates caching by @Paul-16098
 
+- *renovate*: 添加 minimumReleaseAge 配置 by @Paul-16098
 
-## \[4.1.1\] - 2026-01-10
+
+
+- @dependabot[bot] made their first contribution in #95## \[4.1.1\] - 2026-01-10
 
 ### Bug Fixes
 
