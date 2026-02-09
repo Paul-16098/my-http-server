@@ -87,8 +87,8 @@
 
 - *deps*: Update rust crate wax to 0.7.0 (#94) by @renovate\[bot] in [#94](https://github.com/Paul-16098/my-http-server/pull/94)
 
+### <details><summary>Deps</summary>
 
-### Deps
 
 - Update taiki-e/install-action action to v2.66.2 (#82) by @renovate\[bot] in [#82](https://github.com/Paul-16098/my-http-server/pull/82)
 
@@ -128,6 +128,7 @@
 
 - Update rust crate ureq to v3.2.0 (#101) by @renovate\[bot] in [#101](https://github.com/Paul-16098/my-http-server/pull/101)
 
+</details>
 
 ### Other
 
@@ -275,6 +276,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - *renovate*: 添加 minimumReleaseAge 配置 by @Paul-16098
 
+- *changelog*: Enhance changelog formatting for dependency groups by @Paul-16098
+
 
 
 - @dependabot[bot] made their first contribution in #95## \[4.1.1\] - 2026-01-10
@@ -324,11 +327,12 @@ chore(dist): enable GitHub Attestations and cargo-auditable in dist-workspace.to
 
 - *changelog*: Update changelog generation to use git-cliff directly by @Paul-16098
 
+### <details><summary>Deps</summary>
 
-### Deps
 
 - Update taiki-e/install-action action to v2.66.1 (#72) by @renovate\[bot] in [#72](https://github.com/Paul-16098/my-http-server/pull/72)
 
+</details>
 
 ### Other
 
@@ -417,8 +421,8 @@ fix(swagger): update Swagger UI dependencies to latest version by @Paul-16098
 
 - *workflow*: Update Docker Buildx action to version 3 by @Paul-16098
 
+### <details><summary>Deps</summary>
 
-### Deps
 
 - Update rust crate actix-files to v0.6.9 (#48) by @renovate\[bot] in [#48](https://github.com/Paul-16098/my-http-server/pull/48)
 
@@ -454,6 +458,7 @@ fix(swagger): update Swagger UI dependencies to latest version by @Paul-16098
 
 - Update rust crate handlebars to v6.4.0 (#61) by @renovate\[bot] in [#61](https://github.com/Paul-16098/my-http-server/pull/61)
 
+</details>
 
 ### Other
 
@@ -604,8 +609,8 @@ fix(tests): update assertion for TOC test to check for non-empty result by @Paul
 
 - *ci*: Fix Unpinned tag for a non-immutable Action in workflow by @Paul-16098
 
+### <details><summary>Deps</summary>
 
-### Deps
 
 - Update rust crate rustls to v0.23.34 by @renovate\[bot]
 
@@ -631,6 +636,7 @@ fix(tests): update assertion for TOC test to check for non-empty result by @Paul
 
 - Update rust crate clap to v4.5.53 (#40) by @renovate\[bot] in [#40](https://github.com/Paul-16098/my-http-server/pull/40)
 
+</details>
 
 ### Other
 
@@ -781,11 +787,12 @@ v3.2.0 by @Paul-16098 in [#27](https://github.com/Paul-16098/my-http-server/pull
 
 - Add missing DOCTYPE declaration in HTML template and remove debug log in parser by @Paul-16098
 
+### <details><summary>Deps</summary>
 
-### Deps
 
 - Update Cargo.toml and lockfile for Handlebars and related changes by @Paul-16098
 
+</details>
 
 ### Other
 
@@ -909,8 +916,8 @@ v3.1.0 by @Paul-16098 in [#23](https://github.com/Paul-16098/my-http-server/pull
 
 - *docker*: Add missing COPY command for docker directory in Dockerfile by @Paul-16098
 
+### <details><summary>Deps</summary>
 
-### Deps
 
 - Update docker/dockerfile docker tag to v1.19 by @renovate\[bot]
 
@@ -918,6 +925,7 @@ v3.1.0 by @Paul-16098 in [#23](https://github.com/Paul-16098/my-http-server/pull
 
 - Update actions/github-script action to v8 by @renovate\[bot]
 
+</details>
 
 ### Other
 
@@ -1010,8 +1018,8 @@ test(cli): update tests to reflect changes in Args conversion logic by @Paul-160
 - Fix: 更新 markdown-ppp 版本至 2.1.1 並移除 Git 來源，改為使用註冊表
 feat: 新增 Dependabot 配置以自動更新依賴 by @Paul-16098
 
+### <details><summary>Deps</summary>
 
-### Deps
 
 - Update docker/dockerfile docker tag to v1.18 by @renovate\[bot]
 
@@ -1019,6 +1027,7 @@ feat: 新增 Dependabot 配置以自動更新依賴 by @Paul-16098
 
 - Update actions/checkout action to v5 by @renovate\[bot]
 
+</details>
 
 ### Other
 
