@@ -118,6 +118,16 @@
 
 - Update rust crate clap to v4.5.56 (#92) by @renovate\[bot] in [#92](https://github.com/Paul-16098/my-http-server/pull/92)
 
+- Update rust crate actix-files to v0.6.10 [security] (#99) by @renovate\[bot] in [#99](https://github.com/Paul-16098/my-http-server/pull/99)
+
+- Update taiki-e/install-action action to v2.67.20 (#96) by @renovate\[bot] in [#96](https://github.com/Paul-16098/my-http-server/pull/96)
+
+- Update rust crate clap to v4.5.57 (#97) by @renovate\[bot] in [#97](https://github.com/Paul-16098/my-http-server/pull/97)
+
+- Update rust crate time to v0.3.47 [security] (#100) by @Paul-16098
+
+- Update rust crate ureq to v3.2.0 (#101) by @renovate\[bot] in [#101](https://github.com/Paul-16098/my-http-server/pull/101)
+
 
 ### Other
 
