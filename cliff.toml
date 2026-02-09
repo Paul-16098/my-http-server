@@ -16,7 +16,13 @@
     ## \\[unreleased\\]
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
-    ### {{ group | striptags | trim | upper_first }}
+    {%- set group_str = (group | striptags | trim) -%}
+
+    {% if group_str == "Deps" -%}
+    ### <details><summary>{{ group_str | upper_first }}</summary>
+    {% else %}
+    ### {{ group_str | upper_first }}
+    {%- endif %}
     {% for commit in commits %}
         - {% if commit.scope %}*{{ commit.scope }}*: {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
@@ -24,6 +30,7 @@
             {% if commit.remote.username %} by @{{ commit.remote.username | replace(from="[", to="\\[") }}{%- endif %}\
             {% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/pull/{{ commit.remote.pr_number }}){%- endif %}
     {% endfor %}
+    {%- if group_str == "Deps" %}\n</details>{% endif %}
 {% endfor %}
 {% for contributor in github.contributors | filter(attribute="is_first_time", value=true) %}
   - @{{ contributor.username }} made their first contribution{% if contributor.pr_number %} in #{{ contributor.pr_number }}{% endif %}
