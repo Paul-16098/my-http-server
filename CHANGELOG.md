@@ -128,6 +128,8 @@
 
 - Update rust crate ureq to v3.2.0 (#101) by @renovate\[bot] in [#101](https://github.com/Paul-16098/my-http-server/pull/101)
 
+- Update taiki-e/install-action action to v2.67.22 (#102) by @renovate\[bot] in [#102](https://github.com/Paul-16098/my-http-server/pull/102)
+
 </details>
 
 ### Other
