@@ -130,6 +130,10 @@
 
 - Update taiki-e/install-action action to v2.67.22 (#102) by @renovate\[bot] in [#102](https://github.com/Paul-16098/my-http-server/pull/102)
 
+- Update taiki-e/install-action action to v2.67.26 (#103) by @renovate\[bot] in [#103](https://github.com/Paul-16098/my-http-server/pull/103)
+
+- Update rust crate tempfile to v3.25.0 (#105) by @renovate\[bot] in [#105](https://github.com/Paul-16098/my-http-server/pull/105)
+
 </details>
 
 ### Other
