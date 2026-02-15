@@ -134,6 +134,10 @@
 
 - Update rust crate tempfile to v3.25.0 (#105) by @renovate\[bot] in [#105](https://github.com/Paul-16098/my-http-server/pull/105)
 
+- Update rust crate clap to v4.5.58 (#106) by @renovate\[bot] in [#106](https://github.com/Paul-16098/my-http-server/pull/106)
+
+- Update rust crate env_logger to v0.11.9 (#107) by @renovate\[bot] in [#107](https://github.com/Paul-16098/my-http-server/pull/107)
+
 </details>
 
 ### Other
