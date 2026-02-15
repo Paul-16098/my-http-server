@@ -10,13 +10,6 @@
 use crate::request::main_req;
 use actix_web::{App, http::StatusCode, test};
 
-/// Initialize global config for security tests
-/// Uses shared helper from config module to ensure consistency across test suites
-fn init_test_config() {
-    env_logger::builder().is_test(true).init();
-    super::config::init_test_config();
-}
-
 #[actix_web::test]
 async fn test_constant_time_eq_identical() {
     use crate::constant_time_eq;
@@ -119,7 +112,7 @@ async fn test_ct_eq_str_opt_one_none() {
 #[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_path_traversal_dotdot() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -141,7 +134,7 @@ async fn test_path_traversal_dotdot() {
 #[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_path_traversal_encoded() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -163,7 +156,7 @@ async fn test_path_traversal_encoded() {
 #[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_absolute_path_request() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -181,7 +174,7 @@ async fn test_absolute_path_request() {
 
 #[actix_web::test]
 async fn test_null_byte_injection() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -200,7 +193,7 @@ async fn test_null_byte_injection() {
 #[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_backslash_path_separator() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -258,7 +251,7 @@ async fn test_password_comparison_edge_cases() {
 
 #[actix_web::test]
 async fn test_hidden_files_access() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -276,7 +269,7 @@ async fn test_hidden_files_access() {
 
 #[actix_web::test]
 async fn test_directory_request_without_crash() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -318,7 +311,7 @@ async fn test_constant_time_comparison_properties() {
 
 #[actix_web::test]
 async fn test_path_handling() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 

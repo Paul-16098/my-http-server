@@ -14,15 +14,9 @@
 use crate::request::main_req;
 use actix_web::{App, http::StatusCode, test};
 
-/// Initialize global config for integration tests
-/// Uses shared helper from config module to ensure consistency across test suites
-fn init_test_config() {
-    super::config::init_test_config();
-}
-
 #[actix_web::test]
 async fn test_static_file_serving() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     // This test verifies that the server can handle static file requests
     // Note: Actual file serving depends on the configured public_path
@@ -44,7 +38,7 @@ async fn test_static_file_serving() {
 
 #[actix_web::test]
 async fn test_nonexistent_file() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -63,7 +57,7 @@ async fn test_nonexistent_file() {
 
 #[actix_web::test]
 async fn test_path_with_special_chars() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -83,7 +77,7 @@ async fn test_path_with_special_chars() {
 
 #[actix_web::test]
 async fn test_markdown_file_request() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -101,7 +95,7 @@ async fn test_markdown_file_request() {
 
 #[actix_web::test]
 async fn test_response_has_content_type() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -118,7 +112,7 @@ async fn test_response_has_content_type() {
 
 #[actix_web::test]
 async fn test_multiple_requests() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -139,7 +133,7 @@ async fn test_multiple_requests() {
 
 #[actix_web::test]
 async fn test_get_method_only() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -157,7 +151,7 @@ async fn test_get_method_only() {
 
 #[actix_web::test]
 async fn test_nested_path() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -175,7 +169,7 @@ async fn test_nested_path() {
 
 #[actix_web::test]
 async fn test_sequential_requests() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -198,7 +192,7 @@ async fn test_sequential_requests() {
 
 #[actix_web::test]
 async fn test_empty_path() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -214,7 +208,7 @@ async fn test_empty_path() {
 
 #[actix_web::test]
 async fn test_request_headers() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
@@ -246,7 +240,7 @@ async fn test_server_error_function() {
 
 #[actix_web::test]
 async fn test_large_path() {
-    init_test_config();
+    crate::test::support::init_test_setup();
 
     let app = test::init_service(App::new().service(main_req)).await;
 
