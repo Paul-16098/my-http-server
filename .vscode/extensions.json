@@ -1,5 +1,6 @@
 {
-    "recommendations": [
-        "ryanluker.vscode-coverage-gutters"
-    ]
+  "recommendations": [
+    "ryanluker.vscode-coverage-gutters",
+    "rust-lang.rust-analyzer"
+  ]
 }

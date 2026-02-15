@@ -3,5 +3,9 @@
   "github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"],
   "files.exclude": {
     "lcov.info": true
+  },
+  "chat.tools.terminal.autoApprove": {
+    "cargo make test": true,
+    "cargo make cov": true
   }
 }
