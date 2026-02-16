@@ -198,12 +198,16 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
 
 ### Refactor
 
 - *makefile*: Rename tasks for coverage and update task definitions by @Paul-16098
 
 - *test*: Remove all test files for parser, request, security, templating, and test module by @Paul-16098
+
+- *tests*: Consolidate test setup into reusable support module by @Paul-16098
 
 
 ### Documentation
@@ -291,6 +295,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *changelog*: Enhance changelog formatting for dependency groups by @Paul-16098
 
 - *api*: Update swagger-ui dependencies to version 5.31.0 by @Paul-16098
+
+- *vscode*: Update extensions and settings for improved development experience by @Paul-16098
 
 
 
