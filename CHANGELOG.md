@@ -87,6 +87,10 @@
 
 - *deps*: Update rust crate wax to 0.7.0 (#94) by @renovate\[bot] in [#94](https://github.com/Paul-16098/my-http-server/pull/94)
 
+- *server*: Improve logging and handle TLS configuration errors by @Paul-16098
+
+- *workflow*: Add conditional check before committing changelog updates by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
