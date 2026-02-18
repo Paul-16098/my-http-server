@@ -20,6 +20,7 @@ use clap::Parser as _;
 use log::{debug, error, info, warn};
 use std::fs::create_dir_all;
 use std::path::Path;
+use std::process::exit;
 
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 #[derive(serde::Serialize)]
@@ -278,11 +279,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
     #[cfg(feature = "api")]
     let api_enable = s.api.enable;
 
-    info!(
-        "run in {}://{}/",
-        if s.tls.enable { "https" } else { "http" },
-        addrs
-    );
+    info!("run in {addrs}");
 
     let server = HttpServer::new(move || {
         let mut app = App::new()
@@ -443,8 +440,8 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
         match load_tls_config(&s.tls.cert, &s.tls.key) {
             Ok(tls_config) => server.bind_rustls_0_23(addrs, tls_config)?,
             Err(e) => {
-                warn!("{}, back to no-tls", e);
-                server.bind(addrs)?
+                error!("Failed to load TLS configuration: {}", e);
+                exit(1)
             }
         }
     } else {
