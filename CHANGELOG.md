@@ -142,6 +142,10 @@
 
 - Update rust crate env_logger to v0.11.9 (#107) by @renovate\[bot] in [#107](https://github.com/Paul-16098/my-http-server/pull/107)
 
+- Update rust crate clap to v4.5.59 (#108) by @renovate\[bot] in [#108](https://github.com/Paul-16098/my-http-server/pull/108)
+
+- Update taiki-e/install-action action to v2.68.0 (#104) by @renovate\[bot] in [#104](https://github.com/Paul-16098/my-http-server/pull/104)
+
 </details>
 
 ### Other
