@@ -146,6 +146,8 @@
 
 - Update taiki-e/install-action action to v2.68.0 (#104) by @renovate\[bot] in [#104](https://github.com/Paul-16098/my-http-server/pull/104)
 
+- Update rust crate actix-web to v4.13.0 (#110) by @renovate\[bot] in [#110](https://github.com/Paul-16098/my-http-server/pull/110)
+
 </details>
 
 ### Other
