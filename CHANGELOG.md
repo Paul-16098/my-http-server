@@ -152,6 +152,10 @@
 
 - Update rust crate clap to v4.5.60 (#111) by @renovate\[bot] in [#111](https://github.com/Paul-16098/my-http-server/pull/111)
 
+- Update rust crate tempfile to v3.26.0 (#113) by @renovate\[bot] in [#113](https://github.com/Paul-16098/my-http-server/pull/113)
+
+- Update rust crate rustls to v0.23.37 (#114) by @renovate\[bot] in [#114](https://github.com/Paul-16098/my-http-server/pull/114)
+
 </details>
 
 ### Other
