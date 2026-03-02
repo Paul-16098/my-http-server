@@ -298,15 +298,31 @@ jobs:
       plan: ${{ needs.plan.outputs.val }}
     secrets: inherit
 
-  announce:
+  custom-cargo-push:
     needs:
       - plan
       - host
       - custom-Generate-changelog
+    if: ${{ !fromJson(needs.plan.outputs.val).announcement_is_prerelease || fromJson(needs.plan.outputs.val).publish_prereleases }}
+    uses: ./.github/workflows/cargo-push.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit
+    # publish jobs get escalated permissions
+    permissions:
+      "id-token": "write"
+      "packages": "write"
+
+  announce:
+    needs:
+      - plan
+      - host
+      - custom-cargo-push
+      - custom-Generate-changelog
     # use "always() && ..." to allow us to wait for all publish jobs while
     # still allowing individual publish jobs to skip themselves (for prereleases).
     # "host" however must run to completion, no skipping allowed!
-    if: ${{ always() && needs.host.result == 'success' }}
+    if: ${{ always() && needs.host.result == 'success' && (needs.custom-cargo-push.result == 'skipped' || needs.custom-cargo-push.result == 'success') }}
     runs-on: "ubuntu-22.04"
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

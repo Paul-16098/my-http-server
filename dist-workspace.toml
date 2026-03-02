@@ -23,3 +23,5 @@ github-attestations = true
 cargo-auditable = true
 # Host jobs to run in CI
 host-jobs = ["./Generate-changelog"]
+# Publish jobs to run in CI
+publish-jobs = ["./cargo-push"]
