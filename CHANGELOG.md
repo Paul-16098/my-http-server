@@ -36,6 +36,8 @@
 
 - *tests*: 添加 Codecov 结果上传步骤并更新 nextest 配置 by @Paul-16098
 
+- *workflows*: Add cargo-push workflow and integrate with release process by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -90,6 +92,8 @@
 - *server*: Improve logging and handle TLS configuration errors by @Paul-16098
 
 - *workflow*: Add conditional check before committing changelog updates by @Paul-16098
+
+- Fix for code scanning alert no. 36: Workflow does not contain permissions by @Paul-16098
 
 ### <details><summary>Deps</summary>
 
@@ -155,6 +159,8 @@
 - Update rust crate tempfile to v3.26.0 (#113) by @renovate\[bot] in [#113](https://github.com/Paul-16098/my-http-server/pull/113)
 
 - Update rust crate rustls to v0.23.37 (#114) by @renovate\[bot] in [#114](https://github.com/Paul-16098/my-http-server/pull/114)
+
+- Update taiki-e/install-action action to v2.68.12 (#112) by @renovate\[bot] in [#112](https://github.com/Paul-16098/my-http-server/pull/112)
 
 </details>
 
@@ -315,6 +321,12 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *api*: Update swagger-ui dependencies to version 5.31.0 by @Paul-16098
 
 - *vscode*: Update extensions and settings for improved development experience by @Paul-16098
+
+- *tests*: Comment out clippy lint allows in test module by @Paul-16098
+
+- *ci*: Update cargo-dist version to 0.31.0 by @Paul-16098
+
+- *workflows*: Remove deprecated Docker publish workflow by @Paul-16098
 
 
 
