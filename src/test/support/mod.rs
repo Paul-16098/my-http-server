@@ -30,10 +30,10 @@ use std::sync::Once;
 /// Tests running in parallel would trigger this panic without a guard.
 /// Using `try_init()` with `Once` ensures logger is set up only once.
 pub(crate) fn init_logger_once() {
-    static INIT: Once = Once::new();
-    INIT.call_once(|| {
-        let _ = env_logger::builder().is_test(true).try_init();
-    });
+	static INIT: Once = Once::new();
+	INIT.call_once(|| {
+		let _ = env_logger::builder().is_test(true).try_init();
+	});
 }
 
 /// Initialize global config exactly once per test process using thread-safe guard
@@ -43,7 +43,7 @@ pub(crate) fn init_logger_once() {
 /// - Potential GitHub API calls for emoji cache (with `github_emojis` feature)
 /// - One-time setup that should not repeat across parallel tests
 pub(crate) fn init_global_config_once() {
-    crate::test::config::init_test_config();
+	crate::test::config::init_test_config();
 }
 
 /// Combined initialization for logger and config
@@ -51,8 +51,8 @@ pub(crate) fn init_global_config_once() {
 /// WHY: Most tests need both logger and config initialized.
 /// This helper reduces two calls to one.
 pub(crate) fn init_test_setup() {
-    init_logger_once();
-    init_global_config_once();
+	init_logger_once();
+	init_global_config_once();
 }
 
 /// Assert that status code is one of the allowed values
@@ -60,10 +60,10 @@ pub(crate) fn init_test_setup() {
 /// WHY: Many tests check "status is OK or NOT_FOUND" or similar patterns.
 /// This helper makes such assertions more readable and provides better error messages.
 pub(crate) fn assert_status_in(status: StatusCode, allowed: &[StatusCode]) {
-    assert!(
-        allowed.contains(&status),
-        "Expected status to be one of {:?}, but got {}",
-        allowed,
-        status
-    );
+	assert!(
+		allowed.contains(&status),
+		"Expected status to be one of {:?}, but got {}",
+		allowed,
+		status
+	);
 }
