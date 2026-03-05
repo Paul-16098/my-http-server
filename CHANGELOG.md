@@ -247,6 +247,11 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *copilot-instructions*: Update project overview and architecture details by @Paul-16098
 
 
+### Styling
+
+- Use tab by @Paul-16098
+
+
 ### Testing
 
 - *main*: Add comprehensive tests for versioning, security, and request handling by @Paul-16098
