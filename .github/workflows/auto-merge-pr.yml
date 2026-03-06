@@ -79,7 +79,6 @@ jobs:
                 });
                 
                 // Verify all checks have completed successfully
-                const requiredChecks = ['test', 'security_audit'];
                 const checkStatuses = checks.data.check_runs.reduce((acc, check) => {
                   acc[check.name] = check.conclusion;
                   return acc;
@@ -87,13 +86,8 @@ jobs:
                 
                 console.log(`Check statuses for PR #${pr.number}:`, checkStatuses);
                 
-                const allRequiredChecksPassed = requiredChecks.every(checkName => {
-                  const status = checkStatuses[checkName];
-                  return ['success', 'skipped'].includes(status);
-                });
-                
-                if (!allRequiredChecksPassed) {
-                  console.log(`PR #${pr.number} does not have all required checks passing`);
+                if (!Object.values(checkStatuses).every(status => ['success', 'skipped'].includes(status))) {
+                  console.log(`Not all checks passed for PR #${pr.number}, skipping merge`);
                   continue;
                 }
                 
