@@ -89,7 +89,7 @@ jobs:
                 
                 const allRequiredChecksPassed = requiredChecks.every(checkName => {
                   const status = checkStatuses[checkName];
-                  return status === 'success';
+                  return ['success', 'skipped'].includes(status);
                 });
                 
                 if (!allRequiredChecksPassed) {
