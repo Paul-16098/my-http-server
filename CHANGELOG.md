@@ -38,6 +38,8 @@
 
 - *workflows*: Add cargo-push workflow and integrate with release process by @Paul-16098
 
+- *workflow*: Add auto-merge PR workflow with checks and conditions by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -169,6 +171,10 @@
 - Update taiki-e/install-action action to v2.68.15 (#117) by @renovate\[bot] in [#117](https://github.com/Paul-16098/my-http-server/pull/117)
 
 - Update actions-rust-lang/setup-rust-toolchain action to v1.15.3 (#118) by @renovate\[bot] in [#118](https://github.com/Paul-16098/my-http-server/pull/118)
+
+- Update taiki-e/install-action action to v2.68.16 (#119) by @renovate\[bot] in [#119](https://github.com/Paul-16098/my-http-server/pull/119)
+
+- Update actions/github-script action to v8 (#120) by @renovate\[bot] in [#120](https://github.com/Paul-16098/my-http-server/pull/120)
 
 </details>
 
