@@ -97,6 +97,12 @@
 
 - Fix for code scanning alert no. 36: Workflow does not contain permissions by @Paul-16098
 
+- *workflow*: Allow skipped checks in auto-merge condition by @Paul-16098
+
+- *workflow*: Simplify check verification logic for PR merges by @Paul-16098
+
+- *workflow*: Update PR filter pattern for renovate[bot] to match specific version by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -176,6 +182,8 @@
 
 - Update actions/github-script action to v8 (#120) by @renovate\[bot] in [#120](https://github.com/Paul-16098/my-http-server/pull/120)
 
+- Update taiki-e/install-action action to v2.68.17 (#121) by @renovate\[bot] in [#121](https://github.com/Paul-16098/my-http-server/pull/121)
+
 </details>
 
 ### Other
@@ -231,6 +239,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Merge branches 'dev' and 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
