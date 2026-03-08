@@ -40,6 +40,8 @@
 
 - *workflow*: Add auto-merge PR workflow with checks and conditions by @Paul-16098
 
+- *workflow*: Add scheduled trigger for auto-merge PR workflow by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -183,6 +185,8 @@
 - Update actions/github-script action to v8 (#120) by @renovate\[bot] in [#120](https://github.com/Paul-16098/my-http-server/pull/120)
 
 - Update taiki-e/install-action action to v2.68.17 (#121) by @renovate\[bot] in [#121](https://github.com/Paul-16098/my-http-server/pull/121)
+
+- Update taiki-e/install-action action to v2.68.18 (#122) by @renovate\[bot] in [#122](https://github.com/Paul-16098/my-http-server/pull/122)
 
 </details>
 
