@@ -196,6 +196,10 @@
 
 - Update taiki-e/install-action action to v2.68.22 (#127) by @renovate\[bot] in [#127](https://github.com/Paul-16098/my-http-server/pull/127)
 
+- Update taiki-e/install-action action to v2.68.23 (#128) by @renovate\[bot] in [#128](https://github.com/Paul-16098/my-http-server/pull/128)
+
+- Update taiki-e/install-action action to v2.68.25 (#129) by @renovate\[bot] in [#129](https://github.com/Paul-16098/my-http-server/pull/129)
+
 </details>
 
 ### Other
@@ -368,6 +372,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *ci*: Update cargo-dist version to 0.31.0 by @Paul-16098
 
 - *workflows*: Remove deprecated Docker publish workflow by @Paul-16098
+
+- *pre-commit*: Add configuration for Rust formatting hook by @Paul-16098
 
 
 
