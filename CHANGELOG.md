@@ -204,6 +204,12 @@
 
 - Update rust crate tempfile to v3.27.0 (#131) by @renovate\[bot] in [#131](https://github.com/Paul-16098/my-http-server/pull/131)
 
+- Update taiki-e/install-action action to v2.68.27 (#133) by @renovate\[bot] in [#133](https://github.com/Paul-16098/my-http-server/pull/133)
+
+- Update rust crate clap to v4.6.0 (#134) by @renovate\[bot] in [#134](https://github.com/Paul-16098/my-http-server/pull/134)
+
+- Update rust crate config to v0.15.21 (#132) by @renovate\[bot] in [#132](https://github.com/Paul-16098/my-http-server/pull/132)
+
 </details>
 
 ### Other
