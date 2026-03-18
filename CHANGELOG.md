@@ -210,6 +210,10 @@
 
 - Update rust crate config to v0.15.21 (#132) by @renovate\[bot] in [#132](https://github.com/Paul-16098/my-http-server/pull/132)
 
+- Update taiki-e/install-action action to v2.68.28 (#135) by @renovate\[bot] in [#135](https://github.com/Paul-16098/my-http-server/pull/135)
+
+- Update taiki-e/install-action action to v2.68.29 (#136) by @renovate\[bot] in [#136](https://github.com/Paul-16098/my-http-server/pull/136)
+
 </details>
 
 ### Other
