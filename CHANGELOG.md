@@ -224,6 +224,8 @@
 
 - Update taiki-e/install-action action to v2.68.34 (#141) by @renovate\[bot] in [#141](https://github.com/Paul-16098/my-http-server/pull/141)
 
+- Update taiki-e/install-action action to v2.68.35 (#142) by @renovate\[bot] in [#142](https://github.com/Paul-16098/my-http-server/pull/142)
+
 </details>
 
 ### Other
@@ -398,6 +400,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *workflows*: Remove deprecated Docker publish workflow by @Paul-16098
 
 - *pre-commit*: Add configuration for Rust formatting hook by @Paul-16098
+
+- *workflow*: Remove unused docker-test job from test.yml by @Paul-16098
 
 
 
