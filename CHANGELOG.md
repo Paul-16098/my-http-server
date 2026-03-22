@@ -226,6 +226,12 @@
 
 - Update taiki-e/install-action action to v2.68.35 (#142) by @renovate\[bot] in [#142](https://github.com/Paul-16098/my-http-server/pull/142)
 
+- Bump rustls-webpki in the cargo group across 1 directory (#144) by @dependabot\[bot] in [#144](https://github.com/Paul-16098/my-http-server/pull/144)
+
+- Update codecov/codecov-action action to v5.5.3 (#145) by @renovate\[bot] in [#145](https://github.com/Paul-16098/my-http-server/pull/145)
+
+- Update taiki-e/install-action action to v2.68.36 (#146) by @renovate\[bot] in [#146](https://github.com/Paul-16098/my-http-server/pull/146)
+
 </details>
 
 ### Other
@@ -405,7 +411,7 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 
 
-- @dependabot[bot] made their first contribution in #95## \[4.1.1\] - 2026-01-10
+- @dependabot[bot] made their first contribution in #144## \[4.1.1\] - 2026-01-10
 
 ### Bug Fixes
 
