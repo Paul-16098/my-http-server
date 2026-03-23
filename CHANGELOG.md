@@ -232,6 +232,10 @@
 
 - Update taiki-e/install-action action to v2.68.36 (#146) by @renovate\[bot] in [#146](https://github.com/Paul-16098/my-http-server/pull/146)
 
+- Update rust crate config to v0.15.22 (#143) by @renovate\[bot] in [#143](https://github.com/Paul-16098/my-http-server/pull/143)
+
+- Update taiki-e/install-action action to v2.69.2 (#147) by @renovate\[bot] in [#147](https://github.com/Paul-16098/my-http-server/pull/147)
+
 </details>
 
 ### Other
@@ -408,6 +412,8 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 - *pre-commit*: Add configuration for Rust formatting hook by @Paul-16098
 
 - *workflow*: Remove unused docker-test job from test.yml by @Paul-16098
+
+- Update PR title pattern for renovate[bot] to v2.69 by @Paul-16098
 
 
 
