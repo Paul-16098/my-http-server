@@ -240,6 +240,14 @@
 
 - Update taiki-e/install-action action to v2.69.4 (#149) by @renovate\[bot] in [#149](https://github.com/Paul-16098/my-http-server/pull/149)
 
+- Update taiki-e/install-action action to v2.69.5 (#150) by @renovate\[bot] in [#150](https://github.com/Paul-16098/my-http-server/pull/150)
+
+- Update rust crate ureq to v3.2.1 (#151) by @renovate\[bot] in [#151](https://github.com/Paul-16098/my-http-server/pull/151)
+
+- Update taiki-e/install-action action to v2.69.6 (#153) by @renovate\[bot] in [#153](https://github.com/Paul-16098/my-http-server/pull/153)
+
+- Update rust crate ureq to v3.3.0 (#152) by @renovate\[bot] in [#152](https://github.com/Paul-16098/my-http-server/pull/152)
+
 </details>
 
 ### Other
