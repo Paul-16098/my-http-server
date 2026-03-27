@@ -248,6 +248,10 @@
 
 - Update rust crate ureq to v3.3.0 (#152) by @renovate\[bot] in [#152](https://github.com/Paul-16098/my-http-server/pull/152)
 
+- Update taiki-e/install-action action to v2.69.7 (#154) by @renovate\[bot] in [#154](https://github.com/Paul-16098/my-http-server/pull/154)
+
+- Update rust crate env_logger to v0.11.10 (#155) by @renovate\[bot] in [#155](https://github.com/Paul-16098/my-http-server/pull/155)
+
 </details>
 
 ### Other
