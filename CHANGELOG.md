@@ -252,6 +252,8 @@
 
 - Update rust crate env_logger to v0.11.10 (#155) by @renovate\[bot] in [#155](https://github.com/Paul-16098/my-http-server/pull/155)
 
+- Update taiki-e/install-action action to v2.69.8 (#156) by @renovate\[bot] in [#156](https://github.com/Paul-16098/my-http-server/pull/156)
+
 </details>
 
 ### Other
