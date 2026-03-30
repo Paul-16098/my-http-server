@@ -258,6 +258,10 @@
 
 - Update taiki-e/install-action action to v2.69.10 (#158) by @renovate\[bot] in [#158](https://github.com/Paul-16098/my-http-server/pull/158)
 
+- Update taiki-e/install-action action to v2.69.11 (#161) by @renovate\[bot] in [#161](https://github.com/Paul-16098/my-http-server/pull/161)
+
+- Update codecov/codecov-action action to v6 (#160) by @renovate\[bot] in [#160](https://github.com/Paul-16098/my-http-server/pull/160)
+
 </details>
 
 ### Other
