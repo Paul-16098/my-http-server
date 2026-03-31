@@ -26,7 +26,7 @@
     {% for commit in commits %}
         - {% if commit.scope %}*{{ commit.scope }}*: {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first }}\
+            {{ commit.message | upper_first | replace(from="[", to="\\[") | linebreaksbr }}\
             {% if commit.remote.username %} by @{{ commit.remote.username | replace(from="[", to="\\[") }}{%- endif %}\
             {% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/pull/{{ commit.remote.pr_number }}){%- endif %}
     {% endfor %}
