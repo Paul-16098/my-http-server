@@ -103,7 +103,9 @@
 
 - *workflow*: Simplify check verification logic for PR merges by @Paul-16098
 
-- *workflow*: Update PR filter pattern for renovate[bot] to match specific version by @Paul-16098
+- *workflow*: Update PR filter pattern for renovate\[bot] to match specific version by @Paul-16098
+
+- *changelog*: Escape brackets in commit messages for proper rendering by @Paul-16098
 
 ### <details><summary>Deps</summary>
 
@@ -136,13 +138,13 @@
 
 - Update rust crate clap to v4.5.56 (#92) by @renovate\[bot] in [#92](https://github.com/Paul-16098/my-http-server/pull/92)
 
-- Update rust crate actix-files to v0.6.10 [security] (#99) by @renovate\[bot] in [#99](https://github.com/Paul-16098/my-http-server/pull/99)
+- Update rust crate actix-files to v0.6.10 \[security] (#99) by @renovate\[bot] in [#99](https://github.com/Paul-16098/my-http-server/pull/99)
 
 - Update taiki-e/install-action action to v2.67.20 (#96) by @renovate\[bot] in [#96](https://github.com/Paul-16098/my-http-server/pull/96)
 
 - Update rust crate clap to v4.5.57 (#97) by @renovate\[bot] in [#97](https://github.com/Paul-16098/my-http-server/pull/97)
 
-- Update rust crate time to v0.3.47 [security] (#100) by @Paul-16098
+- Update rust crate time to v0.3.47 \[security] (#100) by @Paul-16098
 
 - Update rust crate ureq to v3.2.0 (#101) by @renovate\[bot] in [#101](https://github.com/Paul-16098/my-http-server/pull/101)
 
@@ -266,6 +268,8 @@
 
 - Update taiki-e/install-action action to v2.69.13 (#163) by @renovate\[bot] in [#163](https://github.com/Paul-16098/my-http-server/pull/163)
 
+- Update taiki-e/install-action action to v2.69.14 (#164) by @renovate\[bot] in [#164](https://github.com/Paul-16098/my-http-server/pull/164)
+
 </details>
 
 ### Other
@@ -274,47 +278,31 @@
 
 - Bump version to 4.1.3 by @Paul-16098
 
-- Merge pull request #73 from Paul-16098/dev
-
-v4.1.2 by @Paul-16098 in [#73](https://github.com/Paul-16098/my-http-server/pull/73)
+- Merge pull request #73 from Paul-16098/dev<br><br>v4.1.2 by @Paul-16098 in [#73](https://github.com/Paul-16098/my-http-server/pull/73)
 
 - Merge branch 'main' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - *release*: Bump version to 4.1.3 by @Paul-16098
 
-- Update .github/workflows/release-tag-and-backmerge.yml
-
-Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com> by @Paul-16098
+- Update .github/workflows/release-tag-and-backmerge.yml<br><br>Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com> by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Initial plan by @Copilot
 
-- Create comprehensive test infrastructure for my-http-server
+- Create comprehensive test infrastructure for my-http-server<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Fix remaining test failures and ensure all tests pass<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-- Fix remaining test failures and ensure all tests pass
+- Fix integration test hangs by initializing config before service creation<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Fix integration test hangs by initializing config before service creation
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Fix test race condition by using Once for global initialization
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Fix test race condition by using Once for global initialization<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
 - Merge branch 'dev' into copilot/add-test-coverage by @Paul-16098
 
-- Merge pull request #83 from Paul-16098/copilot/add-test-coverage
+- Merge pull request #83 from Paul-16098/copilot/add-test-coverage<br><br>Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098 in [#83](https://github.com/Paul-16098/my-http-server/pull/83)
 
-Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098 in [#83](https://github.com/Paul-16098/my-http-server/pull/83)
-
-- Merge pull request #86 from Paul-16098/renovate/taiki-e-install-action-2.x
-
-chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] in [#86](https://github.com/Paul-16098/my-http-server/pull/86)
+- Merge pull request #86 from Paul-16098/renovate/taiki-e-install-action-2.x<br><br>chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] in [#86](https://github.com/Paul-16098/my-http-server/pull/86)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -443,7 +431,9 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 - *workflow*: Remove unused docker-test job from test.yml by @Paul-16098
 
-- Update PR title pattern for renovate[bot] to v2.69 by @Paul-16098
+- Update PR title pattern for renovate\[bot] to v2.69 by @Paul-16098
+
+- *dist*: Reorder target platforms in configuration by @Paul-16098
 
 
 
@@ -458,18 +448,14 @@ chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] 
 
 ### Other
 
-- Merge pull request #67 from Paul-16098:dev
-
-Add GitHub Attestations and update my-http-server version by @Paul-16098 in [#67](https://github.com/Paul-16098/my-http-server/pull/67)
+- Merge pull request #67 from Paul-16098:dev<br><br>Add GitHub Attestations and update my-http-server version by @Paul-16098 in [#67](https://github.com/Paul-16098/my-http-server/pull/67)
 
 
 ## \[4.1.2\] - 2026-01-12
 
 ### Features
 
-- Feat(workflow): add GitHub Attestations and cargo-auditable support; update permissions in release.yml
-fix(package): enable license sidecar in Wix installer and update description in Cargo.toml
-chore(dist): enable GitHub Attestations and cargo-auditable in dist-workspace.toml by @Paul-16098
+- Feat(workflow): add GitHub Attestations and cargo-auditable support; update permissions in release.yml<br>fix(package): enable license sidecar in Wix installer and update description in Cargo.toml<br>chore(dist): enable GitHub Attestations and cargo-auditable in dist-workspace.toml by @Paul-16098
 
 - *workflow*: Add rust-cache action and update pr-run-mode in dist workspace by @Paul-16098
 
@@ -505,9 +491,7 @@ chore(dist): enable GitHub Attestations and cargo-auditable in dist-workspace.to
 
 - Merge remote-tracking branch 'origin/main' into dev by @Paul-16098
 
-- Merge pull request #66 from Paul-16098/renovate/taiki-e-install-action-2.x
-
-chore(deps): update taiki-e/install-action action to v2.66.0 by @renovate\[bot] in [#66](https://github.com/Paul-16098/my-http-server/pull/66)
+- Merge pull request #66 from Paul-16098/renovate/taiki-e-install-action-2.x<br><br>chore(deps): update taiki-e/install-action action to v2.66.0 by @renovate\[bot] in [#66](https://github.com/Paul-16098/my-http-server/pull/66)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -535,9 +519,7 @@ chore(deps): update taiki-e/install-action action to v2.66.0 by @renovate\[bot] 
 
 ### Features
 
-- Feat(api): add file retrieval endpoint with validation and IP filtering
-chore(config): update IP filtering configuration structure
-fix(swagger): update Swagger UI dependencies to latest version by @Paul-16098
+- Feat(api): add file retrieval endpoint with validation and IP filtering<br>chore(config): update IP filtering configuration structure<br>fix(swagger): update Swagger UI dependencies to latest version by @Paul-16098
 
 - *api*: Enhance file metadata and directory listing endpoints with security and performance notes by @Paul-16098
 
@@ -631,62 +613,31 @@ fix(swagger): update Swagger UI dependencies to latest version by @Paul-16098
 
 - Checkpoint from VS Code for coding agent session by @Paul-16098
 
-- Add file-related API endpoints
+- Add file-related API endpoints<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Refactor validation functions and improve data structures
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Refactor validation functions and improve data structures<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
 - Remove temporary test file by @Copilot
 
-- Fix minor formatting issues
+- Fix minor formatting issues<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Merge pull request #43 from Paul-16098/copilot/parliamentary-pig<br><br>Add file operations API endpoints (info, list, exists) by @Paul-16098 in [#43](https://github.com/Paul-16098/my-http-server/pull/43)
 
-- Merge pull request #43 from Paul-16098/copilot/parliamentary-pig
+- Merge pull request #45 from Paul-16098/renovate/taiki-e-install-action-2.x<br><br>chore(deps): update taiki-e/install-action action to v2.62.57 by @renovate\[bot] in [#45](https://github.com/Paul-16098/my-http-server/pull/45)
 
-Add file operations API endpoints (info, list, exists) by @Paul-16098 in [#43](https://github.com/Paul-16098/my-http-server/pull/43)
+- Merge pull request #46 from Paul-16098:refactor(github-emojis)<br><br>refactor: update dependencies and improve emoji handling logic by @Paul-16098 in [#46](https://github.com/Paul-16098/my-http-server/pull/46)
 
-- Merge pull request #45 from Paul-16098/renovate/taiki-e-install-action-2.x
+- Merge pull request #49 from Paul-16098/renovate/actix-web-4.x-lockfile<br><br>chore(deps): update rust crate actix-web to v4.12.1 by @renovate\[bot] in [#49](https://github.com/Paul-16098/my-http-server/pull/49)
 
-chore(deps): update taiki-e/install-action action to v2.62.57 by @renovate\[bot] in [#45](https://github.com/Paul-16098/my-http-server/pull/45)
+- Merge pull request #56 from Paul-16098:renovate/taiki-e-install-action-2.x<br><br>chore(deps): update taiki-e/install-action action to v2.63.1 by @Paul-16098 in [#56](https://github.com/Paul-16098/my-http-server/pull/56)
 
-- Merge pull request #46 from Paul-16098:refactor(github-emojis)
-
-refactor: update dependencies and improve emoji handling logic by @Paul-16098 in [#46](https://github.com/Paul-16098/my-http-server/pull/46)
-
-- Merge pull request #49 from Paul-16098/renovate/actix-web-4.x-lockfile
-
-chore(deps): update rust crate actix-web to v4.12.1 by @renovate\[bot] in [#49](https://github.com/Paul-16098/my-http-server/pull/49)
-
-- Merge pull request #56 from Paul-16098:renovate/taiki-e-install-action-2.x
-
-chore(deps): update taiki-e/install-action action to v2.63.1 by @Paul-16098 in [#56](https://github.com/Paul-16098/my-http-server/pull/56)
-
-- Merge pull request #63 from Paul-16098/renovate/rustls-0.x-lockfile
-
-chore(deps): update rust crate rustls to v0.23.36 by @Paul-16098 in [#63](https://github.com/Paul-16098/my-http-server/pull/63)
+- Merge pull request #63 from Paul-16098/renovate/rustls-0.x-lockfile<br><br>chore(deps): update rust crate rustls to v0.23.36 by @Paul-16098 in [#63](https://github.com/Paul-16098/my-http-server/pull/63)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
-- Pin docker/setup-buildx-action to commit hash (#65)
+- Pin docker/setup-buildx-action to commit hash (#65)<br><br>* Initial plan<br><br>* fix(workflow): pin docker/setup-buildx-action to commit hash for security<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com><br><br>---------<br><br>Co-authored-by: copilot-swe-agent\[bot] <198982749+Copilot@users.noreply.github.com><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot in [#65](https://github.com/Paul-16098/my-http-server/pull/65)
 
-* Initial plan
-
-* fix(workflow): pin docker/setup-buildx-action to commit hash for security
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com>
-
----------
-
-Co-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot in [#65](https://github.com/Paul-16098/my-http-server/pull/65)
-
-- Merge pull request #64 from Paul-16098/release-5.0.0
-
-release-5.0.0 by @Paul-16098 in [#64](https://github.com/Paul-16098/my-http-server/pull/64)
+- Merge pull request #64 from Paul-16098/release-5.0.0<br><br>release-5.0.0 by @Paul-16098 in [#64](https://github.com/Paul-16098/my-http-server/pull/64)
 
 
 ### Refactor
@@ -771,8 +722,7 @@ release-5.0.0 by @Paul-16098 in [#64](https://github.com/Paul-16098/my-http-serv
 
 - 注釋掉測試工作流中的條件判斷以避免失敗 by @Paul-16098
 
-- Fix(errors): improve error response body handling and simplify status code logic
-fix(tests): update assertion for TOC test to check for non-empty result by @Paul-16098
+- Fix(errors): improve error response body handling and simplify status code logic<br>fix(tests): update assertion for TOC test to check for non-empty result by @Paul-16098
 
 - *ci*: Fix Unpinned tag for a non-immutable Action in workflow by @Paul-16098
 
@@ -807,27 +757,19 @@ fix(tests): update assertion for TOC test to check for non-empty result by @Paul
 
 ### Other
 
-- Merge pull request #28 from Paul-16098/main
-
-chore: back-merge v3.2.0 into dev by @Paul-16098 in [#28](https://github.com/Paul-16098/my-http-server/pull/28)
+- Merge pull request #28 from Paul-16098/main<br><br>chore: back-merge v3.2.0 into dev by @Paul-16098 in [#28](https://github.com/Paul-16098/my-http-server/pull/28)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
-- Merge pull request #29 from Paul-16098/renovate/actix-governor-0.x
-
-fix(deps): update rust crate actix-governor to 0.10.0 by @Paul-16098 in [#29](https://github.com/Paul-16098/my-http-server/pull/29)
+- Merge pull request #29 from Paul-16098/renovate/actix-governor-0.x<br><br>fix(deps): update rust crate actix-governor to 0.10.0 by @Paul-16098 in [#29](https://github.com/Paul-16098/my-http-server/pull/29)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
-- Potential fix for code scanning alert no. 1: Workflow does not contain permissions
-
-Co-authored-by: Copilot Autofix powered by AI <62310815+github-advanced-security[bot]@users.noreply.github.com> by @Paul-16098
+- Potential fix for code scanning alert no. 1: Workflow does not contain permissions<br><br>Co-authored-by: Copilot Autofix powered by AI <62310815+github-advanced-security\[bot]@users.noreply.github.com> by @Paul-16098
 
 - Implement code changes to enhance functionality and improve performance by @Paul-16098
 
-- Merge pull request #32 from Paul-16098:renovate/rustls-0.x-lockfile
-
-chore(deps): update rust crate rustls to v0.23.34 by @Paul-16098 in [#32](https://github.com/Paul-16098/my-http-server/pull/32)
+- Merge pull request #32 from Paul-16098:renovate/rustls-0.x-lockfile<br><br>chore(deps): update rust crate rustls to v0.23.34 by @Paul-16098 in [#32](https://github.com/Paul-16098/my-http-server/pull/32)
 
 - 👷 ci(test-with-httpyac): add for act by @Paul-16098
 
@@ -883,9 +825,7 @@ chore(deps): update rust crate rustls to v0.23.34 by @Paul-16098 in [#32](https:
 
 ### Other
 
-- Merge pull request #24 from Paul-16098/main
-
-chore: back-merge v3.1.0 into dev by @Paul-16098 in [#24](https://github.com/Paul-16098/my-http-server/pull/24)
+- Merge pull request #24 from Paul-16098/main<br><br>chore: back-merge v3.1.0 into dev by @Paul-16098 in [#24](https://github.com/Paul-16098/my-http-server/pull/24)
 
 - 使用 TOML 讀取器替換從 Cargo.toml 提取版本的自定義腳本 by @Paul-16098
 
@@ -903,23 +843,15 @@ chore: back-merge v3.1.0 into dev by @Paul-16098 in [#24](https://github.com/Pau
 
 - Initial plan by @Copilot
 
-- Add IP filter functionality using actix-ip-filter
+- Add IP filter functionality using actix-ip-filter<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Add IP filter documentation and update README<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-- Add IP filter documentation and update README
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Add comprehensive IP filter implementation summary
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Add comprehensive IP filter implementation summary<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
 - 更新 IP 過濾器設定，新增配置範例及文件說明 by @Paul-16098
 
-- Merge pull request #26 from Paul-16098/copilot/add-ip-filter-functionality
-
-Add IP filter functionality using actix-ip-filter by @Paul-16098 in [#26](https://github.com/Paul-16098/my-http-server/pull/26)
+- Merge pull request #26 from Paul-16098/copilot/add-ip-filter-functionality<br><br>Add IP filter functionality using actix-ip-filter by @Paul-16098 in [#26](https://github.com/Paul-16098/my-http-server/pull/26)
 
 - 新增 actix-governor 套件，更新配置以支援速率限制功能，並調整 IP 過濾器設定 by @Paul-16098
 
@@ -929,9 +861,7 @@ Add IP filter functionality using actix-ip-filter by @Paul-16098 in [#26](https:
 
 - 修正 TLS 設定邏輯中的導入，合併 PrivatePkcs8KeyDer 至 rustls::pki_types 模組，並簡化錯誤處理邏輯以增強可讀性 by @Paul-16098
 
-- Merge pull request #27 from Paul-16098/release-3.2.0
-
-v3.2.0 by @Paul-16098 in [#27](https://github.com/Paul-16098/my-http-server/pull/27)
+- Merge pull request #27 from Paul-16098/release-3.2.0<br><br>v3.2.0 by @Paul-16098 in [#27](https://github.com/Paul-16098/my-http-server/pull/27)
 
 
 ### Documentation
@@ -965,39 +895,23 @@ v3.2.0 by @Paul-16098 in [#27](https://github.com/Paul-16098/my-http-server/pull
 
 - Initial plan by @Copilot
 
-- Add TLS support with rustls
+- Add TLS support with rustls<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Add TLS documentation and .gitignore rules for certificates<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-- Add TLS documentation and .gitignore rules for certificates
+- Update Docker and README with TLS/HTTPS usage examples<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Update Docker and README with TLS/HTTPS usage examples
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Fix cross-compilation by switching to ring crypto backend
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Fix cross-compilation by switching to ring crypto backend<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
 - Refactor TLS configuration loading and update tests for clarity by @Paul-16098
 
 - *docker*: Update image build to align with new templating defaults by @Paul-16098
 
-- Merge pull request #22 from Paul-16098/feature/use-handlebars
-
-feat(templating): migrate to Handlebars and align pipeline, config, tests, and docs by @Paul-16098 in [#22](https://github.com/Paul-16098/my-http-server/pull/22)
+- Merge pull request #22 from Paul-16098/feature/use-handlebars<br><br>feat(templating): migrate to Handlebars and align pipeline, config, tests, and docs by @Paul-16098 in [#22](https://github.com/Paul-16098/my-http-server/pull/22)
 
 - Merge branch 'dev' into copilot/add-tls-support by @Paul-16098
 
-- Fix TLS CLI logic and improve key selection clarity
-
-- Only enable TLS when both cert and key are provided via CLI
-- Change from pop() to into_iter().next() for first key selection
-- Add tests for partial CLI arguments (cert-only, key-only)
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Fix TLS CLI logic and improve key selection clarity<br><br>- Only enable TLS when both cert and key are provided via CLI<br>- Change from pop() to into_iter().next() for first key selection<br>- Add tests for partial CLI arguments (cert-only, key-only)<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
 - Merge branch 'copilot/add-tls-support' of https://github.com/Paul-16098/my-http-server into copilot/add-tls-support by @Paul-16098
 
@@ -1005,17 +919,13 @@ Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @C
 
 - 簡化伺服器啟動日誌，根據 TLS 設定顯示 HTTP 或 HTTPS 協議 by @Paul-16098
 
-- Merge pull request #21 from Paul-16098/copilot/add-tls-support
-
-Add TLS/HTTPS support with rustls by @Paul-16098 in [#21](https://github.com/Paul-16098/my-http-server/pull/21)
+- Merge pull request #21 from Paul-16098/copilot/add-tls-support<br><br>Add TLS/HTTPS support with rustls by @Paul-16098 in [#21](https://github.com/Paul-16098/my-http-server/pull/21)
 
 - 更新工作流程配置，為推送事件添加分支條件 by @Paul-16098
 
 - V3.1.0 by @Paul-16098
 
-- Merge pull request #23 from Paul-16098:release-3.1.0
-
-v3.1.0 by @Paul-16098 in [#23](https://github.com/Paul-16098/my-http-server/pull/23)
+- Merge pull request #23 from Paul-16098:release-3.1.0<br><br>v3.1.0 by @Paul-16098 in [#23](https://github.com/Paul-16098/my-http-server/pull/23)
 
 
 ### Refactor
@@ -1096,33 +1006,23 @@ v3.1.0 by @Paul-16098 in [#23](https://github.com/Paul-16098/my-http-server/pull
 
 ### Other
 
-- Merge pull request #14 from Paul-16098/release-3.0.2
-
-release: 3.0.2 by @Paul-16098 in [#14](https://github.com/Paul-16098/my-http-server/pull/14)
+- Merge pull request #14 from Paul-16098/release-3.0.2<br><br>release: 3.0.2 by @Paul-16098 in [#14](https://github.com/Paul-16098/my-http-server/pull/14)
 
 - Merge remote-tracking branch 'origin/main' into dev by @Paul-16098
 
-- Merge pull request #15 from Paul-16098/renovate/docker-dockerfile-1.x
-
-chore(deps): update docker/dockerfile docker tag to v1.19 by @Paul-16098 in [#15](https://github.com/Paul-16098/my-http-server/pull/15)
+- Merge pull request #15 from Paul-16098/renovate/docker-dockerfile-1.x<br><br>chore(deps): update docker/dockerfile docker tag to v1.19 by @Paul-16098 in [#15](https://github.com/Paul-16098/my-http-server/pull/15)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Adjust build script for config module changes by @Paul-16098
 
-- Merge pull request #16 from Paul-16098:feature/add-dir-toc
-
-feat(toc): add directory TOC + cofg refactor by @Paul-16098 in [#16](https://github.com/Paul-16098/my-http-server/pull/16)
+- Merge pull request #16 from Paul-16098:feature/add-dir-toc<br><br>feat(toc): add directory TOC + cofg refactor by @Paul-16098 in [#16](https://github.com/Paul-16098/my-http-server/pull/16)
 
 - Merge pull request #17 from Paul-16098/release-3.0.3 by @Paul-16098 in [#17](https://github.com/Paul-16098/my-http-server/pull/17)
 
-- Merge pull request #18 from Paul-16098/release-3.0.3
+- Merge pull request #18 from Paul-16098/release-3.0.3<br><br>chore: back-merge release 3.0.3 into dev by @Paul-16098 in [#18](https://github.com/Paul-16098/my-http-server/pull/18)
 
-chore: back-merge release 3.0.3 into dev by @Paul-16098 in [#18](https://github.com/Paul-16098/my-http-server/pull/18)
-
-- Merge pull request #19 from Paul-16098/renovate/actions-checkout-5.x
-
-chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#19](https://github.com/Paul-16098/my-http-server/pull/19)
+- Merge pull request #19 from Paul-16098/renovate/actions-checkout-5.x<br><br>chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#19](https://github.com/Paul-16098/my-http-server/pull/19)
 
 - Merge pull request #20 from Paul-16098/renovate/actions-github-script-8.x by @Paul-16098 in [#20](https://github.com/Paul-16098/my-http-server/pull/20)
 
@@ -1133,11 +1033,7 @@ chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#19](https:
 
 - *cofg*: Replace cofg.rs with config.rs and update module wiring by @Paul-16098
 
-- Refactor(cli): update Args conversion to use TryFrom for better error handling
-refactor(mod): change build_config_from_cli to return AppResult for error propagation
-fix(error): rename error variant from _Other to Other for consistency
-fix(request): improve path handling with better error logging in main_req
-test(cli): update tests to reflect changes in Args conversion logic by @Paul-16098
+- Refactor(cli): update Args conversion to use TryFrom for better error handling<br>refactor(mod): change build_config_from_cli to return AppResult for error propagation<br>fix(error): rename error variant from _Other to Other for consistency<br>fix(request): improve path handling with better error logging in main_req<br>test(cli): update tests to reflect changes in Args conversion logic by @Paul-16098
 
 
 ### Documentation
@@ -1182,8 +1078,7 @@ test(cli): update tests to reflect changes in Args conversion logic by @Paul-160
 
 - 在發佈工序中新增對 .asc 檔案的支援 by @Paul-16098
 
-- Fix: 更新 markdown-ppp 版本至 2.1.1 並移除 Git 來源，改為使用註冊表
-feat: 新增 Dependabot 配置以自動更新依賴 by @Paul-16098
+- Fix: 更新 markdown-ppp 版本至 2.1.1 並移除 Git 來源，改為使用註冊表<br>feat: 新增 Dependabot 配置以自動更新依賴 by @Paul-16098
 
 ### <details><summary>Deps</summary>
 
@@ -1200,31 +1095,19 @@ feat: 新增 Dependabot 配置以自動更新依賴 by @Paul-16098
 
 - Back-merge release 3.0.1 into dev by @Paul-16098
 
-- Merge pull request #7 from Paul-16098/feature/http-request-caching
+- Merge pull request #7 from Paul-16098/feature/http-request-caching<br><br>feat(http): add per-request HttpRequest cached helpers; integrate in main; add tests by @Paul-16098 in [#7](https://github.com/Paul-16098/my-http-server/pull/7)
 
-feat(http): add per-request HttpRequest cached helpers; integrate in main; add tests by @Paul-16098 in [#7](https://github.com/Paul-16098/my-http-server/pull/7)
-
-- Merge pull request #8 from Paul-16098/feature/docs-internal-architecture
-
-feat(docs): internal architecture & rendering flow documentation by @Paul-16098 in [#8](https://github.com/Paul-16098/my-http-server/pull/8)
+- Merge pull request #8 from Paul-16098/feature/docs-internal-architecture<br><br>feat(docs): internal architecture & rendering flow documentation by @Paul-16098 in [#8](https://github.com/Paul-16098/my-http-server/pull/8)
 
 - Add renovate.json by @renovate\[bot]
 
-- Merge pull request #9 from Paul-16098/renovate/configure
+- Merge pull request #9 from Paul-16098/renovate/configure<br><br>chore: Configure Renovate by @Paul-16098 in [#9](https://github.com/Paul-16098/my-http-server/pull/9)
 
-chore: Configure Renovate by @Paul-16098 in [#9](https://github.com/Paul-16098/my-http-server/pull/9)
+- Merge pull request #10 from Paul-16098/renovate/docker-dockerfile-1.x<br><br>chore(deps): update docker/dockerfile docker tag to v1.18 by @Paul-16098 in [#10](https://github.com/Paul-16098/my-http-server/pull/10)
 
-- Merge pull request #10 from Paul-16098/renovate/docker-dockerfile-1.x
+- Merge pull request #11 from Paul-16098/renovate/rust-1.x<br><br>chore(deps): update rust docker tag to v1.90.0 by @Paul-16098 in [#11](https://github.com/Paul-16098/my-http-server/pull/11)
 
-chore(deps): update docker/dockerfile docker tag to v1.18 by @Paul-16098 in [#10](https://github.com/Paul-16098/my-http-server/pull/10)
-
-- Merge pull request #11 from Paul-16098/renovate/rust-1.x
-
-chore(deps): update rust docker tag to v1.90.0 by @Paul-16098 in [#11](https://github.com/Paul-16098/my-http-server/pull/11)
-
-- Merge pull request #13 from Paul-16098/renovate/actions-checkout-5.x
-
-chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#13](https://github.com/Paul-16098/my-http-server/pull/13)
+- Merge pull request #13 from Paul-16098/renovate/actions-checkout-5.x<br><br>chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#13](https://github.com/Paul-16098/my-http-server/pull/13)
 
 
 ### Refactor
@@ -1264,21 +1147,15 @@ chore(deps): update actions/checkout action to v5 by @Paul-16098 in [#13](https:
 
 ### Other
 
-- Merge pull request #3 from Paul-16098/release-3.0.0
-
-release-3.0.0: version bump and dependency alignment by @Paul-16098 in [#3](https://github.com/Paul-16098/my-http-server/pull/3)
+- Merge pull request #3 from Paul-16098/release-3.0.0<br><br>release-3.0.0: version bump and dependency alignment by @Paul-16098 in [#3](https://github.com/Paul-16098/my-http-server/pull/3)
 
 - Initial plan by @Copilot
 
-- Implement GPG signing for release artifacts
-
-Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+- Implement GPG signing for release artifacts<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
 
 - Merge pull request #6 from Paul-16098/copilot/fix-5 by @Paul-16098 in [#6](https://github.com/Paul-16098/my-http-server/pull/6)
 
-- Merge pull request #4 from Paul-16098:feat/clap
-
-Add CLI argument parsing and enhance configuration management by @Paul-16098 in [#4](https://github.com/Paul-16098/my-http-server/pull/4)
+- Merge pull request #4 from Paul-16098:feat/clap<br><br>Add CLI argument parsing and enhance configuration management by @Paul-16098 in [#4](https://github.com/Paul-16098/my-http-server/pull/4)
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
@@ -1314,12 +1191,9 @@ Add CLI argument parsing and enhance configuration management by @Paul-16098 in 
 
 - *config*: 新增 Cofg 結構及其 YAML 配置檔案 by @Paul-16098
 
-- Feat(docs): 更新 README.md 以更清楚地說明功能與安裝步驟，移除不必要的說明
-refactor(main): 精簡檔案處理邏輯，移除不再使用的 _public 目錄相關程式碼 by @Paul-16098
+- Feat(docs): 更新 README.md 以更清楚地說明功能與安裝步驟，移除不必要的說明<br>refactor(main): 精簡檔案處理邏輯，移除不再使用的 _public 目錄相關程式碼 by @Paul-16098
 
-- Feat(cofg): add more cofg
-docs(README): update
-test(cofg): add cofg test by @Paul-16098
+- Feat(cofg): add more cofg<br>docs(README): update<br>test(cofg): add cofg test by @Paul-16098
 
 - Add templating by @Paul-16098
 
@@ -1331,9 +1205,7 @@ test(cofg): add cofg test by @Paul-16098
 
 - *cofg*: 更改格式 by @Paul-16098
 
-- Feat(toc): 增加目錄生成的擴展名選項，並更新生成邏輯
-refactor(cli): 移除不必要的 sccache 配置步驟
-docs: 更新 README.md，添加 CI/CD 狀態徽章 by @Paul-16098
+- Feat(toc): 增加目錄生成的擴展名選項，並更新生成邏輯<br>refactor(cli): 移除不必要的 sccache 配置步驟<br>docs: 更新 README.md，添加 CI/CD 狀態徽章 by @Paul-16098
 
 - 更新依賴版本，新增錯誤處理，重構配置加載邏輯 by @Paul-16098
 
@@ -1397,9 +1269,7 @@ docs: 更新 README.md，添加 CI/CD 狀態徽章 by @Paul-16098
 
 - *logger*: 可读性優化 by @Paul-16098
 
-- Merge pull request #1 from Paul-16098:feat/templating
-
-feat(templating): add templating by @Paul-16098 in [#1](https://github.com/Paul-16098/my-http-server/pull/1)
+- Merge pull request #1 from Paul-16098:feat/templating<br><br>feat(templating): add templating by @Paul-16098 in [#1](https://github.com/Paul-16098/my-http-server/pull/1)
 
 - *parser*: 重構 `parser::md2html` by @Paul-16098
 
@@ -1411,9 +1281,7 @@ feat(templating): add templating by @Paul-16098 in [#1](https://github.com/Paul-
 
 - *server*: Refactor routing to handlers (index + catch-all), improve percent-decoded URL logging, and simplify startup; keep legacy batch ops available behind helpers by @Paul-16098
 
-- Merge pull request #2 from Paul-16098:feature/docker-compose-dockerfile-improvements
-
-Improve Docker/Compose, add default templates, refactor server routing by @Paul-16098 in [#2](https://github.com/Paul-16098/my-http-server/pull/2)
+- Merge pull request #2 from Paul-16098:feature/docker-compose-dockerfile-improvements<br><br>Improve Docker/Compose, add default templates, refactor server routing by @Paul-16098 in [#2](https://github.com/Paul-16098/my-http-server/pull/2)
 
 - *3.0.0*: Bump version and align dependencies; minor config tweak by @Paul-16098
 
@@ -1434,16 +1302,13 @@ Improve Docker/Compose, add default templates, refactor server routing by @Paul-
 
 - Style by @Paul-16098
 
-- Chore(percent-encoding): 2.3.1 => 2.3.2
-feat(auto-reload): add auto reload by @Paul-16098
+- Chore(percent-encoding): 2.3.1 => 2.3.2<br>feat(auto-reload): add auto reload by @Paul-16098
 
 - *Security audit*: Fix permissions error by @Paul-16098
 
-- Ci(extra-files): add default 404 page and html-t.templating
-bump: 2.0.0 by @Paul-16098
+- Ci(extra-files): add default 404 page and html-t.templating<br>bump: 2.0.0 by @Paul-16098
 
-- Ci(extra-files): add default 404 page and html-t.templating
-bump: 2.0.0 by @Paul-16098
+- Ci(extra-files): add default 404 page and html-t.templating<br>bump: 2.0.0 by @Paul-16098
 
 - *docker*: Speed up build, fix BuildKit cache COPY, add healthcheck and default templates; widen VOLUME to include meta by @Paul-16098
 
