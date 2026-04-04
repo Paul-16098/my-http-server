@@ -1,11 +1,12 @@
 {
-  "cSpell.words": ["addrs", "utoipa"],
-  "github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"],
-  "files.exclude": {
-    "lcov.info": true
-  },
-  "chat.tools.terminal.autoApprove": {
-    "cargo make test": true,
-    "cargo make cov": true
-  }
+	"cSpell.words": ["addrs", "utoipa"],
+	"github-actions.workflows.pinned.workflows": [".github/workflows/test.yml"],
+	"files.exclude": {
+		"lcov.info": true
+	},
+	"chat.tools.terminal.autoApprove": {
+		"just test": true,
+		"just cov": true,
+		"just html-cov": true
+	}
 }

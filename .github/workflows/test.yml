@@ -62,9 +62,9 @@ jobs:
 
       - uses: taiki-e/install-action@a164de717a0ee9284c2d9db1c6016a4c339cd333 # v2.69.14
         with:
-          tool: cargo-make
+          tool: just
 
-      - run: cargo make cov
+      - run: just cov
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
