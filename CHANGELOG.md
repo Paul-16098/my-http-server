@@ -42,6 +42,8 @@
 
 - *workflow*: Add scheduled trigger for auto-merge PR workflow by @Paul-16098
 
+- *tests*: Migrate from cargo-make to just for test and coverage tasks by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -269,6 +271,8 @@
 - Update taiki-e/install-action action to v2.69.13 (#163) by @renovate\[bot] in [#163](https://github.com/Paul-16098/my-http-server/pull/163)
 
 - Update taiki-e/install-action action to v2.69.14 (#164) by @renovate\[bot] in [#164](https://github.com/Paul-16098/my-http-server/pull/164)
+
+- Update rust crate markdown-ppp to v2.9.2 (#166) by @renovate\[bot] in [#166](https://github.com/Paul-16098/my-http-server/pull/166)
 
 </details>
 
