@@ -8,8 +8,12 @@ _install-dep:
 _clean-cov: _install-dep
     cargo llvm-cov clean --workspace
 
-# Run tests with all features enabled
+# Run tests with nextest
 test: _install-dep
+    cargo nextest run
+
+# Run tests with all features enabled
+all-features-test: _install-dep
     cargo all-features -- nextest run
 
 _b-cov: _clean-cov _install-dep
