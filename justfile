@@ -8,8 +8,12 @@ _install-dep:
 _clean-cov: _install-dep
     cargo llvm-cov clean --workspace
 
-# Run tests with all features enabled
+# Run tests with nextest
 test: _install-dep
+    cargo nextest run
+
+# Run tests with all features enabled
+all-features-test: _install-dep
     cargo all-features -- nextest run
 
 _b-cov: _clean-cov _install-dep
@@ -22,3 +26,20 @@ cov: _b-cov
 # Generate HTML coverage report
 html-cov: _b-cov
     cargo llvm-cov report --html
+
+# Release version
+[script('nu')]
+[arg('version', help="version to release, e.g., 1.0.0")]
+release version:
+    # Get the current version from Cargo.toml
+    open ./Cargo.toml | update package.version {{ version }} | save ./Cargo.toml --force
+
+    # Fetch latest dependencies
+    cargo fetch
+
+    # Stage and commit changes
+    git add Cargo.toml Cargo.lock
+    git commit -m $"chore\(release): bump version to {{ version }}"
+
+    git push origin dev --tags
+    gh pr create --title $"chore\(release): bump version to {{ version }}" --body $"Automated version bump to {{ version }}" --base main --head dev
