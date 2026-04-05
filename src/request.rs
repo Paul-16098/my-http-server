@@ -1,3 +1,4 @@
+use percent_encoding::percent_decode_str;
 use std::{fs::read_to_string, path::Path};
 
 use actix_files::NamedFile;
@@ -149,10 +150,14 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	// Resolve the target path under the configured public root.
 	// path is "/" -> ""
 	// WHY: 8c648dc7d9dcbf6769238ead8810aa7f324aaf7d
-	let filename_str = if req.path() == "/" {
+	// Percent-decode the request path so encoded characters (eg. "%2E") map to
+	// actual filesystem names (eg. "."). This prevents canonicalize() from
+	// failing when clients send encoded paths.
+	let decoded = percent_decode_str(req.path()).decode_utf8_lossy();
+	let filename_str = if decoded == "/" {
 		".".to_string()
 	} else {
-		format!(".{}", req.path())
+		format!(".{}", decoded)
 	};
 	debug!("filename_str={}", filename_str);
 	let req_path_buf = public_path.join(Path::new(&filename_str));
