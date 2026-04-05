@@ -1,29 +1,37 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "type": "cargo",
-      "command": "make",
-      "args": ["test"],
-      "problemMatcher": ["$rustc"],
-      "group": "test",
-      "label": "rust: cargo make test"
-    },
-    {
-      "type": "cargo",
-      "command": "make",
-      "args": ["cov"],
-      "problemMatcher": ["$rustc"],
-      "group": "test",
-      "label": "rust: cargo make cov"
-    },
-    {
-      "type": "cargo",
-      "command": "make",
-      "args": ["html-cov"],
-      "problemMatcher": ["$rustc"],
-      "group": "test",
-      "label": "rust: cargo make html-cov"
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "vscode-just",
+			"task": "just",
+			"args": ["test"],
+			"problemMatcher": ["$rustc"],
+			"group": "test",
+			"label": "rust: cargo test"
+		},
+		{
+			"type": "vscode-just",
+			"task": "just",
+			"args": ["all-features-test"],
+			"problemMatcher": ["$rustc"],
+			"group": "test",
+			"label": "just: all-features-test"
+		},
+		{
+			"type": "vscode-just",
+			"task": "just",
+			"args": ["cov"],
+			"problemMatcher": ["$rustc"],
+			"group": "test",
+			"label": "just: cargo cov"
+		},
+		{
+			"type": "vscode-just",
+			"task": "just",
+			"args": ["html-cov"],
+			"problemMatcher": ["$rustc"],
+			"group": "test",
+			"label": "just: cargo html-cov"
+		}
+	]
 }
