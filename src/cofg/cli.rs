@@ -40,7 +40,7 @@ pub(crate) struct Args {
 
 	// === Config File Control ===
 	#[arg(long, value_name = "Path")]
-	/// Path to configuration file (default: ./cofg.yaml)
+	/// Path to configuration file (default if exists: ./cofg.yaml)
 	pub(crate) config_path: Option<String>,
 
 	#[arg(long, short = 'n', default_value_t = false)]
