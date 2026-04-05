@@ -8,6 +8,10 @@ on:
       plan:
         required: true
         type: string
+
+permissions:
+  contents: none
+
 jobs:
   cargo-push:
     runs-on: ubuntu-latest
