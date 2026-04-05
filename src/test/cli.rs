@@ -79,7 +79,7 @@ fn test_cli_args_tls_settings() {
 
 #[test]
 fn test_cli_args_public_path() {
-	let args = Args::try_parse_from(["test", "--public-path", "/srv/http"].as_ref());
+	let args = Args::try_parse_from(["test", "/srv/http"].as_ref());
 
 	assert!(args.is_ok(), "Public path should parse");
 	assert_eq!(args.unwrap().public_path, Some("/srv/http".to_string()));
@@ -140,7 +140,6 @@ fn test_cli_args_all_options_combined() {
 			"9000",
 			"--config-path",
 			"./config.yaml",
-			"--public-path",
 			"./public",
 			"--page-404-path",
 			"./404.html",

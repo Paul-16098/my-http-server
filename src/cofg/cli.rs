@@ -21,25 +21,25 @@ use crate::error::AppError;
 #[command(about = "A lightweight HTTP server for serving static files and rendering Markdown")]
 pub(crate) struct Args {
 	// === Server Binding ===
-	#[arg(long)]
+	#[arg(long, value_name = "Ip")]
 	/// IP address to bind the server to (overrides config file)
 	pub(crate) ip: Option<String>,
 
-	#[arg(long)]
+	#[arg(long, value_name = "Port")]
 	/// Port number to bind the server to (overrides config file)
 	pub(crate) port: Option<u16>,
 
 	// === TLS Configuration ===
-	#[arg(long)]
+	#[arg(long, value_name = "Path")]
 	/// Path to TLS certificate file (PEM format)
 	pub(crate) tls_cert: Option<String>,
 
-	#[arg(long)]
+	#[arg(long, value_name = "Path")]
 	/// Path to TLS private key file (PEM format)
 	pub(crate) tls_key: Option<String>,
 
 	// === Config File Control ===
-	#[arg(long)]
+	#[arg(long, value_name = "Path")]
 	/// Path to configuration file (default: ./cofg.yaml)
 	pub(crate) config_path: Option<String>,
 
@@ -48,21 +48,21 @@ pub(crate) struct Args {
 	pub(crate) no_config: bool,
 
 	// === Path Configuration ===
-	#[arg(long)]
+	#[arg(value_name = "Public path")]
 	/// Path to public directory for serving files (overrides config file)
 	pub(crate) public_path: Option<String>,
 
-	#[arg(long)]
+	#[arg(long, value_name = "Path")]
 	/// Root directory for execution context (changes working directory before loading config)
 	/// Config, templates, static files, etc. will be resolved relative to this path
 	pub(crate) root_dir: Option<String>,
 
 	// === Error Pages and Templates ===
-	#[arg(long)]
+	#[arg(long, value_name = "Path")]
 	/// Path to 404 error page file (overrides config file)
 	pub(crate) page_404_path: Option<String>,
 
-	#[arg(long)]
+	#[arg(long, value_name = "Path")]
 	/// Path to HTML template file (overrides config file)
 	pub(crate) hbs_path: Option<String>,
 
