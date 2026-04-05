@@ -25,15 +25,17 @@ _b-cov: _clean-cov _install-dep
     cargo all-features llvm-cov --no-report nextest --profile ci
 
 # Generate coverage reports
+[group('coverage')]
 cov: _b-cov
     cargo llvm-cov report --output-path lcov.info --lcov
 
 # Generate HTML coverage report
+[group('coverage')]
 html-cov: _b-cov
     cargo llvm-cov report --html
 
 # Release version
-[arg('version', help="version to release, e.g., 1.0.0")]
+[arg('version', pattern='^\d+.\d+.\d+$', help="version to release, e.g., 1.0.0")]
 [confirm("Are you sure you want to release version?")]
 [script('nu')]
 release version:
