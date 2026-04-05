@@ -28,8 +28,9 @@ html-cov: _b-cov
     cargo llvm-cov report --html
 
 # Release version
-[script('nu')]
 [arg('version', help="version to release, e.g., 1.0.0")]
+[confirm("Are you sure you want to release version?")]
+[script('nu')]
 release version:
     # Get the current version from Cargo.toml
     open ./Cargo.toml | update package.version {{ version }} | save ./Cargo.toml --force
