@@ -238,16 +238,13 @@ async fn test_md2html_basic() {
 	)
 	.expect("Should write template");
 
-	// WHY: field_reassign_with_default warning suppressed here.
-	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
-	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
-	// Current pattern is more readable and maintainable for test fixtures.
-	#[allow(clippy::field_reassign_with_default)]
-	let config = {
-		let mut c = Cofg::default();
-		c.hbs_path = template_path.to_string_lossy().to_string();
-		c.templating.hot_reload = false;
-		c
+	let config = Cofg {
+		hbs_path: template_path.to_string_lossy().to_string(),
+		templating: crate::cofg::config::CofgTemplating {
+			hot_reload: false,
+			..Default::default()
+		},
+		..Cofg::default()
 	};
 
 	let md = "# Test\n\nHello world!".to_string();
@@ -285,12 +282,14 @@ async fn test_md2html_with_context() {
 	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
 	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
 	// Current pattern is more readable and maintainable for test fixtures.
-	#[allow(clippy::field_reassign_with_default)]
-	let config = {
-		let mut c = Cofg::default();
-		c.hbs_path = template_path.to_string_lossy().to_string();
-		c.templating.hot_reload = false;
-		c
+
+	let config = Cofg {
+		hbs_path: template_path.to_string_lossy().to_string(),
+		templating: crate::cofg::config::CofgTemplating {
+			hot_reload: false,
+			..Default::default()
+		},
+		..Cofg::default()
 	};
 
 	let md = "# Content".to_string();
@@ -312,11 +311,10 @@ async fn test_toc_generation_empty_dir() {
 	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
 	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
 	// Current pattern is more readable and maintainable for test fixtures.
-	#[allow(clippy::field_reassign_with_default)]
-	let config = {
-		let mut c = Cofg::default();
-		c.public_path = temp_dir.path().to_string_lossy().to_string();
-		c
+
+	let config = Cofg {
+		public_path: temp_dir.path().to_string_lossy().to_string(),
+		..Cofg::default()
 	};
 
 	// TOC generation on empty directory
@@ -349,11 +347,10 @@ async fn test_toc_generation_with_files() {
 	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
 	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
 	// Current pattern is more readable and maintainable for test fixtures.
-	#[allow(clippy::field_reassign_with_default)]
-	let config = {
-		let mut c = Cofg::default();
-		c.public_path = temp_dir.path().to_string_lossy().to_string();
-		c
+
+	let config = Cofg {
+		public_path: temp_dir.path().to_string_lossy().to_string(),
+		..Cofg::default()
 	};
 
 	let result = markdown::get_toc(temp_dir.path(), &config, Some("Files".to_string()));
@@ -472,15 +469,9 @@ async fn test_empty_template_data() {
 
 	fs::write(&template_path, "<html>{{{body}}}</html>").expect("Should write template");
 
-	// WHY: field_reassign_with_default warning suppressed here.
-	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
-	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
-	// Current pattern is more readable and maintainable for test fixtures.
-	#[allow(clippy::field_reassign_with_default)]
-	let config = {
-		let mut c = Cofg::default();
-		c.hbs_path = template_path.to_string_lossy().to_string();
-		c
+	let config = Cofg {
+		hbs_path: template_path.to_string_lossy().to_string(),
+		..Cofg::default()
 	};
 
 	let md = "Test".to_string();

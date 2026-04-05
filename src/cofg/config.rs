@@ -133,10 +133,14 @@ impl Default for Cofg {
 		match Cofg::new_from_str(BUILD_COFG) {
 			Ok(r) => r,
 			Err(e) => {
-				error!("Failed to load default configuration: {}", e);
 				panic!("Failed to load default configuration: {}", e);
 			}
 		}
+	}
+}
+impl Default for CofgTemplating {
+	fn default() -> Self {
+		Cofg::default().templating
 	}
 }
 
