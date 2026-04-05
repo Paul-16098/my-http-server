@@ -7,16 +7,16 @@
 //! - TOC generation logic
 
 use markdown_ppp::ast::{
-    Block, CodeBlock,
-    CodeBlockKind::Fenced,
-    Document, Heading,
-    HeadingKind::Atx,
-    Inline::Text,
-    List,
-    ListBulletKind::Dash,
-    ListItem,
-    ListKind::{Bullet, Ordered},
-    ListOrderedKindOptions,
+	Block, CodeBlock,
+	CodeBlockKind::Fenced,
+	Document, Heading,
+	HeadingKind::Atx,
+	Inline::Text,
+	List,
+	ListBulletKind::Dash,
+	ListItem,
+	ListKind::{Bullet, Ordered},
+	ListOrderedKindOptions,
 };
 use simple_test_case::test_case;
 
@@ -120,299 +120,299 @@ fn main() {
 )]
 #[actix_web::test]
 async fn test_markdown_parsing(md: &'static str, expected_ast: Document) {
-    let md = md.to_string();
+	let md = md.to_string();
 
-    let result = markdown::parser_md(md);
-    assert!(result.is_ok(), "Basic markdown should parse successfully");
+	let result = markdown::parser_md(md);
+	assert!(result.is_ok(), "Basic markdown should parse successfully");
 
-    let ast = result.unwrap();
-    assert_eq!(ast, expected_ast)
+	let ast = result.unwrap();
+	assert_eq!(ast, expected_ast)
 }
 
 #[actix_web::test]
 async fn test_context_creation() {
-    let config = Cofg::default();
-    let context = templating::get_context(&config);
+	let config = Cofg::default();
+	let context = templating::get_context(&config);
 
-    // Context should contain server-version
-    assert!(
-        context.data().get("server-version").is_some(),
-        "Context should have server-version"
-    );
+	// Context should contain server-version
+	assert!(
+		context.data().get("server-version").is_some(),
+		"Context should have server-version"
+	);
 }
 
 #[actix_web::test]
 async fn test_set_context_value_string() {
-    let config = Cofg::default();
-    let mut context = templating::get_context(&config);
+	let config = Cofg::default();
+	let mut context = templating::get_context(&config);
 
-    templating::set_context_value(&mut context, "title:My Page");
+	templating::set_context_value(&mut context, "title:My Page");
 
-    let data = context.data();
-    assert_eq!(
-        data.get("title").and_then(|v| v.as_str()),
-        Some("My Page"),
-        "String value should be set correctly"
-    );
+	let data = context.data();
+	assert_eq!(
+		data.get("title").and_then(|v| v.as_str()),
+		Some("My Page"),
+		"String value should be set correctly"
+	);
 }
 
 #[actix_web::test]
 async fn test_set_context_value_bool() {
-    let config = Cofg::default();
-    let mut context = templating::get_context(&config);
+	let config = Cofg::default();
+	let mut context = templating::get_context(&config);
 
-    templating::set_context_value(&mut context, "is_active:true");
-    templating::set_context_value(&mut context, "is_disabled:false");
+	templating::set_context_value(&mut context, "is_active:true");
+	templating::set_context_value(&mut context, "is_disabled:false");
 
-    let data = context.data();
-    assert_eq!(
-        data.get("is_active").and_then(|v| v.as_bool()),
-        Some(true),
-        "Boolean true should be set correctly"
-    );
-    assert_eq!(
-        data.get("is_disabled").and_then(|v| v.as_bool()),
-        Some(false),
-        "Boolean false should be set correctly"
-    );
+	let data = context.data();
+	assert_eq!(
+		data.get("is_active").and_then(|v| v.as_bool()),
+		Some(true),
+		"Boolean true should be set correctly"
+	);
+	assert_eq!(
+		data.get("is_disabled").and_then(|v| v.as_bool()),
+		Some(false),
+		"Boolean false should be set correctly"
+	);
 }
 
 #[actix_web::test]
 async fn test_set_context_value_number() {
-    let config = Cofg::default();
-    let mut context = templating::get_context(&config);
+	let config = Cofg::default();
+	let mut context = templating::get_context(&config);
 
-    templating::set_context_value(&mut context, "count:42");
-    templating::set_context_value(&mut context, "negative:-10");
+	templating::set_context_value(&mut context, "count:42");
+	templating::set_context_value(&mut context, "negative:-10");
 
-    let data = context.data();
-    assert_eq!(
-        data.get("count").and_then(|v| v.as_i64()),
-        Some(42),
-        "Positive integer should be set correctly"
-    );
-    assert_eq!(
-        data.get("negative").and_then(|v| v.as_i64()),
-        Some(-10),
-        "Negative integer should be set correctly"
-    );
+	let data = context.data();
+	assert_eq!(
+		data.get("count").and_then(|v| v.as_i64()),
+		Some(42),
+		"Positive integer should be set correctly"
+	);
+	assert_eq!(
+		data.get("negative").and_then(|v| v.as_i64()),
+		Some(-10),
+		"Negative integer should be set correctly"
+	);
 }
 
 #[actix_web::test]
 async fn test_set_context_value_invalid_format() {
-    let config = Cofg::default();
-    let mut context = templating::get_context(&config);
+	let config = Cofg::default();
+	let mut context = templating::get_context(&config);
 
-    // Invalid format (no colon) should be ignored silently
-    let initial_keys: Vec<String> = context
-        .data()
-        .as_object()
-        .map(|obj| obj.keys().cloned().collect())
-        .unwrap_or_default();
+	// Invalid format (no colon) should be ignored silently
+	let initial_keys: Vec<String> = context
+		.data()
+		.as_object()
+		.map(|obj| obj.keys().cloned().collect())
+		.unwrap_or_default();
 
-    templating::set_context_value(&mut context, "invalid_no_colon");
+	templating::set_context_value(&mut context, "invalid_no_colon");
 
-    let new_keys: Vec<String> = context
-        .data()
-        .as_object()
-        .map(|obj| obj.keys().cloned().collect())
-        .unwrap_or_default();
+	let new_keys: Vec<String> = context
+		.data()
+		.as_object()
+		.map(|obj| obj.keys().cloned().collect())
+		.unwrap_or_default();
 
-    // Context should remain unchanged for invalid input
-    assert_eq!(
-        initial_keys.len(),
-        new_keys.len(),
-        "Invalid format should not add entries"
-    );
+	// Context should remain unchanged for invalid input
+	assert_eq!(
+		initial_keys.len(),
+		new_keys.len(),
+		"Invalid format should not add entries"
+	);
 }
 
 #[actix_web::test]
 async fn test_md2html_basic() {
-    let temp_dir = create_test_dir();
-    let template_path = temp_dir.path().join("test-template.hbs");
+	let temp_dir = create_test_dir();
+	let template_path = temp_dir.path().join("test-template.hbs");
 
-    // Create a minimal template
-    fs::write(
-        &template_path,
-        "<!DOCTYPE html><html><body>{{{body}}}</body></html>",
-    )
-    .expect("Should write template");
+	// Create a minimal template
+	fs::write(
+		&template_path,
+		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
+	)
+	.expect("Should write template");
 
-    // WHY: field_reassign_with_default warning suppressed here.
-    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
-    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
-    // Current pattern is more readable and maintainable for test fixtures.
-    #[allow(clippy::field_reassign_with_default)]
-    let config = {
-        let mut c = Cofg::default();
-        c.hbs_path = template_path.to_string_lossy().to_string();
-        c.templating.hot_reload = false;
-        c
-    };
+	// WHY: field_reassign_with_default warning suppressed here.
+	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+	// Current pattern is more readable and maintainable for test fixtures.
+	#[allow(clippy::field_reassign_with_default)]
+	let config = {
+		let mut c = Cofg::default();
+		c.hbs_path = template_path.to_string_lossy().to_string();
+		c.templating.hot_reload = false;
+		c
+	};
 
-    let md = "# Test\n\nHello world!".to_string();
-    let result = md2html(md, &config, vec![]);
+	let md = "# Test\n\nHello world!".to_string();
+	let result = md2html(md, &config, vec![]);
 
-    if let Err(e) = &result {
-        eprintln!("md2html error: {:?}", e);
-    }
+	if let Err(e) = &result {
+		eprintln!("md2html error: {:?}", e);
+	}
 
-    assert!(
-        result.is_ok(),
-        "md2html should succeed with valid markdown: {:?}",
-        result.err()
-    );
-    let html = result.unwrap();
-    assert_eq!(
-        html,
-        "<!DOCTYPE html><html><body><h1>Test</h1><p>Hello world!</p></body></html>",
-    );
+	assert!(
+		result.is_ok(),
+		"md2html should succeed with valid markdown: {:?}",
+		result.err()
+	);
+	let html = result.unwrap();
+	assert_eq!(
+		html,
+		"<!DOCTYPE html><html><body><h1>Test</h1><p>Hello world!</p></body></html>",
+	);
 }
 
 #[actix_web::test]
 async fn test_md2html_with_context() {
-    let temp_dir = create_test_dir();
-    let template_path = temp_dir.path().join("test-template-ctx.hbs");
+	let temp_dir = create_test_dir();
+	let template_path = temp_dir.path().join("test-template-ctx.hbs");
 
-    // Template that uses context variable
-    fs::write(
-        &template_path,
-        "<!DOCTYPE html><html><head><title>{{title}}</title></head><body>{{{body}}}</body></html>",
-    )
-    .expect("Should write template");
+	// Template that uses context variable
+	fs::write(
+		&template_path,
+		"<!DOCTYPE html><html><head><title>{{title}}</title></head><body>{{{body}}}</body></html>",
+	)
+	.expect("Should write template");
 
-    // WHY: field_reassign_with_default warning suppressed here.
-    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
-    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
-    // Current pattern is more readable and maintainable for test fixtures.
-    #[allow(clippy::field_reassign_with_default)]
-    let config = {
-        let mut c = Cofg::default();
-        c.hbs_path = template_path.to_string_lossy().to_string();
-        c.templating.hot_reload = false;
-        c
-    };
+	// WHY: field_reassign_with_default warning suppressed here.
+	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+	// Current pattern is more readable and maintainable for test fixtures.
+	#[allow(clippy::field_reassign_with_default)]
+	let config = {
+		let mut c = Cofg::default();
+		c.hbs_path = template_path.to_string_lossy().to_string();
+		c.templating.hot_reload = false;
+		c
+	};
 
-    let md = "# Content".to_string();
-    let context_vars = vec!["title:Test Page".to_string()];
-    let result = md2html(md, &config, context_vars);
+	let md = "# Content".to_string();
+	let context_vars = vec!["title:Test Page".to_string()];
+	let result = md2html(md, &config, context_vars);
 
-    assert!(result.is_ok(), "md2html should succeed with context vars");
-    let html = result.unwrap();
-    assert!(
-        html.contains("<title>Test Page</title>"),
-        "Template should use context variable"
-    );
+	assert!(result.is_ok(), "md2html should succeed with context vars");
+	let html = result.unwrap();
+	assert!(
+		html.contains("<title>Test Page</title>"),
+		"Template should use context variable"
+	);
 }
 
 #[actix_web::test]
 async fn test_toc_generation_empty_dir() {
-    let temp_dir = create_test_dir();
-    // WHY: field_reassign_with_default warning suppressed here.
-    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
-    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
-    // Current pattern is more readable and maintainable for test fixtures.
-    #[allow(clippy::field_reassign_with_default)]
-    let config = {
-        let mut c = Cofg::default();
-        c.public_path = temp_dir.path().to_string_lossy().to_string();
-        c
-    };
+	let temp_dir = create_test_dir();
+	// WHY: field_reassign_with_default warning suppressed here.
+	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+	// Current pattern is more readable and maintainable for test fixtures.
+	#[allow(clippy::field_reassign_with_default)]
+	let config = {
+		let mut c = Cofg::default();
+		c.public_path = temp_dir.path().to_string_lossy().to_string();
+		c
+	};
 
-    // TOC generation on empty directory
-    let result = markdown::get_toc(temp_dir.path(), &config, Some("Test TOC".to_string()));
+	// TOC generation on empty directory
+	let result = markdown::get_toc(temp_dir.path(), &config, Some("Test TOC".to_string()));
 
-    if let Err(e) = &result {
-        eprintln!("TOC error: {:?}", e);
-    }
+	if let Err(e) = &result {
+		eprintln!("TOC error: {:?}", e);
+	}
 
-    assert!(
-        result.is_ok(),
-        "TOC generation should succeed on empty dir: {:?}",
-        result.err()
-    );
-    let toc = result.unwrap();
-    assert!(toc.contains("Test TOC"), "TOC should include title");
+	assert!(
+		result.is_ok(),
+		"TOC generation should succeed on empty dir: {:?}",
+		result.err()
+	);
+	let toc = result.unwrap();
+	assert!(toc.contains("Test TOC"), "TOC should include title");
 }
 
 #[actix_web::test]
 async fn test_toc_generation_with_files() {
-    let temp_dir = create_test_dir();
+	let temp_dir = create_test_dir();
 
-    // Create some test files
-    fs::write(temp_dir.path().join("test1.md"), "# Test 1").expect("Should write test1.md");
-    fs::write(temp_dir.path().join("test2.html"), "<h1>Test 2</h1>")
-        .expect("Should write test2.html");
-    fs::write(temp_dir.path().join("readme.txt"), "README").expect("Should write readme.txt");
+	// Create some test files
+	fs::write(temp_dir.path().join("test1.md"), "# Test 1").expect("Should write test1.md");
+	fs::write(temp_dir.path().join("test2.html"), "<h1>Test 2</h1>")
+		.expect("Should write test2.html");
+	fs::write(temp_dir.path().join("readme.txt"), "README").expect("Should write readme.txt");
 
-    // WHY: field_reassign_with_default warning suppressed here.
-    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
-    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
-    // Current pattern is more readable and maintainable for test fixtures.
-    #[allow(clippy::field_reassign_with_default)]
-    let config = {
-        let mut c = Cofg::default();
-        c.public_path = temp_dir.path().to_string_lossy().to_string();
-        c
-    };
+	// WHY: field_reassign_with_default warning suppressed here.
+	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+	// Current pattern is more readable and maintainable for test fixtures.
+	#[allow(clippy::field_reassign_with_default)]
+	let config = {
+		let mut c = Cofg::default();
+		c.public_path = temp_dir.path().to_string_lossy().to_string();
+		c
+	};
 
-    let result = markdown::get_toc(temp_dir.path(), &config, Some("Files".to_string()));
+	let result = markdown::get_toc(temp_dir.path(), &config, Some("Files".to_string()));
 
-    if let Err(e) = &result {
-        eprintln!("TOC error: {:?}", e);
-    }
+	if let Err(e) = &result {
+		eprintln!("TOC error: {:?}", e);
+	}
 
-    assert!(
-        result.is_ok(),
-        "TOC generation should succeed with files: {:?}",
-        result.err()
-    );
-    let toc = result.unwrap();
+	assert!(
+		result.is_ok(),
+		"TOC generation should succeed with files: {:?}",
+		result.err()
+	);
+	let toc = result.unwrap();
 
-    // Check that files with recognized extensions are included
-    assert!(
-        toc.contains("test1.md") || toc.contains("["),
-        "TOC should reference markdown files"
-    );
+	// Check that files with recognized extensions are included
+	assert!(
+		toc.contains("test1.md") || toc.contains("["),
+		"TOC should reference markdown files"
+	);
 }
 
 #[actix_web::test]
 async fn test_markdown_with_links() {
-    let md = r#"
+	let md = r#"
 # Links
 
 [Google](https://www.google.com)
 [Internal Link](./page.md)
 "#
-    .to_string();
+	.to_string();
 
-    let result = markdown::parser_md(md);
-    assert!(
-        result.is_ok(),
-        "Markdown with links should parse successfully"
-    );
+	let result = markdown::parser_md(md);
+	assert!(
+		result.is_ok(),
+		"Markdown with links should parse successfully"
+	);
 }
 
 #[actix_web::test]
 async fn test_markdown_with_images() {
-    let md = r#"
+	let md = r#"
 # Images
 
 ![Alt text](./image.png)
 ![Remote image](https://example.com/image.jpg)
 "#
-    .to_string();
+	.to_string();
 
-    let result = markdown::parser_md(md);
-    assert!(
-        result.is_ok(),
-        "Markdown with images should parse successfully"
-    );
+	let result = markdown::parser_md(md);
+	assert!(
+		result.is_ok(),
+		"Markdown with images should parse successfully"
+	);
 }
 
 #[actix_web::test]
 async fn test_markdown_with_tables() {
-    let md = r#"
+	let md = r#"
 # Table
 
 | Column 1 | Column 2 |
@@ -420,74 +420,74 @@ async fn test_markdown_with_tables() {
 | Cell 1   | Cell 2   |
 | Cell 3   | Cell 4   |
 "#
-    .to_string();
+	.to_string();
 
-    let result = markdown::parser_md(md);
-    assert!(
-        result.is_ok(),
-        "Markdown with tables should parse successfully"
-    );
+	let result = markdown::parser_md(md);
+	assert!(
+		result.is_ok(),
+		"Markdown with tables should parse successfully"
+	);
 }
 
 #[actix_web::test]
 async fn test_context_type_inference_precedence() {
-    let config = Cofg::default();
-    let mut context = templating::get_context(&config);
+	let config = Cofg::default();
+	let mut context = templating::get_context(&config);
 
-    // Test that boolean is recognized over string
-    templating::set_context_value(&mut context, "flag:true");
-    assert!(
-        context
-            .data()
-            .get("flag")
-            .and_then(|v| v.as_bool())
-            .is_some(),
-        "Should parse as bool"
-    );
+	// Test that boolean is recognized over string
+	templating::set_context_value(&mut context, "flag:true");
+	assert!(
+		context
+			.data()
+			.get("flag")
+			.and_then(|v| v.as_bool())
+			.is_some(),
+		"Should parse as bool"
+	);
 
-    // Test that number is recognized over string
-    templating::set_context_value(&mut context, "count:123");
-    assert!(
-        context
-            .data()
-            .get("count")
-            .and_then(|v| v.as_i64())
-            .is_some(),
-        "Should parse as number"
-    );
+	// Test that number is recognized over string
+	templating::set_context_value(&mut context, "count:123");
+	assert!(
+		context
+			.data()
+			.get("count")
+			.and_then(|v| v.as_i64())
+			.is_some(),
+		"Should parse as number"
+	);
 
-    // Test that non-parseable remains string
-    templating::set_context_value(&mut context, "text:hello world");
-    assert_eq!(
-        context.data().get("text").and_then(|v| v.as_str()),
-        Some("hello world"),
-        "Should remain as string"
-    );
+	// Test that non-parseable remains string
+	templating::set_context_value(&mut context, "text:hello world");
+	assert_eq!(
+		context.data().get("text").and_then(|v| v.as_str()),
+		Some("hello world"),
+		"Should remain as string"
+	);
 }
 
 #[actix_web::test]
 async fn test_empty_template_data() {
-    let temp_dir = create_test_dir();
-    let template_path = temp_dir.path().join("empty-ctx.hbs");
+	let temp_dir = create_test_dir();
+	let template_path = temp_dir.path().join("empty-ctx.hbs");
 
-    fs::write(&template_path, "<html>{{{body}}}</html>").expect("Should write template");
+	fs::write(&template_path, "<html>{{{body}}}</html>").expect("Should write template");
 
-    // WHY: field_reassign_with_default warning suppressed here.
-    // Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
-    // with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
-    // Current pattern is more readable and maintainable for test fixtures.
-    #[allow(clippy::field_reassign_with_default)]
-    let config = {
-        let mut c = Cofg::default();
-        c.hbs_path = template_path.to_string_lossy().to_string();
-        c
-    };
+	// WHY: field_reassign_with_default warning suppressed here.
+	// Using struct update syntax would be extremely verbose due to Cofg's deeply nested structure
+	// with 10+ nested structs (addrs, tls, middleware.logger, middleware.http_base_authentication, etc.)
+	// Current pattern is more readable and maintainable for test fixtures.
+	#[allow(clippy::field_reassign_with_default)]
+	let config = {
+		let mut c = Cofg::default();
+		c.hbs_path = template_path.to_string_lossy().to_string();
+		c
+	};
 
-    let md = "Test".to_string();
-    let result = md2html(md, &config, vec![]);
+	let md = "Test".to_string();
+	let result = md2html(md, &config, vec![]);
 
-    assert!(
-        result.is_ok(),
-        "md2html should work with empty context vars"
-    );
+	assert!(
+		result.is_ok(),
+		"md2html should work with empty context vars"
+	);
 }

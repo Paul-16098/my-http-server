@@ -1,0 +1,11 @@
+repos:
+  - repo: local
+    hooks:
+      - id: fmt
+        name: fmt
+        files: .*\.rs$
+        language: rust
+        entry: cargo
+        args:
+          - fmt
+          - "--"

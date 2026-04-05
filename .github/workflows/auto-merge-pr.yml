@@ -1,0 +1,112 @@
+name: auto-merge-pr
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_run:
+    workflows: ["test", "security_audit"]
+    types: [completed]
+  check_run:
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: write
+  checks: read
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get open PRs
+        id: get-prs
+        uses: actions/github-script@v8
+        with:
+          script: |
+            // Use pagination to get all open PRs
+            const prs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            // Filter for renovate[bot] PRs matching taiki-e/install-action pattern
+            const filteredPrs = prs.filter(pr => {
+              const isBotPr = pr.user.login === 'renovate[bot]';
+              const matchesPattern = /^chore\(deps\):\s*update taiki-e\/install-action action to v2\.69\.\d+$/.test(pr.title);
+              return isBotPr && matchesPattern;
+            });
+
+            core.setOutput('prs', JSON.stringify(filteredPrs));
+            core.setOutput('count', filteredPrs.length.toString());
+            console.log(`Found ${filteredPrs.length} matching PRs`);
+
+      - name: Merge PRs
+        if: steps.get-prs.outputs.count != '0'
+        uses: actions/github-script@v8
+        env:
+          PRS_JSON: ${{ steps.get-prs.outputs.prs }}
+        with:
+          script: |
+            const prs = JSON.parse(process.env.PRS_JSON);
+
+            for (const pr of prs) {
+              try {
+                console.log(`Checking PR #${pr.number}: ${pr.title}`);
+                
+                // Get detailed PR info including mergeable state
+                const prDetail = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number
+                });
+                
+                // Check if PR is in a mergeable state
+                if (!prDetail.data.mergeable) {
+                  console.log(`PR #${pr.number} is not mergeable (conflicts or other issues)`);
+                  continue;
+                }
+                
+                if (prDetail.data.mergeable_state !== 'clean' && prDetail.data.mergeable_state !== 'unstable') {
+                  console.log(`PR #${pr.number} mergeable_state is '${prDetail.data.mergeable_state}', skipping`);
+                  continue;
+                }
+                
+                // Get combined status of all checks
+                const checks = await github.rest.checks.listForRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: pr.head.sha
+                });
+                
+                // Verify all checks have completed successfully
+                const checkStatuses = checks.data.check_runs.reduce((acc, check) => {
+                  acc[check.name] = check.conclusion;
+                  return acc;
+                }, {});
+                
+                console.log(`Check statuses for PR #${pr.number}:`, checkStatuses);
+                
+                if (!Object.values(checkStatuses).every(status => ['success', 'skipped'].includes(status))) {
+                  console.log(`Not all checks passed for PR #${pr.number}, skipping merge`);
+                  continue;
+                }
+                
+                // All checks passed, merge the PR
+                console.log(`Merging PR #${pr.number}: ${pr.title}`);
+                
+                const result = await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  merge_method: 'squash',
+                  commit_title: `${pr.title} (#${pr.number})`,
+                  commit_message: 'GitHub Actions: workflow auto merge'
+                });
+                
+                console.log(`Successfully merged PR #${pr.number}, SHA: ${result.data.sha}`);
+              } catch (error) {
+                console.error(`Failed to merge PR #${pr.number}:`, error.message);
+              }
+            }

@@ -4,24 +4,36 @@
 [changelog]
     # A Tera template to be rendered for each release in the changelog.
     # See https://keats.github.io/tera/docs/#introduction
+    header = """<!-- markdownlint-disable-file MD034 MD012 MD024 -->
+
+# CHANGELOG
+
+"""
     body = """
 {% if version %}\
-    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+    ## \\[{{ version | trim_start_matches(pat="v") }}\\] - {{ timestamp | date(format="%Y-%m-%d") }}
 {% else %}\
-    ## [unreleased]
+    ## \\[unreleased\\]
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
-    ### {{ group | striptags | trim | upper_first }}
+    {%- set group_str = (group | striptags | trim) -%}
+
+    {% if group_str == "Deps" -%}
+    ### <details><summary>{{ group_str | upper_first }}</summary>
+    {% else %}
+    ### {{ group_str | upper_first }}
+    {%- endif %}
     {% for commit in commits %}
         - {% if commit.scope %}*{{ commit.scope }}*: {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first }}\
-            {% if commit.remote.username %} by @{{ commit.remote.username }}{%- endif %}\
-            {% if commit.remote.pr_number %} in #{{ commit.remote.pr_number }}{%- endif %}
+            {{ commit.message | upper_first | replace(from="[", to="\\[") | linebreaksbr }}\
+            {% if commit.remote.username %} by @{{ commit.remote.username | replace(from="[", to="\\[") }}{%- endif %}\
+            {% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/pull/{{ commit.remote.pr_number }}){%- endif %}
     {% endfor %}
+    {%- if group_str == "Deps" %}\n</details>{% endif %}
 {% endfor %}
 {% for contributor in github.contributors | filter(attribute="is_first_time", value=true) %}
-  * @{{ contributor.username }} made their first contribution
+  - @{{ contributor.username }} made their first contribution{% if contributor.pr_number %} in #{{ contributor.pr_number }}{% endif %}
 {%- endfor -%}
 
 """
@@ -59,6 +71,8 @@
     # Assigns commits to groups.
     # Optionally sets the commit's scope and can decide to exclude commits from further processing.
     commit_parsers = [
+        { message = "^chore\\(changelog\\): update changelog$", skip = true },
+
         { message = "^feat", group = "<!-- 0 -->Features" },
         { message = "^fix", group = "<!-- 1 -->Bug Fixes" },
         { message = "^doc", group = "<!-- 3 -->Documentation" },

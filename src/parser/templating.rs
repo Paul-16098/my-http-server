@@ -23,39 +23,39 @@ use crate::error::{AppError, AppResult};
 /// WHY: Allow configuration-driven variable list (`templating.value`) without schema explosion.
 /// Parsing kept intentionally small (no floats) for predictability.
 pub(crate) fn set_context_value(context: &mut Context, data: &str) {
-    let context = context.data_mut();
+	let context = context.data_mut();
 
-    // Split only at the first ':'; skip malformed entries
-    if let Some((name_raw, value_raw)) = data.split_once(':') {
-        let name = name_raw.trim();
-        let mut value = value_raw.trim().to_string();
-        if name.is_empty() {
-            return;
-        }
+	// Split only at the first ':'; skip malformed entries
+	if let Some((name_raw, value_raw)) = data.split_once(':') {
+		let name = name_raw.trim();
+		let mut value = value_raw.trim().to_string();
+		if name.is_empty() {
+			return;
+		}
 
-        if value.starts_with("env:")
-            && let Some((_, env)) = value.split_once(":")
-        {
-            if let Ok(v) = std::env::var(env) {
-                value = v;
-            } else {
-                // Env var doesn't exist - skip this key entirely
-                return;
-            }
-        }
+		if value.starts_with("env:")
+			&& let Some((_, env)) = value.split_once(":")
+		{
+			if let Ok(v) = std::env::var(env) {
+				value = v;
+			} else {
+				// Env var doesn't exist - skip this key entirely
+				return;
+			}
+		}
 
-        if let Ok(tf) = value.parse::<bool>() {
-            context[name] = handlebars::JsonValue::Bool(tf);
-            return;
-        }
+		if let Ok(tf) = value.parse::<bool>() {
+			context[name] = handlebars::JsonValue::Bool(tf);
+			return;
+		}
 
-        // Parse numbers (i64 only)
-        if let Ok(num) = value.parse::<i64>() {
-            context[name] = handlebars::JsonValue::Number(num.into());
-        } else {
-            context[name] = handlebars::JsonValue::String(value);
-        }
-    } // else: no ':', ignore entry safely
+		// Parse numbers (i64 only)
+		if let Ok(num) = value.parse::<i64>() {
+			context[name] = handlebars::JsonValue::Number(num.into());
+		} else {
+			context[name] = handlebars::JsonValue::String(value);
+		}
+	} // else: no ':', ignore entry safely
 }
 
 /// Build a fresh template context with server metadata and configured variables.
@@ -66,20 +66,20 @@ pub(crate) fn set_context_value(context: &mut Context, data: &str) {
 /// WHY: Decouple config parsing from render path; context creation is cheap and explicit instead
 /// of sharing mutable state across renders.
 pub(crate) fn get_context(c: &crate::cofg::config::Cofg) -> Context {
-    let mut context = Context::wraps(json!({
-      "server-version": env!("CARGO_PKG_VERSION")
-    }))
-    .unwrap_or_else(|e| {
-        error!("Failed to create template context: {}", e);
-        Context::null()
-    });
-    if let Some(raw_str) = &c.templating.value {
-        for data in raw_str {
-            set_context_value(&mut context, data);
-        }
-    }
+	let mut context = Context::wraps(json!({
+	  "server-version": env!("CARGO_PKG_VERSION")
+	}))
+	.unwrap_or_else(|e| {
+		error!("Failed to create template context: {}", e);
+		Context::null()
+	});
+	if let Some(raw_str) = &c.templating.value {
+		for data in raw_str {
+			set_context_value(&mut context, data);
+		}
+	}
 
-    context
+	context
 }
 static ENGINE: OnceLock<RwLock<Handlebars>> = OnceLock::new();
 
@@ -91,15 +91,15 @@ static ENGINE: OnceLock<RwLock<Handlebars>> = OnceLock::new();
 /// WHY: Development ergonomics—trade small rebuild cost for immediacy when editing templates.
 /// Production (no hot_reload) benefits from stable cached engine with bytecode reuse.
 pub(crate) fn get_engine(c: &'_ crate::cofg::config::Cofg) -> AppResult<Handlebars<'_>> {
-    let cell = ENGINE.get_or_init(|| {
-        let mut e = Handlebars::new();
-        if c.templating.hot_reload {
-            e.set_dev_mode(true);
-        }
-        RwLock::new(e)
-    });
+	let cell = ENGINE.get_or_init(|| {
+		let mut e = Handlebars::new();
+		if c.templating.hot_reload {
+			e.set_dev_mode(true);
+		}
+		RwLock::new(e)
+	});
 
-    cell.read()
-        .map(|e| e.clone())
-        .map_err(|e| AppError::OtherError(e.to_string()))
+	cell.read()
+		.map(|e| e.clone())
+		.map_err(|e| AppError::OtherError(e.to_string()))
 }

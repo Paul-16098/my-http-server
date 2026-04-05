@@ -4,24 +4,9 @@ permissions:
 
 on:
   push:
-    branches:
-      - main
-      - dev
-  pull_request:
   workflow_dispatch:
 
 jobs:
-  docker-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
-
-      - name: Build
-        run: docker build .
   test-with-httpyac:
     if: false
     runs-on: ubuntu-latest
@@ -32,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
+      - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
 
       - name: Install netcat
         run: |
@@ -69,34 +54,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
-
-      - name: Cache cargo registry
-        uses: actions/cache@v5
+      - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          cache-all-crates: true
 
-      - name: Cache cargo index
-        uses: actions/cache@v5
+      # actions-rust-lang/setup-rust-toolchain is Caching for Rust tools and build artifacts is enabled.
+
+      - uses: taiki-e/install-action@0cccd59f03b32c54f0db097c518c320bfc8c73b3 # v2.71.1
         with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          tool: cargo-binstall just cargo-all-features cargo-nextest
 
-      - name: Cache target directory
-        uses: actions/cache@v5
-        with:
-          path: target
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: taiki-e/install-action@90558ad1e179036f31467972b00dec6cb80701fa # v2.66.3
-        with:
-          tool: cargo-make
-
-      - run: cargo make cov
+      - run: just cov
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./lcov.info
+      - name: Upload test results to Codecov
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./target/nextest/ci/junit.xml
+          report_type: test_results

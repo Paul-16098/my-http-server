@@ -63,3 +63,4 @@ cofg.yaml
 emojis.json
 .env
 lcov.info
+!Cargo.lock
