@@ -43,4 +43,4 @@ release version:
     git commit -m $"chore\(release): bump version to {{ version }}"
 
     git push origin dev --tags
-    gh pr create --title $"chore\(release): bump version to {{ version }}" --body $"Automated version bump to {{ version }}" --base main --head dev | gh pr merge --auto --squash $in
+    gh pr create --title $"chore\(release): bump version to {{ version }}" --body $"Automated version bump to {{ version }}" --base main --head dev | gh pr merge --auto $in
