@@ -73,7 +73,6 @@ pub(crate) fn md2html(
 		let hbs_path = c.resolve_hbs_path();
 		engine.register_template_file("html-t", &hbs_path)?;
 	}
-	#[allow(unused_mut)]
 	let mut ast = markdown::parser_md(md)?;
 	// PERF: 只在 trace 開啟時輸出 AST；大型 Markdown 可能造成龐大日誌量。
 	log::trace!("ast={ast:#?}");
