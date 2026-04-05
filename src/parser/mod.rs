@@ -73,6 +73,7 @@ pub(crate) fn md2html(
 		let hbs_path = c.resolve_hbs_path();
 		engine.register_template_file("html-t", &hbs_path)?;
 	}
+	#[cfg_attr(not(feature = "github_emojis"), allow(unused_mut))]
 	let mut ast = markdown::parser_md(md)?;
 	// PERF: 只在 trace 開啟時輸出 AST；大型 Markdown 可能造成龐大日誌量。
 	log::trace!("ast={ast:#?}");
@@ -102,6 +103,9 @@ pub(crate) fn md2html(
 						}
 						for (k, v) in e.unicode.iter() {
 							let pat = format!(":{k}:");
+							// is skip check faster than check contains?
+							// 如果模式很少出现（大多数情况下无命中），先做 contains（或 find）能避免调用 replace 导致的分配，整体更快。
+							// 如果模式经常出现，先 contains 反而多做一次遍历（双扫描），直接调用 replace 更快（单次遍历＋必要的分配）。
 							if text.contains(&pat) {
 								text = text.replace(&pat, v);
 							}
