@@ -471,6 +471,16 @@ async fn main() -> AppResult<()> {
 	// Initialize global config with full layered precedence
 	let mut s = Cofg::init_global(&cli_args, false)?;
 
+	#[cfg(feature = "github_emojis")]
+	if cli_args.clear_cache {
+		if let Some(xdg_paths) = cofg::config::Cofg::get_xdg_paths() {
+			std::fs::remove_file(&xdg_paths.emojis)?;
+			info!("Cleared emoji cache at {}", xdg_paths.emojis.display());
+		} else {
+			error!("Cannot clear emoji cache: no valid XDG config path available");
+		}
+	}
+
 	// Canonicalize public_path for consistent path resolution
 	s.public_path = Path::new(&s.public_path)
 		.canonicalize()

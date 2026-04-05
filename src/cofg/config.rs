@@ -28,6 +28,7 @@ pub(crate) struct XdgPaths {
 	pub(crate) cofg: std::path::PathBuf,
 	pub(crate) page_404: std::path::PathBuf,
 	pub(crate) template_hbs: std::path::PathBuf,
+	#[cfg(feature = "github_emojis")]
 	pub(crate) emojis: std::path::PathBuf,
 }
 
@@ -153,6 +154,8 @@ impl Cofg {
 	///
 	/// WHY: Follow XDG Base Directory specification and platform conventions for cross-platform config management
 	/// while keeping template, 404 assets, and emoji cache alongside the config file.
+	///
+	/// `None`, if no valid home directory path could be retrieved from the operating system.
 	pub(crate) fn get_xdg_paths() -> Option<XdgPaths> {
 		directories::ProjectDirs::from("", "", "my-http-server").map(|proj_dirs| {
 			let base = proj_dirs.config_local_dir();
@@ -160,6 +163,7 @@ impl Cofg {
 				cofg: base.join("cofg.yaml"),
 				page_404: base.join("404.html"),
 				template_hbs: base.join("html-t.hbs"),
+				#[cfg(feature = "github_emojis")]
 				emojis: base.join("emojis.json"),
 			}
 		})

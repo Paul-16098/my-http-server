@@ -70,6 +70,11 @@ pub(crate) struct Args {
 	#[arg(long)]
 	/// Enable hot reload for templates and config (overrides config file)
 	pub(crate) hot_reload: Option<bool>,
+
+	#[cfg(feature = "github_emojis")]
+	#[arg(long)]
+	/// Clear cache for github emojis
+	pub(crate) clear_cache: bool,
 }
 
 impl TryFrom<&Args> for super::config::CofgAddrs {
