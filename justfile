@@ -9,12 +9,17 @@ _clean-cov: _install-dep
     cargo llvm-cov clean --workspace
 
 # Run tests with nextest
-test: _install-dep
-    cargo nextest run
+[arg('ARG', help="additional arguments to pass to cargo nextest, e.g., --features=foo")]
+[group('test')]
+[default]
+test *ARG: _install-dep
+    cargo nextest run {{ ARG }}
 
 # Run tests with all features enabled
-all-features-test: _install-dep
-    cargo all-features -- nextest run
+[arg('ARG', help="additional arguments to pass to cargo nextest, e.g., --features=foo")]
+[group('test')]
+all-features-test *ARG: _install-dep
+    cargo all-features -- nextest run {{ ARG }}
 
 _b-cov: _clean-cov _install-dep
     cargo all-features llvm-cov --no-report nextest --profile ci
