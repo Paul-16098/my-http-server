@@ -13,6 +13,8 @@
 //! WHY: Organize tests by functional area matching the copilot-instructions.md structure,
 //! making it easy to navigate and extend test coverage for specific features.
 
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 pub(crate) mod cli;
 pub(crate) mod config;
 pub(crate) mod error;
