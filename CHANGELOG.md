@@ -41,6 +41,12 @@
 
 - *parser*: Allow unused mutable variable for compatibility with non-github_emojis feature by @Paul-16098
 
+### <details><summary>Deps</summary>
+
+
+- Update taiki-e/install-action action to v2.73.0 (#179) by @renovate\[bot] in [#179](https://github.com/Paul-16098/my-http-server/pull/179)
+
+</details>
 
 ### Other
 
