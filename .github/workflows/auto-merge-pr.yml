@@ -34,7 +34,7 @@ jobs:
             // Filter for renovate[bot] PRs matching taiki-e/install-action pattern
             const filteredPrs = prs.filter(pr => {
               const isBotPr = pr.user.login === 'renovate[bot]';
-              const matchesPattern = /^chore\(deps\):\s*update taiki-e\/install-action action to v2\.69\.\d+$/.test(pr.title);
+              const matchesPattern = /^chore\(deps\):\s*update taiki-e\/install-action action to v2\.75\.\d+$/.test(pr.title);
               return isBotPr && matchesPattern;
             });
 
