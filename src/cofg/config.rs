@@ -207,9 +207,8 @@ impl Cofg {
 			if path.exists() {
 				debug!("Loading config from: {}", config_path);
 				builder = builder.add_source(config::File::from(path));
-			} else if !cli.no_config {
-				// Only warn if user didn't explicitly skip config
-				warn!("Config file not found: {}, using defaults", config_path);
+			} else {
+				warn!("Specified config file does not exist: {}", config_path);
 			}
 		}
 
