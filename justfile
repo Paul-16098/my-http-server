@@ -10,8 +10,8 @@ _clean-cov: _install-dep
 
 # Run tests with nextest
 [arg('ARG', help="additional arguments to pass to cargo nextest, e.g., --features=foo")]
-[group('test')]
 [default]
+[group('test')]
 test *ARG: _install-dep
     cargo nextest run {{ ARG }}
 
@@ -20,6 +20,17 @@ test *ARG: _install-dep
 [group('test')]
 all-features-test *ARG: _install-dep
     cargo all-features -- nextest run {{ ARG }}
+
+# Apply insta snapshots for all tests with all features enabled
+[env('INSTA_UPDATE', 'always')]
+[group('test')]
+insta-apply: all-features-test
+
+# Review insta snapshots for all tests with all features enabled
+[group('test')]
+insta-review:
+    - {{ just_executable() }} -f {{ justfile() }} all-features-test
+    cargo insta review
 
 _b-cov: _clean-cov _install-dep
     cargo all-features llvm-cov --no-report nextest --profile ci

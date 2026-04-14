@@ -1,0 +1,5 @@
+---
+source: src/test/parser.rs
+expression: "md2html(\"Test\".to_string(), &config, vec![]).unwrap()"
+---
+<html><p>Test</p></html>

@@ -247,22 +247,9 @@ async fn test_md2html_basic() {
 		..Cofg::default()
 	};
 
-	let md = "# Test\n\nHello world!".to_string();
-	let result = md2html(md, &config, vec![]);
-
-	if let Err(e) = &result {
-		eprintln!("md2html error: {:?}", e);
-	}
-
-	assert!(
-		result.is_ok(),
-		"md2html should succeed with valid markdown: {:?}",
-		result.err()
-	);
-	let html = result.unwrap();
-	assert_eq!(
-		html,
-		"<!DOCTYPE html><html><body><h1>Test</h1><p>Hello world!</p></body></html>",
+	insta::assert_snapshot!(
+		"md2html_basic",
+		md2html("# Test\n\nHello world!".to_string(), &config, vec![]).unwrap()
 	);
 }
 
@@ -292,15 +279,14 @@ async fn test_md2html_with_context() {
 		..Cofg::default()
 	};
 
-	let md = "# Content".to_string();
-	let context_vars = vec!["title:Test Page".to_string()];
-	let result = md2html(md, &config, context_vars);
-
-	assert!(result.is_ok(), "md2html should succeed with context vars");
-	let html = result.unwrap();
-	assert!(
-		html.contains("<title>Test Page</title>"),
-		"Template should use context variable"
+	insta::assert_snapshot!(
+		"md2html_with_context",
+		md2html(
+			"# Content".to_string(),
+			&config,
+			vec!["title:Test Page".to_string()]
+		)
+		.unwrap()
 	);
 }
 
@@ -474,11 +460,8 @@ async fn test_empty_template_data() {
 		..Cofg::default()
 	};
 
-	let md = "Test".to_string();
-	let result = md2html(md, &config, vec![]);
-
-	assert!(
-		result.is_ok(),
-		"md2html should work with empty context vars"
+	insta::assert_snapshot!(
+		"md2html_empty_template_data",
+		md2html("Test".to_string(), &config, vec![]).unwrap()
 	);
 }
