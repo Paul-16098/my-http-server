@@ -67,7 +67,7 @@ pub(crate) struct Args {
 	pub(crate) hbs_path: Option<String>,
 
 	// === Development Options ===
-	#[arg(long)]
+	#[arg(long, value_name = "Bool")]
 	/// Enable hot reload for templates and config (overrides config file)
 	pub(crate) hot_reload: Option<bool>,
 
@@ -75,6 +75,9 @@ pub(crate) struct Args {
 	#[arg(long)]
 	/// Clear cache for github emojis
 	pub(crate) clear_cache: bool,
+
+	#[command(flatten)]
+	pub(crate) verbosity: clap_verbosity_flag::Verbosity<clap_verbosity_flag::InfoLevel>,
 }
 
 impl TryFrom<&Args> for super::config::CofgAddrs {
