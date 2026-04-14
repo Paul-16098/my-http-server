@@ -41,14 +41,26 @@
 
 - *parser*: Allow unused mutable variable for compatibility with non-github_emojis feature by @Paul-16098
 
+- *auto-merge*: Update regex pattern for taiki-e/install-action PRs to v2.75.x by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
 - Update taiki-e/install-action action to v2.73.0 (#179) by @renovate\[bot] in [#179](https://github.com/Paul-16098/my-http-server/pull/179)
 
+- Update actions/github-script action to v9 (#182) by @renovate\[bot] in [#182](https://github.com/Paul-16098/my-http-server/pull/182)
+
+- Update rand package to version 0.9.3 by @Paul-16098
+
+- Update taiki-e/install-action action to v2.75.3 (#180) by @renovate\[bot] in [#180](https://github.com/Paul-16098/my-http-server/pull/180)
+
+- Update taiki-e/install-action action to v2.75.5 (#183) by @renovate\[bot] in [#183](https://github.com/Paul-16098/my-http-server/pull/183)
+
 </details>
 
 ### Other
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
