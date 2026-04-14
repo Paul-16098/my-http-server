@@ -377,6 +377,42 @@ async fn test_markdown_with_links() {
 }
 
 #[actix_web::test]
+async fn test_md2html_with_links_snapshot() {
+	let temp_dir = create_test_dir();
+	let template_path = temp_dir.path().join("links-template.hbs");
+
+	fs::write(
+		&template_path,
+		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
+	)
+	.expect("Should write template");
+
+	let config = Cofg {
+		hbs_path: template_path.to_string_lossy().to_string(),
+		templating: crate::cofg::config::CofgTemplating {
+			hot_reload: false,
+			..Default::default()
+		},
+		..Cofg::default()
+	};
+
+	let md = r#"# Links
+
+[Google](https://www.google.com)
+[Internal Link](./page.md)
+"#
+	.to_string();
+
+	insta::assert_snapshot!(
+		md2html(md, &config, vec![]).unwrap(),
+		@r###"
+<!DOCTYPE html><html><body><h1>Links</h1><p><a href="https://www.google.com">Google</a>
+<a href="./page.md">Internal Link</a></p></body></html>
+"###
+	);
+}
+
+#[actix_web::test]
 async fn test_markdown_with_images() {
 	let md = r#"
 # Images
@@ -394,21 +430,69 @@ async fn test_markdown_with_images() {
 }
 
 #[actix_web::test]
-async fn test_markdown_with_tables() {
-	let md = r#"
-# Table
+async fn test_md2html_with_images_snapshot() {
+	let temp_dir = create_test_dir();
+	let template_path = temp_dir.path().join("images-template.hbs");
+
+	fs::write(
+		&template_path,
+		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
+	)
+	.expect("Should write template");
+
+	let config = Cofg {
+		hbs_path: template_path.to_string_lossy().to_string(),
+		templating: crate::cofg::config::CofgTemplating {
+			hot_reload: false,
+			..Default::default()
+		},
+		..Cofg::default()
+	};
+
+	insta::assert_snapshot!(
+		md2html(r#"# Images
+
+![Alt text](./image.png)
+![Remote image](https://example.com/image.jpg)
+"#
+	.to_string(), &config, vec![]).unwrap(),
+		@r###"
+<!DOCTYPE html><html><body><h1>Images</h1><p><img src="./image.png" alt="Alt text"></img>
+<img src="https://example.com/image.jpg" alt="Remote image"></img></p></body></html>
+"###
+	);
+}
+
+#[actix_web::test]
+async fn test_md2html_with_tables_snapshot() {
+	let temp_dir = create_test_dir();
+	let template_path = temp_dir.path().join("tables-template.hbs");
+
+	fs::write(
+		&template_path,
+		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
+	)
+	.expect("Should write template");
+
+	let config = Cofg {
+		hbs_path: template_path.to_string_lossy().to_string(),
+		templating: crate::cofg::config::CofgTemplating {
+			hot_reload: false,
+			..Default::default()
+		},
+		..Cofg::default()
+	};
+
+	insta::assert_snapshot!(
+		md2html(r#"# Table
 
 | Column 1 | Column 2 |
 |----------|----------|
 | Cell 1   | Cell 2   |
 | Cell 3   | Cell 4   |
 "#
-	.to_string();
-
-	let result = markdown::parser_md(md);
-	assert!(
-		result.is_ok(),
-		"Markdown with tables should parse successfully"
+	.to_string(), &config, vec![]).unwrap(),
+		@"<!DOCTYPE html><html><body><h1>Table</h1><table><thead><tr><th class=\"markdown-table-align-left\">Column 1</th><th class=\"markdown-table-align-left\">Column 2</th></tr></thead><tbody><tr><td class=\"markdown-table-align-left\">Cell 1</td><td class=\"markdown-table-align-left\">Cell 2</td></tr><tr><td class=\"markdown-table-align-left\">Cell 3</td><td class=\"markdown-table-align-left\">Cell 4</td></tr></tbody></table></body></html>"
 	);
 }
 
