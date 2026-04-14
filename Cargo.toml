@@ -34,6 +34,7 @@ actix-web-httpauth = "0.8.2"
 rustls-pki-types = "1.12.0"
 actix-ip-filter = "0.3.2"
 directories = "6.0.0"
+clap-verbosity-flag = "3.0.4"
 
 [dependencies.actix-web]
 version = "4.11.0"

@@ -190,12 +190,12 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
 	EMOJIS.get_or_init(|| emojis);
 	Ok(())
 }
-fn logger_init() {
+fn logger_init(filter_level: log::LevelFilter) {
 	let mut l = env_logger::builder();
 	l.default_format()
 		.format_timestamp(None)
-		.filter_level(log::LevelFilter::Info)
-		.parse_default_env();
+		.parse_default_env()
+		.filter_level(filter_level);
 
 	#[cfg(debug_assertions)]
 	l.format_source_path(true);
@@ -454,10 +454,10 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 
 #[actix_web::main]
 async fn main() -> AppResult<()> {
-	logger_init();
-
 	// Parse CLI arguments
 	let cli_args = cli::Args::parse();
+
+	logger_init(cli_args.verbosity.log_level_filter());
 
 	// Handle root_dir early (change CWD before config load)
 	if let Some(ref dir) = cli_args.root_dir {
