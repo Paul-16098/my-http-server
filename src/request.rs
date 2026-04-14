@@ -163,10 +163,18 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	let req_path_buf = public_path.join(Path::new(&filename_str));
 	debug!("req_path_buf={}", req_path_buf.display());
 
+	if !req_path_buf.exists() {
+		debug!("{}:!exists", req_path_buf.display());
+		return respond_404(&req).await;
+	}
+
 	let req_path = &(match req_path_buf.canonicalize() {
 		Ok(p) => p,
 		Err(e) => {
-			warn!("Failed to canonicalize req_path: {e}");
+			warn!(
+				"Failed to canonicalize req_path({}): {e}",
+				req_path_buf.display()
+			);
 			req_path_buf
 		}
 	});
