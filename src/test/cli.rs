@@ -102,6 +102,35 @@ fn test_cli_args_hot_reload_false() {
 }
 
 #[test]
+fn test_cli_args_generate_completion_nushell() {
+	let args = Args::try_parse_from(["test", "--generate-completion", "nushell"].as_ref());
+
+	assert!(args.is_ok(), "Nushell completion should parse");
+	assert_eq!(
+		args.unwrap().generate_completion,
+		Some(crate::cofg::cli::CompletionShell::Nushell)
+	);
+}
+
+#[test]
+fn test_cli_args_generate_completion_powershell() {
+	let args = Args::try_parse_from(["test", "--generate-completion", "powershell"].as_ref());
+
+	assert!(args.is_ok(), "PowerShell completion should parse");
+	assert_eq!(
+		args.unwrap().generate_completion,
+		Some(crate::cofg::cli::CompletionShell::PowerShell)
+	);
+}
+
+#[test]
+fn test_cli_args_generate_completion_invalid_shell() {
+	let args = Args::try_parse_from(["test", "--generate-completion", "tcsh"].as_ref());
+
+	assert!(args.is_err(), "Unsupported completion shell should fail");
+}
+
+#[test]
 fn test_cli_args_page_404_path() {
 	let args = Args::try_parse_from(["test", "--page-404-path", "./custom-404.html"].as_ref());
 

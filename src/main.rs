@@ -16,7 +16,7 @@ use crate::request::main_req;
 
 use actix_web::HttpResponse;
 use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
-use clap::Parser as _;
+use clap::{CommandFactory as _, Parser as _};
 use log::{debug, error, info, warn};
 use std::fs::create_dir_all;
 use std::path::Path;
@@ -190,6 +190,33 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
 	EMOJIS.get_or_init(|| emojis);
 	Ok(())
 }
+
+fn generate_completion_script(shell: cli::CompletionShell) {
+	use clap_complete::{Shell, generate};
+	use std::io;
+
+	let mut cmd = cli::Args::command();
+	let bin_name = env!("CARGO_BIN_NAME");
+
+	match shell {
+		cli::CompletionShell::Bash => generate(Shell::Bash, &mut cmd, bin_name, &mut io::stdout()),
+		cli::CompletionShell::Elvish => {
+			generate(Shell::Elvish, &mut cmd, bin_name, &mut io::stdout())
+		}
+		cli::CompletionShell::Fish => generate(Shell::Fish, &mut cmd, bin_name, &mut io::stdout()),
+		cli::CompletionShell::PowerShell => {
+			generate(Shell::PowerShell, &mut cmd, bin_name, &mut io::stdout())
+		}
+		cli::CompletionShell::Zsh => generate(Shell::Zsh, &mut cmd, bin_name, &mut io::stdout()),
+		cli::CompletionShell::Nushell => generate(
+			clap_complete_nushell::Nushell,
+			&mut cmd,
+			bin_name,
+			&mut io::stdout(),
+		),
+	}
+}
+
 fn logger_init(filter_level: log::LevelFilter) {
 	let mut l = env_logger::builder();
 	l.default_format()
@@ -456,6 +483,11 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 async fn main() -> AppResult<()> {
 	// Parse CLI arguments
 	let cli_args = cli::Args::parse();
+
+	if let Some(shell) = cli_args.generate_completion {
+		generate_completion_script(shell);
+		return Ok(());
+	}
 
 	logger_init(cli_args.verbosity.log_level_filter());
 

@@ -283,6 +283,22 @@ curl http://localhost:8080/path/to/file.md
 | 渲染變慢 | 檢查檔案大小、可用 `cargo flamegraph` 分析 |
 | 埠被占用 | 修改 `addrs.port` 或釋放占用行程 |
 
+## Shell 補全
+
+可直接輸出補全腳本到標準輸出：
+
+- `my-http-server --generate-completion bash`
+- `my-http-server --generate-completion zsh`
+- `my-http-server --generate-completion fish`
+- `my-http-server --generate-completion powershell`
+- `my-http-server --generate-completion elvish`
+- `my-http-server --generate-completion nushell`
+
+相關文件：
+
+- <https://docs.rs/clap_complete/latest/clap_complete/>
+- <https://github.com/clap-rs/clap/tree/master/clap_complete_nushell>
+
 ## 資源
 
 - 架構：`architecture.md`
