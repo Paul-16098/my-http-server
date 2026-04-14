@@ -21,15 +21,10 @@ test *ARG: _install-dep
 all-features-test *ARG: _install-dep
     cargo all-features -- nextest run {{ ARG }}
 
-# Apply insta snapshots for all tests with all features enabled
-[env('INSTA_UPDATE', 'always')]
-[group('test')]
-insta-apply: all-features-test
-
 # Review insta snapshots for all tests with all features enabled
 [group('test')]
 insta-review:
-    - {{ just_executable() }} -f {{ justfile() }} all-features-test
+    @- {{ just_executable() }} -f {{ justfile() }} all-features-test
     cargo insta review
 
 _b-cov: _clean-cov _install-dep

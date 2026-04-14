@@ -248,8 +248,8 @@ async fn test_md2html_basic() {
 	};
 
 	insta::assert_snapshot!(
-		"md2html_basic",
-		md2html("# Test\n\nHello world!".to_string(), &config, vec![]).unwrap()
+		&md2html("# Test\n\nHello world!".to_string(), &config, vec![]).unwrap(),
+		@"<!DOCTYPE html><html><body><h1>Test</h1><p>Hello world!</p></body></html>"
 	);
 }
 
@@ -280,13 +280,13 @@ async fn test_md2html_with_context() {
 	};
 
 	insta::assert_snapshot!(
-		"md2html_with_context",
-		md2html(
+		&md2html(
 			"# Content".to_string(),
 			&config,
 			vec!["title:Test Page".to_string()]
 		)
-		.unwrap()
+		.unwrap(),
+		@"<!DOCTYPE html><html><head><title>Test Page</title></head><body><h1>Content</h1></body></html>"
 	);
 }
 
@@ -461,7 +461,7 @@ async fn test_empty_template_data() {
 	};
 
 	insta::assert_snapshot!(
-		"md2html_empty_template_data",
-		md2html("Test".to_string(), &config, vec![]).unwrap()
+		md2html("Test".to_string(), &config, vec![]).unwrap(),
+		@"<html><p>Test</p></html>"
 	);
 }

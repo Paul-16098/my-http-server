@@ -1,5 +1,0 @@
----
-source: src/test/parser.rs
-expression: "md2html(\"# Content\".to_string(), &config,\nvec![\"title:Test Page\".to_string()]).unwrap()"
----
-<!DOCTYPE html><html><head><title>Test Page</title></head><body><h1>Content</h1></body></html>
