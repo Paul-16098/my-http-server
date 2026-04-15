@@ -10,6 +10,16 @@
 
 - *github_emojis*: Add clear cache option for emoji management by @Paul-16098
 
+- *cli*: Add verbosity flag support for enhanced logging control by @Paul-16098
+
+- *cli*: Add verbosity flag for enhanced configuration control by @Paul-16098
+
+- *tests*: Add insta snapshots for md2html tests by @Paul-16098
+
+- *tests*: Add snapshots for md2html with links, images, and tables by @Paul-16098
+
+- *cli*: Add shell completion support for bash, zsh, fish, powershell, elvish, and nushell by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -43,6 +53,10 @@
 
 - *auto-merge*: Update regex pattern for taiki-e/install-action PRs to v2.75.x by @Paul-16098
 
+- *cofg*: Improve warning message for missing config file by @Paul-16098
+
+- *request*: Handle non-existent request paths with 404 response by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -63,6 +77,11 @@
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+
+### Refactor
+
+- *tests*: Update insta snapshots for md2html tests and remove obsolete files by @Paul-16098
 
 
 ### Miscellaneous Tasks
