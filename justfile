@@ -3,7 +3,7 @@ set windows-shell := ['pwsh', '-c']
 export RUST_LOG := 'debug'
 
 _install-dep:
-    cargo binstall cargo-all-features cargo-nextest
+    cargo binstall cargo-all-features cargo-nextest cargo-llvm-cov
 
 _clean-cov: _install-dep
     cargo llvm-cov clean --workspace
