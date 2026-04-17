@@ -70,6 +70,12 @@
 
 - Update taiki-e/install-action action to v2.75.5 (#183) by @renovate\[bot] in [#183](https://github.com/Paul-16098/my-http-server/pull/183)
 
+- Update rust crate rustls to v0.23.38 (#185) by @renovate\[bot] in [#185](https://github.com/Paul-16098/my-http-server/pull/185)
+
+- Update taiki-e/install-action action to v2.75.9 (#184) by @renovate\[bot] in [#184](https://github.com/Paul-16098/my-http-server/pull/184)
+
+- Update actions-rust-lang/setup-rust-toolchain action to v1.16.0 (#186) by @renovate\[bot] in [#186](https://github.com/Paul-16098/my-http-server/pull/186)
+
 </details>
 
 ### Other
