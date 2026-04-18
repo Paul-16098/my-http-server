@@ -76,6 +76,10 @@
 
 - Update actions-rust-lang/setup-rust-toolchain action to v1.16.0 (#186) by @renovate\[bot] in [#186](https://github.com/Paul-16098/my-http-server/pull/186)
 
+- Add cargo-llvm-cov to installation in justfile and workflow by @Paul-16098
+
+- Update taiki-e/install-action action to v2.75.12 (#187) by @renovate\[bot] in [#187](https://github.com/Paul-16098/my-http-server/pull/187)
+
 </details>
 
 ### Other
