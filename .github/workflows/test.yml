@@ -60,7 +60,7 @@ jobs:
 
       # actions-rust-lang/setup-rust-toolchain is Caching for Rust tools and build artifacts is enabled.
 
-      - uses: taiki-e/install-action@0c7a94999971db56e9df89df226240aab222e776 # v2.75.14
+      - uses: taiki-e/install-action@5939f3337e40968c39aa70f5ecb1417a92fb25a0 # v2.75.15
         with:
           tool: cargo-binstall just cargo-all-features cargo-nextest cargo-llvm-cov
 
