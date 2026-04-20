@@ -4,42 +4,34 @@ export RUST_LOG := 'debug'
 
 _install-dep:
     cargo binstall cargo-all-features cargo-nextest cargo-llvm-cov
-
 _clean-cov: _install-dep
     cargo llvm-cov clean --workspace
-
 # Run tests with nextest
 [arg('ARG', help="additional arguments to pass to cargo nextest, e.g., --features=foo")]
 [default]
 [group('test')]
 test *ARG: _install-dep
     cargo nextest run {{ ARG }}
-
 # Run tests with all features enabled
 [arg('ARG', help="additional arguments to pass to cargo nextest, e.g., --features=foo")]
 [group('test')]
 all-features-test *ARG: _install-dep
     cargo all-features -- nextest run {{ ARG }}
-
 # Review insta snapshots for all tests with all features enabled
 [group('test')]
 insta-review:
     @- {{ just_executable() }} -f {{ justfile() }} all-features-test
     cargo insta review
-
 _b-cov: _clean-cov _install-dep
     cargo all-features llvm-cov --no-report nextest --profile ci
-
 # Generate coverage reports
 [group('coverage')]
 cov: _b-cov
     cargo llvm-cov report --output-path lcov.info --lcov
-
 # Generate HTML coverage report
 [group('coverage')]
 html-cov: _b-cov
     cargo llvm-cov report --html
-
 # Release version
 [arg('version', pattern='^\d+.\d+.\d+$', help="version to release, e.g., 1.0.0")]
 [confirm("Are you sure you want to release version?")]

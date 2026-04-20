@@ -46,16 +46,16 @@ pub(crate) struct Args {
 	pub(crate) port: Option<u16>,
 
 	// === TLS Configuration ===
-	#[arg(long, value_name = "Path")]
+	#[arg(long, value_name = "Path", value_hint = clap::ValueHint::FilePath)]
 	/// Path to TLS certificate file (PEM format)
 	pub(crate) tls_cert: Option<String>,
 
-	#[arg(long, value_name = "Path")]
+	#[arg(long, value_name = "Path", value_hint = clap::ValueHint::FilePath)]
 	/// Path to TLS private key file (PEM format)
 	pub(crate) tls_key: Option<String>,
 
 	// === Config File Control ===
-	#[arg(long, value_name = "Path")]
+	#[arg(long, value_name = "Path", value_hint = clap::ValueHint::FilePath)]
 	/// Path to configuration file (default if exists: ./cofg.yaml)
 	pub(crate) config_path: Option<String>,
 
@@ -64,21 +64,21 @@ pub(crate) struct Args {
 	pub(crate) no_config: bool,
 
 	// === Path Configuration ===
-	#[arg(value_name = "Public path")]
+	#[arg(value_name = "Public path", value_hint = clap::ValueHint::DirPath)]
 	/// Path to public directory for serving files (overrides config file)
 	pub(crate) public_path: Option<String>,
 
-	#[arg(long, value_name = "Path")]
+	#[arg(long, value_name = "Path", value_hint = clap::ValueHint::DirPath)]
 	/// Root directory for execution context (changes working directory before loading config)
 	/// Config, templates, static files, etc. will be resolved relative to this path
 	pub(crate) root_dir: Option<String>,
 
 	// === Error Pages and Templates ===
-	#[arg(long, value_name = "Path")]
+	#[arg(long, value_name = "Path", value_hint = clap::ValueHint::FilePath)]
 	/// Path to 404 error page file (overrides config file)
 	pub(crate) page_404_path: Option<String>,
 
-	#[arg(long, value_name = "Path")]
+	#[arg(long, value_name = "Path", value_hint = clap::ValueHint::FilePath)]
 	/// Path to HTML template file (overrides config file)
 	pub(crate) hbs_path: Option<String>,
 
