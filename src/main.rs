@@ -19,6 +19,7 @@ use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
 use clap::{CommandFactory as _, Parser as _};
 use log::{debug, error, info, warn};
 use std::fs::create_dir_all;
+use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 
@@ -208,12 +209,16 @@ fn generate_completion_script(shell: cli::CompletionShell) {
 			generate(Shell::PowerShell, &mut cmd, bin_name, &mut io::stdout())
 		}
 		cli::CompletionShell::Zsh => generate(Shell::Zsh, &mut cmd, bin_name, &mut io::stdout()),
-		cli::CompletionShell::Nushell => generate(
-			clap_complete_nushell::Nushell,
-			&mut cmd,
-			bin_name,
-			&mut io::stdout(),
-		),
+		cli::CompletionShell::Nushell => {
+			let mut f = Vec::new();
+			generate(clap_complete_nushell::Nushell, &mut cmd, bin_name, &mut f);
+			let f = String::from_utf8(f)
+				.unwrap_or_else(|err| String::from_utf8_lossy(&err.into_bytes()).into_owned());
+			let f = f.replace("--port: string", "--port: int   ");
+			if let Err(err) = io::stdout().write_all(f.as_bytes()) {
+				panic!("failed to write completion script: {err}");
+			}
+		}
 	}
 }
 
