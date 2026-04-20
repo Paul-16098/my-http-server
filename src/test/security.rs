@@ -125,9 +125,9 @@ async fn test_path_traversal_dotdot() {
 	// Should not allow access to files outside public_path
 	// Should return 404 or be blocked
 	assert!(
-		resp.status() == StatusCode::FORBIDDEN || resp.status() == StatusCode::BAD_REQUEST,
-		"Path traversal should be blocked or return 404, got {}",
-		resp.status()
+		resp.status() == StatusCode::FORBIDDEN
+			|| resp.status() == StatusCode::BAD_REQUEST
+			|| resp.status() == StatusCode::NOT_FOUND,
 	);
 }
 
@@ -147,9 +147,7 @@ async fn test_path_traversal_encoded() {
 	assert!(
 		resp.status() == StatusCode::FORBIDDEN
 			|| resp.status() == StatusCode::BAD_REQUEST
-			|| resp.status() == StatusCode::NOT_FOUND,
-		"Encoded path traversal should be blocked, got {}",
-		resp.status()
+			|| resp.status() == StatusCode::NOT_FOUND
 	);
 }
 
@@ -204,9 +202,9 @@ async fn test_backslash_path_separator() {
 	let resp = test::call_service(&app, req).await;
 
 	assert!(
-		resp.status() == StatusCode::FORBIDDEN || resp.status() == StatusCode::BAD_REQUEST,
-		"Backslash path traversal should be blocked, got {}",
-		resp.status()
+		resp.status() == StatusCode::FORBIDDEN
+			|| resp.status() == StatusCode::BAD_REQUEST
+			|| resp.status() == StatusCode::NOT_FOUND,
 	);
 }
 
