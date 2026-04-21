@@ -57,6 +57,16 @@
 
 - *request*: Handle non-existent request paths with 404 response by @Paul-16098
 
+- *cli*: Add value hints for file and directory paths in argument parsing by @Paul-16098
+
+- *cli*: Improve Nushell completion script generation and error handling by @Paul-16098
+
+- *tests*: Correct conditional compilation for path traversal tests on Windows by @Paul-16098
+
+- *tests*: Update path traversal tests to include NOT_FOUND status by @Paul-16098
+
+- *deps*: Update windows-sys to version 0.60.2 and rustls-webpki to version 0.103.12 by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -87,6 +97,10 @@
 - Update rust crate clap to v4.6.1 (#190) by @renovate\[bot] in [#190](https://github.com/Paul-16098/my-http-server/pull/190)
 
 - Update taiki-e/install-action action to v2.75.15 (#191) by @renovate\[bot] in [#191](https://github.com/Paul-16098/my-http-server/pull/191)
+
+- Update taiki-e/install-action action to v2.75.16 (#194) by @renovate\[bot] in [#194](https://github.com/Paul-16098/my-http-server/pull/194)
+
+- Update taiki-e/install-action action to v2.75.17 (#195) by @renovate\[bot] in [#195](https://github.com/Paul-16098/my-http-server/pull/195)
 
 </details>
 
