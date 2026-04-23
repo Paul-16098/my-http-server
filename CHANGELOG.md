@@ -102,6 +102,10 @@
 
 - Update taiki-e/install-action action to v2.75.17 (#195) by @renovate\[bot] in [#195](https://github.com/Paul-16098/my-http-server/pull/195)
 
+- Update taiki-e/install-action action to v2.75.18 (#196) by @renovate\[bot] in [#196](https://github.com/Paul-16098/my-http-server/pull/196)
+
+- Bump actix-http in the cargo group across 1 directory (#197) by @dependabot\[bot] in [#197](https://github.com/Paul-16098/my-http-server/pull/197)
+
 </details>
 
 ### Other
