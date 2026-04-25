@@ -106,6 +106,10 @@
 
 - Bump actix-http in the cargo group across 1 directory (#197) by @dependabot\[bot] in [#197](https://github.com/Paul-16098/my-http-server/pull/197)
 
+- Bump rustls-webpki from 0.103.12 to 0.103.13 in the cargo group across 1 directory (#199) by @dependabot\[bot] in [#199](https://github.com/Paul-16098/my-http-server/pull/199)
+
+- Update taiki-e/install-action action to v2.75.19 (#200) by @renovate\[bot] in [#200](https://github.com/Paul-16098/my-http-server/pull/200)
+
 </details>
 
 ### Other
