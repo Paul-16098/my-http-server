@@ -8,7 +8,7 @@ fn warn(t: &'static str) {
 
 fn main() {
 	// init
-	for f in ["build.rs", "emojis.json"] {
+	for f in ["build.rs", "emojis.json", ".git/HEAD", ".git/refs/heads"] {
 		println!("cargo:rerun-if-changed={f}");
 	}
 
