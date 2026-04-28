@@ -67,6 +67,8 @@
 
 - *deps*: Update windows-sys to version 0.60.2 and rustls-webpki to version 0.103.12 by @Paul-16098
 
+- *build*: Include additional git files for change detection by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -111,6 +113,12 @@
 - Update taiki-e/install-action action to v2.75.19 (#200) by @renovate\[bot] in [#200](https://github.com/Paul-16098/my-http-server/pull/200)
 
 - Update taiki-e/install-action action to v2.75.20 (#201) by @renovate\[bot] in [#201](https://github.com/Paul-16098/my-http-server/pull/201)
+
+- Update rust crate rustls to v0.23.39 (#198) by @renovate\[bot] in [#198](https://github.com/Paul-16098/my-http-server/pull/198)
+
+- Update taiki-e/install-action action to v2.75.21 (#202) by @renovate\[bot] in [#202](https://github.com/Paul-16098/my-http-server/pull/202)
+
+- Update rust crate rustls-pki-types to v1.14.1 (#203) by @renovate\[bot] in [#203](https://github.com/Paul-16098/my-http-server/pull/203)
 
 </details>
 
