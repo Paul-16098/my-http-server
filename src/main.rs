@@ -311,7 +311,10 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 	#[cfg(feature = "api")]
 	let api_enable = s.api.enable;
 
-	info!("run in {addrs}");
+	info!(
+		"run in {}{addrs}",
+		if s.tls.enable { "https://" } else { "http://" }
+	);
 
 	let server = HttpServer::new(move || {
 		let mut app =
