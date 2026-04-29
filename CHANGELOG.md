@@ -20,6 +20,8 @@
 
 - *cli*: Add shell completion support for bash, zsh, fish, powershell, elvish, and nushell by @Paul-16098
 
+- *server*: Improve logging for server run address with TLS support by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -119,6 +121,8 @@
 - Update taiki-e/install-action action to v2.75.21 (#202) by @renovate\[bot] in [#202](https://github.com/Paul-16098/my-http-server/pull/202)
 
 - Update rust crate rustls-pki-types to v1.14.1 (#203) by @renovate\[bot] in [#203](https://github.com/Paul-16098/my-http-server/pull/203)
+
+- Update taiki-e/install-action action to v2.75.22 (#204) by @renovate\[bot] in [#204](https://github.com/Paul-16098/my-http-server/pull/204)
 
 </details>
 
