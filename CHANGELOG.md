@@ -134,6 +134,8 @@
 
 - Update rust crate rustls to v0.23.40 (#208) by @renovate\[bot] in [#208](https://github.com/Paul-16098/my-http-server/pull/208)
 
+- Update taiki-e/install-action action to v2.75.26 (#210) by @renovate\[bot] in [#210](https://github.com/Paul-16098/my-http-server/pull/210)
+
 </details>
 
 ### Other
