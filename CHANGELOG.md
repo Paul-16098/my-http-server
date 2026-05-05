@@ -138,6 +138,8 @@
 
 - Update taiki-e/install-action action to v2.75.27 (#211) by @renovate\[bot] in [#211](https://github.com/Paul-16098/my-http-server/pull/211)
 
+- Update taiki-e/install-action action to v2.75.28 (#212) by @renovate\[bot] in [#212](https://github.com/Paul-16098/my-http-server/pull/212)
+
 </details>
 
 ### Other
