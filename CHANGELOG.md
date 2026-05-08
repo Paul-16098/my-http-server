@@ -144,6 +144,12 @@
 
 - Update taiki-e/install-action action to v2.75.30 (#214) by @renovate\[bot] in [#214](https://github.com/Paul-16098/my-http-server/pull/214)
 
+- Update taiki-e/install-action action version in auto-merge workflow by @Paul-16098
+
+- Update rust crate utoipa to v5.5.0 (#216) by @renovate\[bot] in [#216](https://github.com/Paul-16098/my-http-server/pull/216)
+
+- Update taiki-e/install-action action version to v2.77.0 in auto-merge workflow by @Paul-16098
+
 </details>
 
 ### Other
