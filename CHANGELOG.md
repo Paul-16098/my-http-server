@@ -150,6 +150,10 @@
 
 - Update taiki-e/install-action action version to v2.77.0 in auto-merge workflow by @Paul-16098
 
+- Update taiki-e/install-action action to v2.77.0 (#215) by @renovate\[bot] in [#215](https://github.com/Paul-16098/my-http-server/pull/215)
+
+- Update taiki-e/install-action action to v2.77.1 (#217) by @renovate\[bot] in [#217](https://github.com/Paul-16098/my-http-server/pull/217)
+
 </details>
 
 ### Other
