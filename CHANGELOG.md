@@ -154,6 +154,10 @@
 
 - Update taiki-e/install-action action to v2.77.1 (#217) by @renovate\[bot] in [#217](https://github.com/Paul-16098/my-http-server/pull/217)
 
+- Update taiki-e/install-action action to v2.77.2 (#218) by @renovate\[bot] in [#218](https://github.com/Paul-16098/my-http-server/pull/218)
+
+- Update actions-rust-lang/setup-rust-toolchain action to v1.16.1 (#219) by @renovate\[bot] in [#219](https://github.com/Paul-16098/my-http-server/pull/219)
+
 </details>
 
 ### Other
