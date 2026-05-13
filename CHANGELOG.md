@@ -158,6 +158,10 @@
 
 - Update actions-rust-lang/setup-rust-toolchain action to v1.16.1 (#219) by @renovate\[bot] in [#219](https://github.com/Paul-16098/my-http-server/pull/219)
 
+- Update taiki-e/install-action action to v2.77.3 (#220) by @renovate\[bot] in [#220](https://github.com/Paul-16098/my-http-server/pull/220)
+
+- Update rust crate clap_complete to v4.6.4 (#221) by @renovate\[bot] in [#221](https://github.com/Paul-16098/my-http-server/pull/221)
+
 </details>
 
 ### Other
