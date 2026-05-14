@@ -162,6 +162,8 @@
 
 - Update rust crate clap_complete to v4.6.4 (#221) by @renovate\[bot] in [#221](https://github.com/Paul-16098/my-http-server/pull/221)
 
+- Update taiki-e/install-action action to v2.77.4 (#222) by @renovate\[bot] in [#222](https://github.com/Paul-16098/my-http-server/pull/222)
+
 </details>
 
 ### Other
