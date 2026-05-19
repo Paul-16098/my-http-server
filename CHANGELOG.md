@@ -176,6 +176,8 @@
 
 - Update taiki-e/install-action action version in auto-merge workflow by @Paul-16098
 
+- Update taiki-e/install-action action to v2.78.1 (#227) by @renovate\[bot] in [#227](https://github.com/Paul-16098/my-http-server/pull/227)
+
 </details>
 
 ### Other
