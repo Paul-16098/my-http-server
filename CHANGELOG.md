@@ -178,6 +178,10 @@
 
 - Update taiki-e/install-action action to v2.78.1 (#227) by @renovate\[bot] in [#227](https://github.com/Paul-16098/my-http-server/pull/227)
 
+- Update taiki-e/install-action action to v2.78.2 (#229) by @renovate\[bot] in [#229](https://github.com/Paul-16098/my-http-server/pull/229)
+
+- Update rust crate handlebars to v6.4.1 (#230) by @renovate\[bot] in [#230](https://github.com/Paul-16098/my-http-server/pull/230)
+
 </details>
 
 ### Other
