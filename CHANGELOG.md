@@ -71,6 +71,8 @@
 
 - *build*: Include additional git files for change detection by @Paul-16098
 
+- *auto-merge*: Update regex to match all versions of taiki-e/install-action by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -181,6 +183,12 @@
 - Update taiki-e/install-action action to v2.78.2 (#229) by @renovate\[bot] in [#229](https://github.com/Paul-16098/my-http-server/pull/229)
 
 - Update rust crate handlebars to v6.4.1 (#230) by @renovate\[bot] in [#230](https://github.com/Paul-16098/my-http-server/pull/230)
+
+- Update taiki-e/install-action action to v2.79.0 (#231) by @renovate\[bot] in [#231](https://github.com/Paul-16098/my-http-server/pull/231)
+
+- Update taiki-e/install-action action to v2.79.1 (#232) by @renovate\[bot] in [#232](https://github.com/Paul-16098/my-http-server/pull/232)
+
+- Update codecov/codecov-action action to v6.0.1 (#233) by @renovate\[bot] in [#233](https://github.com/Paul-16098/my-http-server/pull/233)
 
 </details>
 
