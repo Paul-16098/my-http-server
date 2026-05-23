@@ -190,6 +190,8 @@
 
 - Update codecov/codecov-action action to v6.0.1 (#233) by @renovate\[bot] in [#233](https://github.com/Paul-16098/my-http-server/pull/233)
 
+- Update taiki-e/install-action action to v2.79.2 (#234) by @renovate\[bot] in [#234](https://github.com/Paul-16098/my-http-server/pull/234)
+
 </details>
 
 ### Other
