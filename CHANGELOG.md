@@ -192,6 +192,8 @@
 
 - Update taiki-e/install-action action to v2.79.2 (#234) by @renovate\[bot] in [#234](https://github.com/Paul-16098/my-http-server/pull/234)
 
+- Update taiki-e/install-action action to v2.79.3 (#235) by @renovate\[bot] in [#235](https://github.com/Paul-16098/my-http-server/pull/235)
+
 </details>
 
 ### Other
@@ -209,6 +211,8 @@
 ### Miscellaneous Tasks
 
 - *workflow*: Add permissions section to cargo-push workflow by @Paul-16098
+
+- *justfile*: Update dependencies and fix argument patterns by @Paul-16098
 
 
 ## \[4.1.7\] - 2026-04-05
