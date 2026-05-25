@@ -194,6 +194,8 @@
 
 - Update taiki-e/install-action action to v2.79.3 (#235) by @renovate\[bot] in [#235](https://github.com/Paul-16098/my-http-server/pull/235)
 
+- Update rust crate serde_json to v1.0.150 (#236) by @renovate\[bot] in [#236](https://github.com/Paul-16098/my-http-server/pull/236)
+
 </details>
 
 ### Other
