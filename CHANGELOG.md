@@ -196,6 +196,8 @@
 
 - Update rust crate serde_json to v1.0.150 (#236) by @renovate\[bot] in [#236](https://github.com/Paul-16098/my-http-server/pull/236)
 
+- Update taiki-e/install-action action to v2.79.7 (#237) by @renovate\[bot] in [#237](https://github.com/Paul-16098/my-http-server/pull/237)
+
 </details>
 
 ### Other
@@ -215,6 +217,8 @@
 - *workflow*: Add permissions section to cargo-push workflow by @Paul-16098
 
 - *justfile*: Update dependencies and fix argument patterns by @Paul-16098
+
+- *workflow*: Update cargo-binstall tools in test workflow by @Paul-16098
 
 
 ## \[4.1.7\] - 2026-04-05
