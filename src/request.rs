@@ -67,7 +67,7 @@ fn render_markdown_to_html_response(
 				})
 				.to_path_buf();
 
-			match md2html(md_source, c, vec![format!("path:{}", rel.display())]) {
+			match md2html(md_source, c, vec![format!("path:{:?}", rel)]) {
 				Ok(html) => Ok(HttpResponseBuilder::new(StatusCode::OK)
 					.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
 					.body(html)),
@@ -206,8 +206,15 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	}
 
 	let is_md = req_path.extension().and_then(|v| v.to_str()) == Some("md");
-	if is_md {
+	let accept = req
+		.headers()
+		.get(actix_web::http::header::ACCEPT)
+		.and_then(|v| v.to_str().ok())
+		.unwrap_or("text/html");
+	debug!("accept={accept}");
+	if is_md && !accept.contains("text/markdown") {
 		debug!("is md");
+
 		// Render Markdown to HTML and return.
 		match render_markdown_to_html_response(req_path, &public_path, c) {
 			Ok(res) => res,
