@@ -15,6 +15,7 @@ mod request;
 use crate::request::main_req;
 
 use actix_web::HttpResponse;
+use actix_web::http::header;
 use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
 use clap::{CommandFactory as _, Parser as _};
 use log::{debug, error, info, warn};
@@ -307,6 +308,8 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerC
 /// only when enabled to avoid unnecessary overhead.
 fn build_server(s: &Cofg) -> AppResult<Server> {
 	let middleware_cofg = s.middleware.clone();
+	// Whether the server is running with TLS — used to enable HSTS header middleware
+	let tls_enable = s.tls.enable;
 	let addrs = &s.addrs;
 	#[cfg(feature = "api")]
 	let api_enable = s.api.enable;
@@ -319,6 +322,16 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 	let server = HttpServer::new(move || {
 		let mut app =
 			App::new()
+				// Add HSTS header for HTTPS responses when TLS is enabled. This ensures
+				// browsers will enforce HTTPS for the configured max-age.
+				.wrap(middleware::Condition::new(
+					tls_enable,
+					middleware::DefaultHeaders::new().add((
+						header::STRICT_TRANSPORT_SECURITY,
+						// 1 year + include subdomains and preload directive
+						"max-age=31536000; includeSubDomains; preload",
+					)),
+				))
 				.wrap(middleware::Condition::new(
 					middleware_cofg.rate_limiting.enable,
 					{
