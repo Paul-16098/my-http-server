@@ -54,7 +54,15 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
 /// acceptable since `/` root requests are comparatively infrequent.
 pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppResult<String> {
 	debug!("root:{}", root_path.display());
-	let public_path = &Path::new(&c.public_path).canonicalize()?;
+	// Prefer the cached global public_root when the caller's config matches
+	// the global configuration (hot path). Otherwise compute from the
+	// provided `c.public_path`.
+	let public_path_buf = if let Some(p) = crate::cofg::config::Cofg::get_public_root_for(c) {
+		p
+	} else {
+		std::path::Path::new(&c.public_path).canonicalize()?
+	};
+	let public_path = public_path_buf.as_path();
 	let root_path = &root_path.canonicalize()?;
 
 	let mut toc_str = format!("# {}\n\n", title.unwrap_or("toc".to_string()));

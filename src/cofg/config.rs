@@ -125,6 +125,8 @@ pub(crate) struct Cofg {
 struct GlobalConfig {
 	config: Cofg,
 	cli_args: Option<super::cli::Args>,
+	// canonicalized public root directory for fast lookups
+	public_root: std::path::PathBuf,
 }
 
 static GLOBAL_COFG: OnceLock<RwLock<GlobalConfig>> = OnceLock::new();
@@ -421,9 +423,22 @@ impl Cofg {
 				warn!("Failed to load configuration from disk: {}", e);
 				Self::default()
 			});
+
+			// compute canonicalized public_root once at startup
+			let public_root = std::path::Path::new(&config.public_path)
+				.canonicalize()
+				.unwrap_or_else(|e| {
+					warn!(
+						"Failed to canonicalize public_path: {} = {e}",
+						config.public_path
+					);
+					std::path::Path::new(&config.public_path).to_path_buf()
+				});
+
 			RwLock::new(GlobalConfig {
 				config,
 				cli_args: None,
+				public_root,
 			})
 		});
 
@@ -446,11 +461,64 @@ impl Cofg {
 					debug!("Reloading config from disk");
 					Self::load_from_disk_or_init()?
 				};
+
+				// update cached public_root based on new config
+				let public_root = std::path::Path::new(&new_config.public_path)
+					.canonicalize()
+					.unwrap_or_else(|e| {
+						warn!(
+							"Failed to canonicalize public_path: {} = {e}",
+							new_config.public_path
+						);
+						std::path::Path::new(&new_config.public_path).to_path_buf()
+					});
+
 				guard.config = new_config;
+				guard.public_root = public_root;
 			}
 		}
 
 		Ok(cell.read().map(|g| g.config.clone()).unwrap_or_default())
+	}
+
+	/// Return the cached canonicalized public root PathBuf.
+	///
+	/// This avoids calling `canonicalize()` on every request. If the global
+	/// configuration hasn't been initialized yet, compute a best-effort value
+	/// from the current (non-cached) configuration.
+	pub fn get_public_root() -> std::path::PathBuf {
+		if let Some(cell) = GLOBAL_COFG.get()
+			&& let Ok(guard) = cell.read()
+		{
+			return guard.public_root.clone();
+		}
+
+		// Fallback: compute from current config (may be slightly more expensive)
+		let cfg = Self::get(false);
+		std::path::Path::new(&cfg.public_path)
+			.canonicalize()
+			.unwrap_or_else(|e| {
+				warn!(
+					"Failed to canonicalize public_path: {} = {e}",
+					cfg.public_path
+				);
+				std::path::Path::new(&cfg.public_path).to_path_buf()
+			})
+	}
+
+	/// If the provided config matches the currently cached global config (by
+	/// `public_path` string), return the cached `public_root`. Otherwise return None.
+	///
+	/// This lets callers avoid canonicalizing when they're operating with the
+	/// same configuration instance used by the global cache (hot path).
+	pub fn get_public_root_for(c: &Cofg) -> Option<std::path::PathBuf> {
+		if let Some(cell) = GLOBAL_COFG.get()
+			&& let Ok(guard) = cell.read()
+			&& guard.config.public_path == c.public_path
+		{
+			return Some(guard.public_root.clone());
+		}
+		None
 	}
 
 	/// Initialize global configuration with CLI arguments.
@@ -461,10 +529,22 @@ impl Cofg {
 	pub fn init_global(cli: &super::cli::Args, no_xdg: bool) -> AppResult<Self> {
 		let config = Self::new_layered(cli, no_xdg)?;
 
+		// compute canonicalized public_root for the initial config
+		let public_root = std::path::Path::new(&config.public_path)
+			.canonicalize()
+			.unwrap_or_else(|e| {
+				warn!(
+					"Failed to canonicalize public_path: {} = {e}",
+					config.public_path
+				);
+				std::path::Path::new(&config.public_path).to_path_buf()
+			});
+
 		let cell = GLOBAL_COFG.get_or_init(|| {
 			RwLock::new(GlobalConfig {
 				config: config.clone(),
 				cli_args: Some(cli.clone()),
+				public_root: public_root.clone(),
 			})
 		});
 
@@ -472,6 +552,7 @@ impl Cofg {
 		if let Ok(mut guard) = cell.write() {
 			guard.config = config.clone();
 			guard.cli_args = Some(cli.clone());
+			guard.public_root = public_root.clone();
 		}
 
 		Ok(config)

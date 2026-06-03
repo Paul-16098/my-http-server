@@ -136,15 +136,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	debug!("{req:?}");
 
 	let c = &Cofg::get(false);
-	let public_path = &Path::new(&c.public_path)
-		.canonicalize()
-		.unwrap_or_else(|e| {
-			warn!(
-				"Failed to canonicalize public_path: {} = {e}",
-				c.public_path
-			);
-			Path::new(&c.public_path).to_path_buf()
-		});
+	let public_path = crate::cofg::config::Cofg::get_public_root();
 	debug!("public_path={}", public_path.display());
 
 	// Resolve the target path under the configured public root.
@@ -178,7 +170,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 			req_path_buf
 		}
 	});
-	let req_strip_prefix_path = match req_path.strip_prefix(public_path) {
+	let req_strip_prefix_path = match req_path.strip_prefix(&public_path) {
 		Ok(p) => p,
 		Err(e) => {
 			error!(
@@ -190,7 +182,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		}
 	};
 
-	if req_path == public_path {
+	if req_path == public_path.as_path() {
 		let index_file = public_path.join("index.html");
 		if index_file.exists() {
 			let f = read_to_string(index_file);
@@ -217,7 +209,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	if is_md {
 		debug!("is md");
 		// Render Markdown to HTML and return.
-		match render_markdown_to_html_response(req_path, public_path, c) {
+		match render_markdown_to_html_response(req_path, &public_path, c) {
 			Ok(res) => res,
 			Err(err) => server_error(err.to_string()),
 		}
@@ -233,7 +225,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	} else if req_path.is_dir() {
 		debug!("is dir");
 		let label = req_strip_prefix_path.to_string_lossy();
-		if req_path == public_path {
+		if req_path == public_path.as_path() {
 			// if is index
 			render_toc_to_html_response(req_path, "index", c)
 		} else {
