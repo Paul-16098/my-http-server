@@ -22,6 +22,12 @@
 
 - *server*: Improve logging for server run address with TLS support by @Paul-16098
 
+- *config*: Add public_root caching for optimized path lookups by @Paul-16098
+
+- *request*: Enhance markdown rendering based on Accept header by @Paul-16098
+
+- *server*: Add HSTS header middleware for TLS-enabled responses by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -72,6 +78,8 @@
 - *build*: Include additional git files for change detection by @Paul-16098
 
 - *auto-merge*: Update regex to match all versions of taiki-e/install-action by @Paul-16098
+
+- *request*: Correct HTML title escaping in markdown rendering test by @Paul-16098
 
 ### <details><summary>Deps</summary>
 
