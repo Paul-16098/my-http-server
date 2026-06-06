@@ -81,6 +81,8 @@
 
 - *request*: Correct HTML title escaping in markdown rendering test by @Paul-16098
 
+- *test*: Ignore not work test by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -225,6 +227,8 @@
 - Update taiki-e/install-action action to v2.79.15 (#246) by @renovate\[bot] in [#246](https://github.com/Paul-16098/my-http-server/pull/246)
 
 - Update taiki-e/install-action action to v2.80.0 (#247) by @renovate\[bot] in [#247](https://github.com/Paul-16098/my-http-server/pull/247)
+
+- Update rust crate log to v0.4.31 (#249) by @renovate\[bot] in [#249](https://github.com/Paul-16098/my-http-server/pull/249)
 
 </details>
 
