@@ -232,6 +232,10 @@
 
 - Update taiki-e/install-action action to v2.81.3 (#248) by @renovate\[bot] in [#248](https://github.com/Paul-16098/my-http-server/pull/248)
 
+- Update taiki-e/install-action action to v2.81.4 (#251) by @renovate\[bot] in [#251](https://github.com/Paul-16098/my-http-server/pull/251)
+
+- Update rust crate log to v0.4.32 (#250) by @renovate\[bot] in [#250](https://github.com/Paul-16098/my-http-server/pull/250)
+
 </details>
 
 ### Other
