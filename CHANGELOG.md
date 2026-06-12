@@ -242,6 +242,8 @@
 
 - Update codecov/codecov-action action to v7 (#255) by @renovate\[bot] in [#255](https://github.com/Paul-16098/my-http-server/pull/255)
 
+- Update taiki-e/install-action action to v2.81.8 (#256) by @renovate\[bot] in [#256](https://github.com/Paul-16098/my-http-server/pull/256)
+
 </details>
 
 ### Other
