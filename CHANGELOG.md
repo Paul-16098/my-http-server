@@ -252,6 +252,10 @@
 
 - Update taiki-e/install-action action to v2.81.11 (#260) by @renovate\[bot] in [#260](https://github.com/Paul-16098/my-http-server/pull/260)
 
+- Update rust crate config to v0.15.24 (#261) by @renovate\[bot] in [#261](https://github.com/Paul-16098/my-http-server/pull/261)
+
+- Update actions/checkout action to v7 (#263) by @renovate\[bot] in [#263](https://github.com/Paul-16098/my-http-server/pull/263)
+
 </details>
 
 ### Other
