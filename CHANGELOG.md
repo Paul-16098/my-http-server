@@ -256,6 +256,8 @@
 
 - Update actions/checkout action to v7 (#263) by @renovate\[bot] in [#263](https://github.com/Paul-16098/my-http-server/pull/263)
 
+- Update taiki-e/install-action action to v2.82.0 (#262) by @renovate\[bot] in [#262](https://github.com/Paul-16098/my-http-server/pull/262)
+
 </details>
 
 ### Other
