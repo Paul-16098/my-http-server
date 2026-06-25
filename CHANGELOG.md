@@ -262,6 +262,10 @@
 
 - Update rust crate log to v0.4.33 (#265) by @renovate\[bot] in [#265](https://github.com/Paul-16098/my-http-server/pull/265)
 
+- Update taiki-e/install-action action to v2.82.2 (#266) by @renovate\[bot] in [#266](https://github.com/Paul-16098/my-http-server/pull/266)
+
+- Update rust crate actix-web to v4.14.0 (#267) by @renovate\[bot] in [#267](https://github.com/Paul-16098/my-http-server/pull/267)
+
 </details>
 
 ### Other
