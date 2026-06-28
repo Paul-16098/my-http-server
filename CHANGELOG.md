@@ -268,6 +268,10 @@
 
 - Update rust crate rustls to v0.23.41 (#268) by @renovate\[bot] in [#268](https://github.com/Paul-16098/my-http-server/pull/268)
 
+- Update taiki-e/install-action action to v2.82.3 (#270) by @renovate\[bot] in [#270](https://github.com/Paul-16098/my-http-server/pull/270)
+
+- Update rust crate handlebars to v6.4.2 (#269) by @renovate\[bot] in [#269](https://github.com/Paul-16098/my-http-server/pull/269)
+
 </details>
 
 ### Other
