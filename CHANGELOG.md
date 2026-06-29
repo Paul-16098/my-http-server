@@ -272,6 +272,8 @@
 
 - Update rust crate handlebars to v6.4.2 (#269) by @renovate\[bot] in [#269](https://github.com/Paul-16098/my-http-server/pull/269)
 
+- Update taiki-e/install-action action to v2.82.4 (#272) by @renovate\[bot] in [#272](https://github.com/Paul-16098/my-http-server/pull/272)
+
 </details>
 
 ### Other
