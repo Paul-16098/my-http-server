@@ -274,6 +274,12 @@
 
 - Update taiki-e/install-action action to v2.82.4 (#272) by @renovate\[bot] in [#272](https://github.com/Paul-16098/my-http-server/pull/272)
 
+- Update actions-rust-lang/setup-rust-toolchain action to v1.17.0 (#273) by @renovate\[bot] in [#273](https://github.com/Paul-16098/my-http-server/pull/273)
+
+- Update rust crate env_logger to v0.11.11 (#271) by @renovate\[bot] in [#271](https://github.com/Paul-16098/my-http-server/pull/271)
+
+- Update taiki-e/install-action action to v2.82.5 (#275) by @renovate\[bot] in [#275](https://github.com/Paul-16098/my-http-server/pull/275)
+
 </details>
 
 ### Other
