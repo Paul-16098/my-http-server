@@ -290,6 +290,8 @@
 
 - Update rust crate rustls-pki-types to v1.15.0 (#277) by @renovate\[bot] in [#277](https://github.com/Paul-16098/my-http-server/pull/277)
 
+- Update rust crate clap_complete to v4.6.7 (#280) by @renovate\[bot] in [#280](https://github.com/Paul-16098/my-http-server/pull/280)
+
 </details>
 
 ### Other
