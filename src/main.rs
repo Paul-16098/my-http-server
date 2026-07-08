@@ -15,10 +15,11 @@ mod request;
 use crate::request::main_req;
 
 use actix_web::HttpResponse;
+use actix_web::http::header;
 use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
-use clap::Parser as _;
+use clap::{CommandFactory as _, Parser as _};
 use log::{debug, error, info, warn};
-use std::fs::create_dir_all;
+use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 
@@ -75,10 +76,6 @@ impl Default for Version {
 /// per-request race to create it lazily. Logger configured with module paths for traceability.
 fn init(_c: &Cofg) -> AppResult<()> {
 	if let Some(xdg_paths) = Cofg::get_xdg_paths() {
-		if let Some(parent) = xdg_paths.cofg.parent() {
-			create_dir_all(parent)?;
-		}
-
 		if !xdg_paths.cofg.exists() {
 			std::fs::write(&xdg_paths.cofg, include_str!("./cofg/cofg.yaml"))?;
 			info!("Created default XDG config at {}", xdg_paths.cofg.display());
@@ -190,12 +187,43 @@ fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
 	EMOJIS.get_or_init(|| emojis);
 	Ok(())
 }
-fn logger_init() {
+
+fn generate_completion_script(shell: cli::CompletionShell) {
+	use clap_complete::{Shell, generate};
+	use std::io;
+
+	let mut cmd = cli::Args::command();
+	let bin_name = env!("CARGO_BIN_NAME");
+
+	match shell {
+		cli::CompletionShell::Bash => generate(Shell::Bash, &mut cmd, bin_name, &mut io::stdout()),
+		cli::CompletionShell::Elvish => {
+			generate(Shell::Elvish, &mut cmd, bin_name, &mut io::stdout())
+		}
+		cli::CompletionShell::Fish => generate(Shell::Fish, &mut cmd, bin_name, &mut io::stdout()),
+		cli::CompletionShell::PowerShell => {
+			generate(Shell::PowerShell, &mut cmd, bin_name, &mut io::stdout())
+		}
+		cli::CompletionShell::Zsh => generate(Shell::Zsh, &mut cmd, bin_name, &mut io::stdout()),
+		cli::CompletionShell::Nushell => {
+			let mut f = Vec::new();
+			generate(clap_complete_nushell::Nushell, &mut cmd, bin_name, &mut f);
+			let f = String::from_utf8(f)
+				.unwrap_or_else(|err| String::from_utf8_lossy(&err.into_bytes()).into_owned());
+			let f = f.replace("--port: string", "--port: int   ");
+			if let Err(err) = io::stdout().write_all(f.as_bytes()) {
+				panic!("failed to write completion script: {err}");
+			}
+		}
+	}
+}
+
+fn logger_init(filter_level: log::LevelFilter) {
 	let mut l = env_logger::builder();
 	l.default_format()
 		.format_timestamp(None)
-		.filter_level(log::LevelFilter::Info)
-		.parse_default_env();
+		.parse_default_env()
+		.filter_level(filter_level);
 
 	#[cfg(debug_assertions)]
 	l.format_source_path(true);
@@ -275,15 +303,30 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerC
 /// only when enabled to avoid unnecessary overhead.
 fn build_server(s: &Cofg) -> AppResult<Server> {
 	let middleware_cofg = s.middleware.clone();
+	// Whether the server is running with TLS — used to enable HSTS header middleware
+	let tls_enable = s.tls.enable;
 	let addrs = &s.addrs;
 	#[cfg(feature = "api")]
 	let api_enable = s.api.enable;
 
-	info!("run in {addrs}");
+	info!(
+		"run in {}{addrs}",
+		if s.tls.enable { "https://" } else { "http://" }
+	);
 
 	let server = HttpServer::new(move || {
 		let mut app =
 			App::new()
+				// Add HSTS header for HTTPS responses when TLS is enabled. This ensures
+				// browsers will enforce HTTPS for the configured max-age.
+				.wrap(middleware::Condition::new(
+					tls_enable,
+					middleware::DefaultHeaders::new().add((
+						header::STRICT_TRANSPORT_SECURITY,
+						// 1 year + include subdomains and preload directive
+						"max-age=31536000; includeSubDomains; preload",
+					)),
+				))
 				.wrap(middleware::Condition::new(
 					middleware_cofg.rate_limiting.enable,
 					{
@@ -454,35 +497,38 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 
 #[actix_web::main]
 async fn main() -> AppResult<()> {
-	logger_init();
-
 	// Parse CLI arguments
 	let cli_args = cli::Args::parse();
+
+	// if generate_completion is specified, generate the completion script and exit
+	if let Some(shell) = cli_args.generate_completion {
+		generate_completion_script(shell);
+		return Ok(());
+	}
+
+	logger_init(cli_args.verbosity.log_level_filter());
 
 	// Handle root_dir early (change CWD before config load)
 	if let Some(ref dir) = cli_args.root_dir {
 		std::env::set_current_dir(dir).map_err(|e| {
 			error!("Failed to change directory to '{}': {}", dir, e);
-			crate::error::AppError::CliError(format!("ROOT_DIR must be a valid path: {}", e))
+			crate::error::AppError::CliError(format!("--root_dir must be a valid path: {}", e))
 		})?;
 		info!("Changed working directory to: {}", dir);
 	}
 
 	// Initialize global config with full layered precedence
-	let mut s = Cofg::init_global(&cli_args, false)?;
+	let s = Cofg::init_global(&cli_args, false)?;
 
-	// Canonicalize public_path for consistent path resolution
-	s.public_path = Path::new(&s.public_path)
-		.canonicalize()
-		.unwrap_or_else(|e| {
-			warn!(
-				"Failed to canonicalize public_path '{}': {}",
-				&s.public_path, e
-			);
-			(&s.public_path).into()
-		})
-		.to_string_lossy()
-		.to_string();
+	#[cfg(feature = "github_emojis")]
+	if cli_args.clear_cache {
+		if let Some(xdg_paths) = cofg::config::Cofg::get_xdg_paths() {
+			std::fs::remove_file(&xdg_paths.emojis)?;
+			info!("Cleared emoji cache at {}", xdg_paths.emojis.display());
+		} else {
+			error!("Cannot clear emoji cache: no valid XDG config path available");
+		}
+	}
 
 	init(&s)?;
 	info!(

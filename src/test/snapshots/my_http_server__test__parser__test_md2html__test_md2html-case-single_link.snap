@@ -1,0 +1,10 @@
+---
+source: src/test/parser.rs
+description: "# Home\n\n[Index](./index.md)\n"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h1>Home</h1><p><a href="./index.md">Index</a></p>
+</body></html>

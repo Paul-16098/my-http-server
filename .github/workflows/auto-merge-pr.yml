@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Get open PRs
         id: get-prs
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             // Use pagination to get all open PRs
@@ -34,7 +34,7 @@ jobs:
             // Filter for renovate[bot] PRs matching taiki-e/install-action pattern
             const filteredPrs = prs.filter(pr => {
               const isBotPr = pr.user.login === 'renovate[bot]';
-              const matchesPattern = /^chore\(deps\):\s*update taiki-e\/install-action action to v2\.69\.\d+$/.test(pr.title);
+              const matchesPattern = /^chore\(deps\):\s*update taiki-e\/install-action action to v2\.\d+\.\d+$/.test(pr.title);
               return isBotPr && matchesPattern;
             });
 
@@ -44,7 +44,7 @@ jobs:
 
       - name: Merge PRs
         if: steps.get-prs.outputs.count != '0'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PRS_JSON: ${{ steps.get-prs.outputs.prs }}
         with:

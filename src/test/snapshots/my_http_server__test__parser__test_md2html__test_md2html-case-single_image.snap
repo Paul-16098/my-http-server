@@ -1,0 +1,10 @@
+---
+source: src/test/parser.rs
+description: "# Single\n\n![Logo](./logo.svg)"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h1>Single</h1><p><img src="./logo.svg" alt="Logo"></img></p>
+</body></html>

@@ -16,9 +16,6 @@ use wax::walk::Entry as _;
 use crate::error::AppResult;
 use crate::{cofg::config::Cofg, error};
 
-const NON_ALPHANUMERIC: &percent_encoding::AsciiSet =
-	&percent_encoding::NON_ALPHANUMERIC.remove(b'/');
-
 #[derive(Default, Debug)]
 struct TocNode {
 	children: BTreeMap<String, TocNode>,
@@ -33,11 +30,7 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
 		};
 		let indent = " ".repeat(depth * 4);
 		trace!("emit_toc: node={node:?};prefix={prefix:#?};out={out};depth={depth}");
-		out.push_str(&format!(
-			"{indent}- [{}]({})\n",
-			name,
-			percent_encoding::utf8_percent_encode(&path.replace("\\", "/"), NON_ALPHANUMERIC)
-		));
+		out.push_str(&format!("{indent}- [{}]({})\n", name, path));
 
 		prefix.push(name.clone());
 		emit_toc(child, prefix, out, depth + 1);
@@ -54,7 +47,11 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
 /// acceptable since `/` root requests are comparatively infrequent.
 pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppResult<String> {
 	debug!("root:{}", root_path.display());
-	let public_path = &Path::new(&c.public_path).canonicalize()?;
+	// Prefer the cached global public_root when the caller's config matches
+	// the global configuration (hot path). Otherwise compute from the
+	// provided `c.public_path`.
+	let public_path_buf = crate::cofg::config::Cofg::get_public_root();
+	let public_path = public_path_buf.as_path();
 	let root_path = &root_path.canonicalize()?;
 
 	let mut toc_str = format!("# {}\n\n", title.unwrap_or("toc".to_string()));
@@ -65,13 +62,23 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
 	let exts: Vec<String> = c.toc.ext.iter().cloned().collect();
 	let glob_pattern = format!("**/*.{{{}}}", exts.join(","));
 
+	debug!("get_toc: glob={}", glob_pattern);
+
 	for entry in Glob::new(&glob_pattern)?.walk(root_path) {
 		let entry = entry?;
-		let path = entry
-			.path()
-			.canonicalize()?
-			.strip_prefix(root_path)?
-			.to_path_buf();
+
+		debug!("get_toc: entry={entry:?}");
+
+		let raw_path = entry.path();
+
+		debug!("get_toc: raw_path={:?}", raw_path.display());
+
+		let canonicalize_path = raw_path.canonicalize()?;
+
+		debug!("canonicalize_path={}", canonicalize_path.display());
+
+		let path = canonicalize_path.strip_prefix(root_path)?.to_path_buf();
+
 		debug!("path: {}", path.display());
 
 		// Skip entries matching any ignore token
@@ -91,11 +98,17 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
 		}
 	}
 
+	debug!("get_toc: glob walk done");
+
+	debug!("get_toc: root_path={}", root_path.display());
+	debug!("get_toc: public_path={}", public_path.display());
+
 	// Emit recursively for arbitrary depth
 	let mut prefix: Vec<String> = Vec::new();
 	prefix.push(
+		#[allow(clippy::unwrap_used)]
 		root_path
-			.strip_prefix(public_path)?
+			.strip_prefix(public_path.canonicalize().unwrap())?
 			.to_string_lossy()
 			.into_owned(),
 	);

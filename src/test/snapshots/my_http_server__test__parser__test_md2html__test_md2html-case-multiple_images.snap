@@ -1,0 +1,11 @@
+---
+source: src/test/parser.rs
+description: "# Images\n\n![Alt text](./image.png)\n![Remote image](https://example.com/image.jpg)"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h1>Images</h1><p><img src="./image.png" alt="Alt text"></img>
+<img src="https://example.com/image.jpg" alt="Remote image"></img></p>
+</body></html>

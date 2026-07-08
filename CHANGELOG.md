@@ -6,29 +6,341 @@
 
 ### Features
 
-- *tests*: Reorganize Makefile tasks for better coverage reporting and add lcov output by @Paul-16098
+- *release*: Automate merging of version bump pull requests by @Paul-16098
 
-- *vscode*: Add extensions.json for recommended VSCode extensions by @Paul-16098
+- *github_emojis*: Add clear cache option for emoji management by @Paul-16098
 
-- *tests*: Add coverage report generation and commit step by @Paul-16098
+- *cli*: Add verbosity flag support for enhanced logging control by @Paul-16098
 
-- *tests*: Add git push step for coverage report submission by @Paul-16098
+- *cli*: Add verbosity flag for enhanced configuration control by @Paul-16098
 
-- *vscode*: Update settings to exclude lcov.info file by @Paul-16098
+- *tests*: Add insta snapshots for md2html tests by @Paul-16098
 
-- *workflows*: Update actions versions and add caching for cargo dependencies by @Paul-16098
+- *tests*: Add snapshots for md2html with links, images, and tables by @Paul-16098
 
-- *config*: Add no_xdg parameter to new_layered and init_global methods by @Paul-16098
+- *cli*: Add shell completion support for bash, zsh, fish, powershell, elvish, and nushell by @Paul-16098
 
-- *tests*: Update config in integration tests to specify template path by @Paul-16098
+- *server*: Improve logging for server run address with TLS support by @Paul-16098
 
-- *tests*: Add --no-fail-fast option to nextest command by @Paul-16098
+- *config*: Add public_root caching for optimized path lookups by @Paul-16098
 
-- *coverage*: Update test workflow to run coverage and upload reports to Codecov by @Paul-16098
+- *request*: Enhance markdown rendering based on Accept header by @Paul-16098
 
-- *tests*: Enhance test coverage and refactor test cases for CLI and configuration by @Paul-16098
+- *server*: Add HSTS header middleware for TLS-enabled responses by @Paul-16098
 
-- *tests*: Enhance test configuration initialization for consistency and security by @Paul-16098
+
+### Bug Fixes
+
+- Reset to main by @Paul-16098
+
+- *dist*: Remove duplicate target platform entry by @Paul-16098
+
+- *release*: Add missing confirm and script directives for version release by @Paul-16098
+
+- *release*: Remove unnecessary --squash option from PR merge command by @Paul-16098
+
+- *release*: Add --squash option to PR merge command by @Paul-16098
+
+- *release*: Remove unnecessary --auto option from PR merge command by @Paul-16098
+
+- *release*: Change merge command to use --auto option by @Paul-16098
+
+- *cli*: Clarify default config file path description by @Paul-16098
+
+- *parser*: Remove unused mutable variable in md2html function by @Paul-16098
+
+- *tests*: Add argument support for nextest and all-features-test commands by @Paul-16098
+
+- *justfile*: Add coverage group and refine version argument pattern by @Paul-16098
+
+- *config*: Improve default configuration loading and simplify test fixture setup by @Paul-16098
+
+- *tasks*: Migrate from cargo to vscode-just for task management by @Paul-16098
+
+- *parser*: Allow unused mutable variable for compatibility with non-github_emojis feature by @Paul-16098
+
+- *auto-merge*: Update regex pattern for taiki-e/install-action PRs to v2.75.x by @Paul-16098
+
+- *cofg*: Improve warning message for missing config file by @Paul-16098
+
+- *request*: Handle non-existent request paths with 404 response by @Paul-16098
+
+- *cli*: Add value hints for file and directory paths in argument parsing by @Paul-16098
+
+- *cli*: Improve Nushell completion script generation and error handling by @Paul-16098
+
+- *tests*: Correct conditional compilation for path traversal tests on Windows by @Paul-16098
+
+- *tests*: Update path traversal tests to include NOT_FOUND status by @Paul-16098
+
+- *deps*: Update windows-sys to version 0.60.2 and rustls-webpki to version 0.103.12 by @Paul-16098
+
+- *build*: Include additional git files for change detection by @Paul-16098
+
+- *auto-merge*: Update regex to match all versions of taiki-e/install-action by @Paul-16098
+
+- *request*: Correct HTML title escaping in markdown rendering test by @Paul-16098
+
+- *test*: Ignore not work test by @Paul-16098
+
+### <details><summary>Deps</summary>
+
+
+- Update taiki-e/install-action action to v2.73.0 (#179) by @renovate\[bot] in [#179](https://github.com/Paul-16098/my-http-server/pull/179)
+
+- Update actions/github-script action to v9 (#182) by @renovate\[bot] in [#182](https://github.com/Paul-16098/my-http-server/pull/182)
+
+- Update rand package to version 0.9.3 by @Paul-16098
+
+- Update taiki-e/install-action action to v2.75.3 (#180) by @renovate\[bot] in [#180](https://github.com/Paul-16098/my-http-server/pull/180)
+
+- Update taiki-e/install-action action to v2.75.5 (#183) by @renovate\[bot] in [#183](https://github.com/Paul-16098/my-http-server/pull/183)
+
+- Update rust crate rustls to v0.23.38 (#185) by @renovate\[bot] in [#185](https://github.com/Paul-16098/my-http-server/pull/185)
+
+- Update taiki-e/install-action action to v2.75.9 (#184) by @renovate\[bot] in [#184](https://github.com/Paul-16098/my-http-server/pull/184)
+
+- Update actions-rust-lang/setup-rust-toolchain action to v1.16.0 (#186) by @renovate\[bot] in [#186](https://github.com/Paul-16098/my-http-server/pull/186)
+
+- Add cargo-llvm-cov to installation in justfile and workflow by @Paul-16098
+
+- Update taiki-e/install-action action to v2.75.12 (#187) by @renovate\[bot] in [#187](https://github.com/Paul-16098/my-http-server/pull/187)
+
+- Update taiki-e/install-action action to v2.75.13 (#188) by @renovate\[bot] in [#188](https://github.com/Paul-16098/my-http-server/pull/188)
+
+- Update taiki-e/install-action action to v2.75.14 (#189) by @renovate\[bot] in [#189](https://github.com/Paul-16098/my-http-server/pull/189)
+
+- Update rust crate clap to v4.6.1 (#190) by @renovate\[bot] in [#190](https://github.com/Paul-16098/my-http-server/pull/190)
+
+- Update taiki-e/install-action action to v2.75.15 (#191) by @renovate\[bot] in [#191](https://github.com/Paul-16098/my-http-server/pull/191)
+
+- Update taiki-e/install-action action to v2.75.16 (#194) by @renovate\[bot] in [#194](https://github.com/Paul-16098/my-http-server/pull/194)
+
+- Update taiki-e/install-action action to v2.75.17 (#195) by @renovate\[bot] in [#195](https://github.com/Paul-16098/my-http-server/pull/195)
+
+- Update taiki-e/install-action action to v2.75.18 (#196) by @renovate\[bot] in [#196](https://github.com/Paul-16098/my-http-server/pull/196)
+
+- Bump actix-http in the cargo group across 1 directory (#197) by @dependabot\[bot] in [#197](https://github.com/Paul-16098/my-http-server/pull/197)
+
+- Bump rustls-webpki from 0.103.12 to 0.103.13 in the cargo group across 1 directory (#199) by @dependabot\[bot] in [#199](https://github.com/Paul-16098/my-http-server/pull/199)
+
+- Update taiki-e/install-action action to v2.75.19 (#200) by @renovate\[bot] in [#200](https://github.com/Paul-16098/my-http-server/pull/200)
+
+- Update taiki-e/install-action action to v2.75.20 (#201) by @renovate\[bot] in [#201](https://github.com/Paul-16098/my-http-server/pull/201)
+
+- Update rust crate rustls to v0.23.39 (#198) by @renovate\[bot] in [#198](https://github.com/Paul-16098/my-http-server/pull/198)
+
+- Update taiki-e/install-action action to v2.75.21 (#202) by @renovate\[bot] in [#202](https://github.com/Paul-16098/my-http-server/pull/202)
+
+- Update rust crate rustls-pki-types to v1.14.1 (#203) by @renovate\[bot] in [#203](https://github.com/Paul-16098/my-http-server/pull/203)
+
+- Update taiki-e/install-action action to v2.75.22 (#204) by @renovate\[bot] in [#204](https://github.com/Paul-16098/my-http-server/pull/204)
+
+- Update taiki-e/install-action action to v2.75.23 (#206) by @renovate\[bot] in [#206](https://github.com/Paul-16098/my-http-server/pull/206)
+
+- Update rust crate clap_complete to v4.6.3 (#205) by @renovate\[bot] in [#205](https://github.com/Paul-16098/my-http-server/pull/205)
+
+- Update taiki-e/install-action action to v2.75.24 (#207) by @renovate\[bot] in [#207](https://github.com/Paul-16098/my-http-server/pull/207)
+
+- Update taiki-e/install-action action to v2.75.25 (#209) by @renovate\[bot] in [#209](https://github.com/Paul-16098/my-http-server/pull/209)
+
+- Update rust crate rustls to v0.23.40 (#208) by @renovate\[bot] in [#208](https://github.com/Paul-16098/my-http-server/pull/208)
+
+- Update taiki-e/install-action action to v2.75.26 (#210) by @renovate\[bot] in [#210](https://github.com/Paul-16098/my-http-server/pull/210)
+
+- Update taiki-e/install-action action to v2.75.27 (#211) by @renovate\[bot] in [#211](https://github.com/Paul-16098/my-http-server/pull/211)
+
+- Update taiki-e/install-action action to v2.75.28 (#212) by @renovate\[bot] in [#212](https://github.com/Paul-16098/my-http-server/pull/212)
+
+- Update taiki-e/install-action action to v2.75.29 (#213) by @renovate\[bot] in [#213](https://github.com/Paul-16098/my-http-server/pull/213)
+
+- Update taiki-e/install-action action to v2.75.30 (#214) by @renovate\[bot] in [#214](https://github.com/Paul-16098/my-http-server/pull/214)
+
+- Update taiki-e/install-action action version in auto-merge workflow by @Paul-16098
+
+- Update rust crate utoipa to v5.5.0 (#216) by @renovate\[bot] in [#216](https://github.com/Paul-16098/my-http-server/pull/216)
+
+- Update taiki-e/install-action action version to v2.77.0 in auto-merge workflow by @Paul-16098
+
+- Update taiki-e/install-action action to v2.77.0 (#215) by @renovate\[bot] in [#215](https://github.com/Paul-16098/my-http-server/pull/215)
+
+- Update taiki-e/install-action action to v2.77.1 (#217) by @renovate\[bot] in [#217](https://github.com/Paul-16098/my-http-server/pull/217)
+
+- Update taiki-e/install-action action to v2.77.2 (#218) by @renovate\[bot] in [#218](https://github.com/Paul-16098/my-http-server/pull/218)
+
+- Update actions-rust-lang/setup-rust-toolchain action to v1.16.1 (#219) by @renovate\[bot] in [#219](https://github.com/Paul-16098/my-http-server/pull/219)
+
+- Update taiki-e/install-action action to v2.77.3 (#220) by @renovate\[bot] in [#220](https://github.com/Paul-16098/my-http-server/pull/220)
+
+- Update rust crate clap_complete to v4.6.4 (#221) by @renovate\[bot] in [#221](https://github.com/Paul-16098/my-http-server/pull/221)
+
+- Update taiki-e/install-action action to v2.77.4 (#222) by @renovate\[bot] in [#222](https://github.com/Paul-16098/my-http-server/pull/222)
+
+- Update taiki-e/install-action action to v2.77.5 (#223) by @renovate\[bot] in [#223](https://github.com/Paul-16098/my-http-server/pull/223)
+
+- Update taiki-e/install-action action to v2.77.6 (#225) by @renovate\[bot] in [#225](https://github.com/Paul-16098/my-http-server/pull/225)
+
+- Update rust crate clap_complete to v4.6.5 (#224) by @renovate\[bot] in [#224](https://github.com/Paul-16098/my-http-server/pull/224)
+
+- Update taiki-e/install-action action to v2.77.7 (#226) by @renovate\[bot] in [#226](https://github.com/Paul-16098/my-http-server/pull/226)
+
+- Update rust crate config to v0.15.23 (#228) by @renovate\[bot] in [#228](https://github.com/Paul-16098/my-http-server/pull/228)
+
+- Update taiki-e/install-action action version in auto-merge workflow by @Paul-16098
+
+- Update taiki-e/install-action action to v2.78.1 (#227) by @renovate\[bot] in [#227](https://github.com/Paul-16098/my-http-server/pull/227)
+
+- Update taiki-e/install-action action to v2.78.2 (#229) by @renovate\[bot] in [#229](https://github.com/Paul-16098/my-http-server/pull/229)
+
+- Update rust crate handlebars to v6.4.1 (#230) by @renovate\[bot] in [#230](https://github.com/Paul-16098/my-http-server/pull/230)
+
+- Update taiki-e/install-action action to v2.79.0 (#231) by @renovate\[bot] in [#231](https://github.com/Paul-16098/my-http-server/pull/231)
+
+- Update taiki-e/install-action action to v2.79.1 (#232) by @renovate\[bot] in [#232](https://github.com/Paul-16098/my-http-server/pull/232)
+
+- Update codecov/codecov-action action to v6.0.1 (#233) by @renovate\[bot] in [#233](https://github.com/Paul-16098/my-http-server/pull/233)
+
+- Update taiki-e/install-action action to v2.79.2 (#234) by @renovate\[bot] in [#234](https://github.com/Paul-16098/my-http-server/pull/234)
+
+- Update taiki-e/install-action action to v2.79.3 (#235) by @renovate\[bot] in [#235](https://github.com/Paul-16098/my-http-server/pull/235)
+
+- Update rust crate serde_json to v1.0.150 (#236) by @renovate\[bot] in [#236](https://github.com/Paul-16098/my-http-server/pull/236)
+
+- Update taiki-e/install-action action to v2.79.7 (#237) by @renovate\[bot] in [#237](https://github.com/Paul-16098/my-http-server/pull/237)
+
+- Update rust crate log to v0.4.30 (#238) by @renovate\[bot] in [#238](https://github.com/Paul-16098/my-http-server/pull/238)
+
+- Update taiki-e/install-action action to v2.79.8 (#239) by @renovate\[bot] in [#239](https://github.com/Paul-16098/my-http-server/pull/239)
+
+- Update taiki-e/install-action action to v2.79.9 (#240) by @renovate\[bot] in [#240](https://github.com/Paul-16098/my-http-server/pull/240)
+
+- Update taiki-e/install-action action to v2.79.10 (#241) by @renovate\[bot] in [#241](https://github.com/Paul-16098/my-http-server/pull/241)
+
+- Update taiki-e/install-action action to v2.79.11 (#242) by @renovate\[bot] in [#242](https://github.com/Paul-16098/my-http-server/pull/242)
+
+- Update taiki-e/install-action action to v2.79.12 (#243) by @renovate\[bot] in [#243](https://github.com/Paul-16098/my-http-server/pull/243)
+
+- Update taiki-e/install-action action to v2.79.13 (#244) by @renovate\[bot] in [#244](https://github.com/Paul-16098/my-http-server/pull/244)
+
+- Update taiki-e/install-action action to v2.79.14 (#245) by @renovate\[bot] in [#245](https://github.com/Paul-16098/my-http-server/pull/245)
+
+- Update taiki-e/install-action action to v2.79.15 (#246) by @renovate\[bot] in [#246](https://github.com/Paul-16098/my-http-server/pull/246)
+
+- Update taiki-e/install-action action to v2.80.0 (#247) by @renovate\[bot] in [#247](https://github.com/Paul-16098/my-http-server/pull/247)
+
+- Update rust crate log to v0.4.31 (#249) by @renovate\[bot] in [#249](https://github.com/Paul-16098/my-http-server/pull/249)
+
+- Update taiki-e/install-action action to v2.81.3 (#248) by @renovate\[bot] in [#248](https://github.com/Paul-16098/my-http-server/pull/248)
+
+- Update taiki-e/install-action action to v2.81.4 (#251) by @renovate\[bot] in [#251](https://github.com/Paul-16098/my-http-server/pull/251)
+
+- Update rust crate log to v0.4.32 (#250) by @renovate\[bot] in [#250](https://github.com/Paul-16098/my-http-server/pull/250)
+
+- Update taiki-e/install-action action to v2.81.6 (#252) by @renovate\[bot] in [#252](https://github.com/Paul-16098/my-http-server/pull/252)
+
+- Update taiki-e/install-action action to v2.81.7 (#253) by @renovate\[bot] in [#253](https://github.com/Paul-16098/my-http-server/pull/253)
+
+- Update codecov/codecov-action action to v7 (#255) by @renovate\[bot] in [#255](https://github.com/Paul-16098/my-http-server/pull/255)
+
+- Update taiki-e/install-action action to v2.81.8 (#256) by @renovate\[bot] in [#256](https://github.com/Paul-16098/my-http-server/pull/256)
+
+- Update taiki-e/install-action action to v2.81.9 (#257) by @renovate\[bot] in [#257](https://github.com/Paul-16098/my-http-server/pull/257)
+
+- Update taiki-e/install-action action to v2.81.10 (#258) by @renovate\[bot] in [#258](https://github.com/Paul-16098/my-http-server/pull/258)
+
+- Update rust crate insta to v1.48.0 (#259) by @renovate\[bot] in [#259](https://github.com/Paul-16098/my-http-server/pull/259)
+
+- Update taiki-e/install-action action to v2.81.11 (#260) by @renovate\[bot] in [#260](https://github.com/Paul-16098/my-http-server/pull/260)
+
+- Update rust crate config to v0.15.24 (#261) by @renovate\[bot] in [#261](https://github.com/Paul-16098/my-http-server/pull/261)
+
+- Update actions/checkout action to v7 (#263) by @renovate\[bot] in [#263](https://github.com/Paul-16098/my-http-server/pull/263)
+
+- Update taiki-e/install-action action to v2.82.0 (#262) by @renovate\[bot] in [#262](https://github.com/Paul-16098/my-http-server/pull/262)
+
+- Update taiki-e/install-action action to v2.82.1 (#264) by @renovate\[bot] in [#264](https://github.com/Paul-16098/my-http-server/pull/264)
+
+- Update rust crate log to v0.4.33 (#265) by @renovate\[bot] in [#265](https://github.com/Paul-16098/my-http-server/pull/265)
+
+- Update taiki-e/install-action action to v2.82.2 (#266) by @renovate\[bot] in [#266](https://github.com/Paul-16098/my-http-server/pull/266)
+
+- Update rust crate actix-web to v4.14.0 (#267) by @renovate\[bot] in [#267](https://github.com/Paul-16098/my-http-server/pull/267)
+
+- Update rust crate rustls to v0.23.41 (#268) by @renovate\[bot] in [#268](https://github.com/Paul-16098/my-http-server/pull/268)
+
+- Update taiki-e/install-action action to v2.82.3 (#270) by @renovate\[bot] in [#270](https://github.com/Paul-16098/my-http-server/pull/270)
+
+- Update rust crate handlebars to v6.4.2 (#269) by @renovate\[bot] in [#269](https://github.com/Paul-16098/my-http-server/pull/269)
+
+- Update taiki-e/install-action action to v2.82.4 (#272) by @renovate\[bot] in [#272](https://github.com/Paul-16098/my-http-server/pull/272)
+
+- Update actions-rust-lang/setup-rust-toolchain action to v1.17.0 (#273) by @renovate\[bot] in [#273](https://github.com/Paul-16098/my-http-server/pull/273)
+
+- Update rust crate env_logger to v0.11.11 (#271) by @renovate\[bot] in [#271](https://github.com/Paul-16098/my-http-server/pull/271)
+
+- Update taiki-e/install-action action to v2.82.5 (#275) by @renovate\[bot] in [#275](https://github.com/Paul-16098/my-http-server/pull/275)
+
+- Update rust crate config to v0.15.25 (#274) by @renovate\[bot] in [#274](https://github.com/Paul-16098/my-http-server/pull/274)
+
+- Update taiki-e/install-action action to v2.82.6 (#276) by @renovate\[bot] in [#276](https://github.com/Paul-16098/my-http-server/pull/276)
+
+- Update taiki-e/install-action action to v2.82.7 (#279) by @renovate\[bot] in [#279](https://github.com/Paul-16098/my-http-server/pull/279)
+
+- Update rust crate clap_complete to v4.6.6 (#278) by @renovate\[bot] in [#278](https://github.com/Paul-16098/my-http-server/pull/278)
+
+- Update rust crate rustls-pki-types to v1.15.0 (#277) by @renovate\[bot] in [#277](https://github.com/Paul-16098/my-http-server/pull/277)
+
+- Update rust crate clap_complete to v4.6.7 (#280) by @renovate\[bot] in [#280](https://github.com/Paul-16098/my-http-server/pull/280)
+
+- Update taiki-e/install-action action to v2.82.8 (#283) by @renovate\[bot] in [#283](https://github.com/Paul-16098/my-http-server/pull/283)
+
+</details>
+
+### Other
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+
+### Refactor
+
+- *tests*: Update insta snapshots for md2html tests and remove obsolete files by @Paul-16098
+
+
+### Miscellaneous Tasks
+
+- *workflow*: Add permissions section to cargo-push workflow by @Paul-16098
+
+- *justfile*: Update dependencies and fix argument patterns by @Paul-16098
+
+- *workflow*: Update cargo-binstall tools in test workflow by @Paul-16098
+
+
+## \[4.1.7\] - 2026-04-05
+
+### Features
+
+- *tests*: Add nextest support for running tests by @Paul-16098
+
+- *release*: Add automated version bump script in justfile by @Paul-16098
+
+
+### Other
+
+- Merge pull request #168 from Paul-16098/dev<br><br>chore(release): bump version to 4.1.7 by @Paul-16098 in [#168](https://github.com/Paul-16098/my-http-server/pull/168)
+
+
+### Miscellaneous Tasks
+
+- *bump*: Remove automated version bump script by @Paul-16098
+
+- *workflow*: Remove permissions for contents in cargo-push job by @Paul-16098
+
+
+## \[4.1.6\] - 2026-04-05
+
+### Features
 
 - *config*: Enhance configuration caching and XDG path initialization by @Paul-16098
 
@@ -46,26 +358,6 @@
 
 
 ### Bug Fixes
-
-- *changelog*: Enhance commit message formatting with contributor info by @Paul-16098
-
-- *tests*: Clean up XDG config files in test environment to prevent CI interference by @Paul-16098
-
-- *integration*: Remove unnecessary blank line in with_cwd_lock function by @Paul-16098
-
-- *integration*: Add error handling for writing emojis.json in with_cwd_lock function by @Paul-16098
-
-- *tests*: Remove unnecessary blank lines and add git configuration for coverage commits by @Paul-16098
-
-- *request*: Deny access to .gitignore and return 404 by @Paul-16098
-
-- *request*: Deny access to sensitive files including .gitignore, cofg.yaml, and Cargo.toml by @Paul-16098
-
-- *request*: Deny access to restricted files and improve test assertions by @Paul-16098
-
-- *request*: Improve logging for access to restricted files by @Paul-16098
-
-- *cov*: Remove unnecessary '--open' flag from HTML report command by @Paul-16098
 
 - *changelog*: Escape brackets in contributor username by @Paul-16098
 
@@ -109,22 +401,12 @@
 
 - *changelog*: Escape brackets in commit messages for proper rendering by @Paul-16098
 
+- *cli*: Update public path argument parsing to remove redundant flag by @Paul-16098
+
+- *request*: Percent-decode request path to handle encoded filesystem names by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
-
-- Update taiki-e/install-action action to v2.66.2 (#82) by @renovate\[bot] in [#82](https://github.com/Paul-16098/my-http-server/pull/82)
-
-- Update docker/metadata-action action to v5.10.0 (#78) by @renovate\[bot] in [#78](https://github.com/Paul-16098/my-http-server/pull/78)
-
-- Update actions/cache action to v5 (#80) by @renovate\[bot] in [#80](https://github.com/Paul-16098/my-http-server/pull/80)
-
-- Update docker/build-push-action action to v6.18.0 (#76) by @renovate\[bot] in [#76](https://github.com/Paul-16098/my-http-server/pull/76)
-
-- Update sigstore/cosign-installer action to v4 (#81) by @renovate\[bot] in [#81](https://github.com/Paul-16098/my-http-server/pull/81)
-
-- Update docker/login-action action to v3.6.0 (#77) by @renovate\[bot] in [#77](https://github.com/Paul-16098/my-http-server/pull/77)
-
-- Update taiki-e/install-action action to v2.66.3 (#84) by @renovate\[bot] in [#84](https://github.com/Paul-16098/my-http-server/pull/84)
 
 - Update taiki-e/install-action action to v2.67.13 (#87) by @renovate\[bot] in [#87](https://github.com/Paul-16098/my-http-server/pull/87)
 
@@ -274,37 +556,11 @@
 
 - Update rust crate markdown-ppp to v2.9.2 (#166) by @renovate\[bot] in [#166](https://github.com/Paul-16098/my-http-server/pull/166)
 
+- Update taiki-e/install-action action to v2.71.1 (#165) by @renovate\[bot] in [#165](https://github.com/Paul-16098/my-http-server/pull/165)
+
 </details>
 
 ### Other
-
-- Merge branch 'main' into dev by @Paul-16098
-
-- Bump version to 4.1.3 by @Paul-16098
-
-- Merge pull request #73 from Paul-16098/dev<br><br>v4.1.2 by @Paul-16098 in [#73](https://github.com/Paul-16098/my-http-server/pull/73)
-
-- Merge branch 'main' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
-
-- *release*: Bump version to 4.1.3 by @Paul-16098
-
-- Update .github/workflows/release-tag-and-backmerge.yml<br><br>Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com> by @Paul-16098
-
-- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
-
-- Initial plan by @Copilot
-
-- Create comprehensive test infrastructure for my-http-server<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Fix remaining test failures and ensure all tests pass<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Fix integration test hangs by initializing config before service creation<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Fix test race condition by using Once for global initialization<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
-
-- Merge branch 'dev' into copilot/add-test-coverage by @Paul-16098
-
-- Merge pull request #83 from Paul-16098/copilot/add-test-coverage<br><br>Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098 in [#83](https://github.com/Paul-16098/my-http-server/pull/83)
 
 - Merge pull request #86 from Paul-16098/renovate/taiki-e-install-action-2.x<br><br>chore(deps): update taiki-e/install-action action to v2.66.4 by @renovate\[bot] in [#86](https://github.com/Paul-16098/my-http-server/pull/86)
 
@@ -322,12 +578,10 @@
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
+- Merge pull request #167 from Paul-16098/dev<br><br>chore(release): bump version to 4.1.6 by @Paul-16098 in [#167](https://github.com/Paul-16098/my-http-server/pull/167)
+
 
 ### Refactor
-
-- *makefile*: Rename tasks for coverage and update task definitions by @Paul-16098
-
-- *test*: Remove all test files for parser, request, security, templating, and test module by @Paul-16098
 
 - *tests*: Consolidate test setup into reusable support module by @Paul-16098
 
@@ -344,12 +598,6 @@
 
 ### Testing
 
-- *main*: Add comprehensive tests for versioning, security, and request handling by @Paul-16098
-
-- *integration, parser, request, security*: Improve test coverage and stability with sequential request handling and enhanced config initialization by @Paul-16098
-
-- *md2html*: Update assertion to check full HTML output for basic markdown by @Paul-16098
-
 - *security*: Add debug output for path traversal test response by @Paul-16098
 
 - *security*: Add response body output for path traversal test by @Paul-16098
@@ -358,10 +606,6 @@
 
 
 ### Miscellaneous Tasks
-
-- *code-changes*: Update code structure for improved readability and maintainability by @Paul-16098
-
-- *workflows*: Update action versions in Security and test workflows by @Paul-16098
 
 - *gitignore*: Exclude Cargo.lock from being ignored by @Paul-16098
 
@@ -439,9 +683,151 @@
 
 - *dist*: Reorder target platforms in configuration by @Paul-16098
 
+- *workflow*: Update tool configuration for cargo-binstall in test.yml by @Paul-16098
+
+- *tests*: Allow clippy warnings for unwrap and expect in test module by @Paul-16098
 
 
-- @dependabot[bot] made their first contribution in #144## \[4.1.1\] - 2026-01-10
+
+- @dependabot[bot] made their first contribution in #144## \[4.1.5\] - 2026-01-14
+
+### Features
+
+- *tests*: Reorganize Makefile tasks for better coverage reporting and add lcov output by @Paul-16098
+
+- *vscode*: Add extensions.json for recommended VSCode extensions by @Paul-16098
+
+- *tests*: Add coverage report generation and commit step by @Paul-16098
+
+- *tests*: Add git push step for coverage report submission by @Paul-16098
+
+- *vscode*: Update settings to exclude lcov.info file by @Paul-16098
+
+- *workflows*: Update actions versions and add caching for cargo dependencies by @Paul-16098
+
+- *config*: Add no_xdg parameter to new_layered and init_global methods by @Paul-16098
+
+- *tests*: Update config in integration tests to specify template path by @Paul-16098
+
+- *tests*: Add --no-fail-fast option to nextest command by @Paul-16098
+
+- *coverage*: Update test workflow to run coverage and upload reports to Codecov by @Paul-16098
+
+- *tests*: Enhance test coverage and refactor test cases for CLI and configuration by @Paul-16098
+
+- *tests*: Enhance test configuration initialization for consistency and security by @Paul-16098
+
+
+### Bug Fixes
+
+- *tests*: Clean up XDG config files in test environment to prevent CI interference by @Paul-16098
+
+- *integration*: Remove unnecessary blank line in with_cwd_lock function by @Paul-16098
+
+- *integration*: Add error handling for writing emojis.json in with_cwd_lock function by @Paul-16098
+
+- *tests*: Remove unnecessary blank lines and add git configuration for coverage commits by @Paul-16098
+
+- *request*: Deny access to .gitignore and return 404 by @Paul-16098
+
+- *request*: Deny access to sensitive files including .gitignore, cofg.yaml, and Cargo.toml by @Paul-16098
+
+- *request*: Deny access to restricted files and improve test assertions by @Paul-16098
+
+- *request*: Improve logging for access to restricted files by @Paul-16098
+
+- *cov*: Remove unnecessary '--open' flag from HTML report command by @Paul-16098
+
+### <details><summary>Deps</summary>
+
+
+- Update taiki-e/install-action action to v2.66.2 (#82) by @renovate\[bot] in [#82](https://github.com/Paul-16098/my-http-server/pull/82)
+
+- Update docker/metadata-action action to v5.10.0 (#78) by @renovate\[bot] in [#78](https://github.com/Paul-16098/my-http-server/pull/78)
+
+- Update actions/cache action to v5 (#80) by @renovate\[bot] in [#80](https://github.com/Paul-16098/my-http-server/pull/80)
+
+- Update docker/build-push-action action to v6.18.0 (#76) by @renovate\[bot] in [#76](https://github.com/Paul-16098/my-http-server/pull/76)
+
+- Update sigstore/cosign-installer action to v4 (#81) by @renovate\[bot] in [#81](https://github.com/Paul-16098/my-http-server/pull/81)
+
+- Update docker/login-action action to v3.6.0 (#77) by @renovate\[bot] in [#77](https://github.com/Paul-16098/my-http-server/pull/77)
+
+- Update taiki-e/install-action action to v2.66.3 (#84) by @renovate\[bot] in [#84](https://github.com/Paul-16098/my-http-server/pull/84)
+
+</details>
+
+### Other
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+- Initial plan by @Copilot
+
+- Create comprehensive test infrastructure for my-http-server<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+
+- Fix remaining test failures and ensure all tests pass<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+
+- Fix integration test hangs by initializing config before service creation<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+
+- Fix test race condition by using Once for global initialization<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot
+
+- Merge branch 'dev' into copilot/add-test-coverage by @Paul-16098
+
+- Merge pull request #83 from Paul-16098/copilot/add-test-coverage<br><br>Add comprehensive test infrastructure (61 tests across 4 modules) by @Paul-16098 in [#83](https://github.com/Paul-16098/my-http-server/pull/83)
+
+- Merge pull request #85 from Paul-16098/dev<br><br>chore(release): bump version to 4.1.5 by @Paul-16098 in [#85](https://github.com/Paul-16098/my-http-server/pull/85)
+
+
+### Refactor
+
+- *makefile*: Rename tasks for coverage and update task definitions by @Paul-16098
+
+- *test*: Remove all test files for parser, request, security, templating, and test module by @Paul-16098
+
+
+### Testing
+
+- *main*: Add comprehensive tests for versioning, security, and request handling by @Paul-16098
+
+- *integration, parser, request, security*: Improve test coverage and stability with sequential request handling and enhanced config initialization by @Paul-16098
+
+- *md2html*: Update assertion to check full HTML output for basic markdown by @Paul-16098
+
+
+### Miscellaneous Tasks
+
+- *code-changes*: Update code structure for improved readability and maintainability by @Paul-16098
+
+- *workflows*: Update action versions in Security and test workflows by @Paul-16098
+
+
+## \[4.1.4\] - 2026-01-12
+
+### Bug Fixes
+
+- *changelog*: Enhance commit message formatting with contributor info by @Paul-16098
+
+
+### Other
+
+- Merge branch 'main' into dev by @Paul-16098
+
+- Bump version to 4.1.3 by @Paul-16098
+
+- Merge pull request #73 from Paul-16098/dev<br><br>v4.1.2 by @Paul-16098 in [#73](https://github.com/Paul-16098/my-http-server/pull/73)
+
+- Merge branch 'main' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+- *release*: Bump version to 4.1.3 by @Paul-16098
+
+- Merge pull request #74 from Paul-16098/dev<br><br>chore(release): bump version to 4.1.4 by @Paul-16098 in [#74](https://github.com/Paul-16098/my-http-server/pull/74)
+
+- Update .github/workflows/release-tag-and-backmerge.yml<br><br>Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com> by @Paul-16098
+
+- Merge pull request #75 from Paul-16098/dev<br><br>v4.1.4 by @Paul-16098 in [#75](https://github.com/Paul-16098/my-http-server/pull/75)
+
+
+## \[4.1.1\] - 2026-01-10
 
 ### Bug Fixes
 

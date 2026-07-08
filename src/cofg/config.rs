@@ -28,6 +28,7 @@ pub(crate) struct XdgPaths {
 	pub(crate) cofg: std::path::PathBuf,
 	pub(crate) page_404: std::path::PathBuf,
 	pub(crate) template_hbs: std::path::PathBuf,
+	#[cfg(feature = "github_emojis")]
 	pub(crate) emojis: std::path::PathBuf,
 }
 
@@ -124,6 +125,8 @@ pub(crate) struct Cofg {
 struct GlobalConfig {
 	config: Cofg,
 	cli_args: Option<super::cli::Args>,
+	// canonicalized public root directory for fast lookups
+	public_root: std::path::PathBuf,
 }
 
 static GLOBAL_COFG: OnceLock<RwLock<GlobalConfig>> = OnceLock::new();
@@ -133,10 +136,14 @@ impl Default for Cofg {
 		match Cofg::new_from_str(BUILD_COFG) {
 			Ok(r) => r,
 			Err(e) => {
-				error!("Failed to load default configuration: {}", e);
 				panic!("Failed to load default configuration: {}", e);
 			}
 		}
+	}
+}
+impl Default for CofgTemplating {
+	fn default() -> Self {
+		Cofg::default().templating
 	}
 }
 
@@ -149,6 +156,8 @@ impl Cofg {
 	///
 	/// WHY: Follow XDG Base Directory specification and platform conventions for cross-platform config management
 	/// while keeping template, 404 assets, and emoji cache alongside the config file.
+	///
+	/// `None`, if no valid home directory path could be retrieved from the operating system.
 	pub(crate) fn get_xdg_paths() -> Option<XdgPaths> {
 		directories::ProjectDirs::from("", "", "my-http-server").map(|proj_dirs| {
 			let base = proj_dirs.config_local_dir();
@@ -156,6 +165,7 @@ impl Cofg {
 				cofg: base.join("cofg.yaml"),
 				page_404: base.join("404.html"),
 				template_hbs: base.join("html-t.hbs"),
+				#[cfg(feature = "github_emojis")]
 				emojis: base.join("emojis.json"),
 			}
 		})
@@ -199,9 +209,8 @@ impl Cofg {
 			if path.exists() {
 				debug!("Loading config from: {}", config_path);
 				builder = builder.add_source(config::File::from(path));
-			} else if !cli.no_config {
-				// Only warn if user didn't explicitly skip config
-				warn!("Config file not found: {}, using defaults", config_path);
+			} else {
+				warn!("Specified config file does not exist: {}", config_path);
 			}
 		}
 
@@ -414,9 +423,22 @@ impl Cofg {
 				warn!("Failed to load configuration from disk: {}", e);
 				Self::default()
 			});
+
+			// compute canonicalized public_root once at startup
+			let public_root = std::path::Path::new(&config.public_path)
+				.canonicalize()
+				.unwrap_or_else(|e| {
+					warn!(
+						"Failed to canonicalize public_path: {} = {e}",
+						config.public_path
+					);
+					std::path::Path::new(&config.public_path).to_path_buf()
+				});
+
 			RwLock::new(GlobalConfig {
 				config,
 				cli_args: None,
+				public_root,
 			})
 		});
 
@@ -439,11 +461,51 @@ impl Cofg {
 					debug!("Reloading config from disk");
 					Self::load_from_disk_or_init()?
 				};
+
+				// update cached public_root based on new config
+				let public_root = std::path::Path::new(&new_config.public_path)
+					.canonicalize()
+					.unwrap_or_else(|e| {
+						warn!(
+							"Failed to canonicalize public_path: {} = {e}",
+							new_config.public_path
+						);
+						std::path::Path::new(&new_config.public_path).to_path_buf()
+					});
+
 				guard.config = new_config;
+				guard.public_root = public_root;
 			}
 		}
 
 		Ok(cell.read().map(|g| g.config.clone()).unwrap_or_default())
+	}
+
+	/// Return the cached canonicalized public root PathBuf.
+	///
+	/// This avoids calling `canonicalize()` on every request. If the global
+	/// configuration hasn't been initialized yet, compute a best-effort value
+	/// from the current (non-cached) configuration.
+	///
+	/// Must use before [`Self::init_global()`]
+	pub fn get_public_root() -> std::path::PathBuf {
+		if let Some(cell) = GLOBAL_COFG.get()
+			&& let Ok(guard) = cell.read()
+		{
+			return guard.public_root.clone();
+		}
+
+		// Fallback: compute from current config (may be slightly more expensive)
+		let cfg = Self::get(false);
+		std::path::Path::new(&cfg.public_path)
+			.canonicalize()
+			.unwrap_or_else(|e| {
+				warn!(
+					"Failed to canonicalize public_path: {} = {e}",
+					cfg.public_path
+				);
+				std::path::Path::new(&cfg.public_path).to_path_buf()
+			})
 	}
 
 	/// Initialize global configuration with CLI arguments.
@@ -454,18 +516,21 @@ impl Cofg {
 	pub fn init_global(cli: &super::cli::Args, no_xdg: bool) -> AppResult<Self> {
 		let config = Self::new_layered(cli, no_xdg)?;
 
-		let cell = GLOBAL_COFG.get_or_init(|| {
+		GLOBAL_COFG.get_or_init(|| {
 			RwLock::new(GlobalConfig {
 				config: config.clone(),
 				cli_args: Some(cli.clone()),
+				public_root: std::path::Path::new(&config.public_path).to_path_buf(),
 			})
 		});
 
 		// Update if already initialized (e.g., from tests)
-		if let Ok(mut guard) = cell.write() {
-			guard.config = config.clone();
-			guard.cli_args = Some(cli.clone());
-		}
+		// todo:not use?
+		// if let Ok(mut guard) = cell.write() {
+		// 	guard.config = config.clone();
+		// 	guard.cli_args = Some(cli.clone());
+		// 	guard.public_root = public_root.clone();
+		// }
 
 		Ok(config)
 	}

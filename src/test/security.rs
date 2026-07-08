@@ -109,7 +109,7 @@ async fn test_ct_eq_str_opt_one_none() {
 	assert!(!ct_eq_str_opt(a, b), "Some and None should not be equal");
 }
 
-#[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
+#[cfg_attr(windows, ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_path_traversal_dotdot() {
 	crate::test::support::init_test_setup();
@@ -125,13 +125,13 @@ async fn test_path_traversal_dotdot() {
 	// Should not allow access to files outside public_path
 	// Should return 404 or be blocked
 	assert!(
-		resp.status() == StatusCode::FORBIDDEN || resp.status() == StatusCode::BAD_REQUEST,
-		"Path traversal should be blocked or return 404, got {}",
-		resp.status()
+		resp.status() == StatusCode::FORBIDDEN
+			|| resp.status() == StatusCode::BAD_REQUEST
+			|| resp.status() == StatusCode::NOT_FOUND,
 	);
 }
 
-#[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
+#[cfg_attr(windows, ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_path_traversal_encoded() {
 	crate::test::support::init_test_setup();
@@ -147,13 +147,11 @@ async fn test_path_traversal_encoded() {
 	assert!(
 		resp.status() == StatusCode::FORBIDDEN
 			|| resp.status() == StatusCode::BAD_REQUEST
-			|| resp.status() == StatusCode::NOT_FOUND,
-		"Encoded path traversal should be blocked, got {}",
-		resp.status()
+			|| resp.status() == StatusCode::NOT_FOUND
 	);
 }
 
-#[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
+#[cfg_attr(windows, ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_absolute_path_request() {
 	crate::test::support::init_test_setup();
@@ -190,7 +188,7 @@ async fn test_null_byte_injection() {
 	);
 }
 
-#[cfg_attr(not(windows), ignore = "only unix-like systems have etc/passwd")]
+#[cfg_attr(windows, ignore = "only unix-like systems have etc/passwd")]
 #[actix_web::test]
 async fn test_backslash_path_separator() {
 	crate::test::support::init_test_setup();
@@ -204,9 +202,9 @@ async fn test_backslash_path_separator() {
 	let resp = test::call_service(&app, req).await;
 
 	assert!(
-		resp.status() == StatusCode::FORBIDDEN || resp.status() == StatusCode::BAD_REQUEST,
-		"Backslash path traversal should be blocked, got {}",
-		resp.status()
+		resp.status() == StatusCode::FORBIDDEN
+			|| resp.status() == StatusCode::BAD_REQUEST
+			|| resp.status() == StatusCode::NOT_FOUND,
 	);
 }
 

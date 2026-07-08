@@ -1,0 +1,10 @@
+---
+source: src/test/parser.rs
+description: "# Users\n\n| Name | Age |\n|------|-----|\n| Alice | 25 |\n| Bob | 30 |\n| Carol | 28 |\n"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h1>Users</h1><table><thead><tr><th class="markdown-table-align-left">Name</th><th class="markdown-table-align-left">Age</th></tr></thead><tbody><tr><td class="markdown-table-align-left">Alice</td><td class="markdown-table-align-left">25</td></tr><tr><td class="markdown-table-align-left">Bob</td><td class="markdown-table-align-left">30</td></tr><tr><td class="markdown-table-align-left">Carol</td><td class="markdown-table-align-left">28</td></tr></tbody></table>
+</body></html>
