@@ -24,6 +24,8 @@
 use actix_web::http::StatusCode;
 use std::sync::Once;
 
+use crate::cofg::{cli, config::Cofg};
+
 /// Initialize logger exactly once per test process using thread-safe guard
 ///
 /// WHY: `env_logger::init()` panics if called multiple times in the same process.
@@ -32,7 +34,10 @@ use std::sync::Once;
 pub(crate) fn init_logger_once() {
 	static INIT: Once = Once::new();
 	INIT.call_once(|| {
-		let _ = env_logger::builder().is_test(true).try_init();
+		let _ = env_logger::builder()
+			.filter_level(log::LevelFilter::Trace)
+			.is_test(true)
+			.try_init();
 	});
 }
 
@@ -43,7 +48,7 @@ pub(crate) fn init_logger_once() {
 /// - Potential GitHub API calls for emoji cache (with `github_emojis` feature)
 /// - One-time setup that should not repeat across parallel tests
 pub(crate) fn init_global_config_once() {
-	crate::test::config::init_test_config();
+	crate::test::support::init_test_config();
 }
 
 /// Combined initialization for logger and config
@@ -66,4 +71,70 @@ pub(crate) fn assert_status_in(status: StatusCode, allowed: &[StatusCode]) {
 		allowed,
 		status
 	);
+}
+
+pub(crate) static PUBLIC_DIR: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+pub(crate) fn init_test_dir() -> fn(
+	_: build_fs_tree::FileSystemTree<&'static str, &'static str>,
+) -> build_fs_tree::FileSystemTree<&'static str, &'static str> {
+	build_fs_tree::FileSystemTree::<&'static str, &'static str>::from
+}
+
+/// Initialize global config for all test suites.
+///
+/// Uses `std::sync::Once` to ensure thread-safe initialization that runs exactly once per process.
+/// This prevents race conditions when tests run in parallel and avoids redundant initialization.
+///
+/// WHY: Tests trigger global config initialization which can cause:
+/// - Network calls to GitHub API (with github_emojis feature)
+/// - File I/O for XDG config directories
+/// - Race conditions if multiple tests initialize simultaneously
+///
+/// Emoji stub file location:
+/// - Stored in OS temp directory (not project root) to avoid CI/CD pollution
+/// - Path: std::env::temp_dir()/my-http-server-test-emojis.json
+/// - Auto-managed by OS (cleaned up according to OS temp file policies)
+///
+/// NOTE: `Once::call_once` guarantees the closure runs only once even across multiple test runs
+/// in the same process. This is intentional - tests share this global state for efficiency.
+/// For test isolation, run tests in separate processes or use `--test-threads=1`.
+pub(crate) fn init_test_config() {
+	use std::sync::Once;
+	static INIT: Once = Once::new();
+
+	INIT.call_once(|| {
+		use clap::Parser;
+
+		PUBLIC_DIR.get_or_init(|| {
+			// Create a temporary public directory for tests
+			tempfile::TempDir::with_prefix("my-http-server-test-public")
+				.expect("Failed to create temp dir")
+				.path()
+				.to_string_lossy()
+				.to_string()
+		});
+
+		let args = cli::Args::try_parse_from(["--public_path", PUBLIC_DIR.get().unwrap()].as_ref())
+			.unwrap_or_else(|_| cli::Args::parse());
+		let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
+
+		// Create minimal emojis.json stub in temp directory to prevent GitHub API calls
+		// WHY: The github_emojis feature would otherwise fetch emoji data from GitHub API,
+		// causing tests to hang or fail in CI environments without network access.
+		// Stored in temp directory (not project root) to avoid polluting repository.
+		#[cfg(feature = "github_emojis")]
+		{
+			let temp_dir = std::env::temp_dir();
+			let emoji_path = temp_dir.join("my-http-server-test-emojis.json");
+			if !emoji_path.exists() {
+				let _ = std::fs::write(emoji_path, r#"{"unicode":{},"else":{}}"#);
+			}
+		}
+	});
+}
+
+/// Helper function to create a temporary directory for test fixtures
+pub(crate) fn create_test_dir() -> tempfile::TempDir {
+	tempfile::TempDir::with_prefix("my-http-server-test").expect("Failed to create temp dir")
 }

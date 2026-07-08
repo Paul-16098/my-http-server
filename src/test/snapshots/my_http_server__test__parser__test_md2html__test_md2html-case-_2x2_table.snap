@@ -1,0 +1,10 @@
+---
+source: src/test/parser.rs
+description: "# Table\n\n| Column 1 | Column 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n| Cell 3   | Cell 4   |\n"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h1>Table</h1><table><thead><tr><th class="markdown-table-align-left">Column 1</th><th class="markdown-table-align-left">Column 2</th></tr></thead><tbody><tr><td class="markdown-table-align-left">Cell 1</td><td class="markdown-table-align-left">Cell 2</td></tr><tr><td class="markdown-table-align-left">Cell 3</td><td class="markdown-table-align-left">Cell 4</td></tr></tbody></table>
+</body></html>

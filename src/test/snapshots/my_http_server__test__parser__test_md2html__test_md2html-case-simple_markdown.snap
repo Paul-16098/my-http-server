@@ -1,0 +1,10 @@
+---
+source: src/test/parser.rs
+description: "# Welcome\n\nSimple content"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h1>Welcome</h1><p>Simple content</p>
+</body></html>

@@ -1,0 +1,12 @@
+---
+source: src/test/parser.rs
+description: "# Documentation"
+info:
+  title: Docs
+  author: Team
+---
+<!DOCTYPE html><html>
+<head><title>Docs</title></head>
+<body>
+<h1>Documentation</h1>
+</body></html>

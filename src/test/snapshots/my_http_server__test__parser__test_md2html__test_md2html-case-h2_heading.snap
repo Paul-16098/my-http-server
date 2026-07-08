@@ -1,0 +1,10 @@
+---
+source: src/test/parser.rs
+description: "## Section\n\nContent here"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h2>Section</h2><p>Content here</p>
+</body></html>

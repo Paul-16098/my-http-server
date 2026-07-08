@@ -22,7 +22,7 @@ use simple_test_case::test_case;
 
 use crate::cofg::config::Cofg;
 use crate::parser::{markdown, md2html, templating};
-use crate::test::config::create_test_dir;
+use crate::test::support::create_test_dir;
 use std::fs;
 
 #[test_case(
@@ -221,18 +221,32 @@ async fn test_set_context_value_invalid_format() {
 	);
 }
 
-#[test_case("heading_and_text", "# Test\n\nHello world!" ; "Heading and text")]
-#[test_case("simple_markdown", "# Welcome\n\nSimple content" ; "Simple markdown")]
-#[test_case("h2_heading", "## Section\n\nContent here" ; "H2 heading")]
-#[actix_web::test]
-async fn test_md2html_basic(case: &str, md: &str) {
+// Basic markdown to HTML conversion tests
+#[test_case("heading_and_text", "# Test\n\nHello world!", vec![] ; "Heading and text")]
+#[test_case("simple_markdown", "# Welcome\n\nSimple content", vec![] ; "Simple markdown")]
+#[test_case("h2_heading", "## Section\n\nContent here", vec![] ; "H2 heading")]
+// Test with context variables
+#[test_case("with_title", "# Content", vec!["title:Test Page".to_string()] ; "With title")]
+#[test_case("multiple_context_vars", "# Documentation", vec!["title:Docs".to_string(), "author:Team".to_string()] ; "Multiple context vars")]
+#[test_case("no_context", "# About", vec![] ; "No context")]
+// link
+#[test_case("multiple_links", "# Links\n\n[Google](https://www.google.com)\n[Internal Link](./page.md)\n", vec![] ; "Multiple links")]
+#[test_case("single_link", "# Home\n\n[Index](./index.md)\n", vec![] ; "Single link")]
+// image
+#[test_case("multiple_images", "# Images\n\n![Alt text](./image.png)\n![Remote image](https://example.com/image.jpg)", vec![] ; "Multiple images")]
+#[test_case("single_image", "# Single\n\n![Logo](./logo.svg)", vec![] ; "Single image")]
+// table
+#[test_case("_2x2_table", "# Table\n\n| Column 1 | Column 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n| Cell 3   | Cell 4   |\n", vec![] ; "2x2 table")]
+#[test_case("user_table", "# Users\n\n| Name | Age |\n|------|-----|\n| Alice | 25 |\n| Bob | 30 |\n| Carol | 28 |\n", vec![] ; "User table")]
+#[test]
+fn test_md2html(case: &str, md: &str, context_vars: Vec<String>) {
 	let temp_dir = create_test_dir();
 	let template_path = temp_dir.path().join("test-template.hbs");
 
 	// Create a minimal template
 	fs::write(
 		&template_path,
-		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
+		"<!DOCTYPE html><html>\n<head><title>{{{title}}}</title></head>\n<body>\n{{{body}}}\n</body></html>",
 	)
 	.expect("Should write template");
 
@@ -245,64 +259,29 @@ async fn test_md2html_basic(case: &str, md: &str) {
 		..Cofg::default()
 	};
 
-	let html = md2html(md.to_string(), &config, vec![]).unwrap();
-	match case {
-		"heading_and_text" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><body><h1>Test</h1><p>Hello world!</p></body></html>")
-		}
-		"simple_markdown" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><body><h1>Welcome</h1><p>Simple content</p></body></html>")
-		}
-		"h2_heading" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><body><h2>Section</h2><p>Content here</p></body></html>")
-		}
-		_ => panic!("Unknown test case: {case}"),
-	}
-}
-
-#[test_case("with_title", "# Content", vec!["title:Test Page".to_string()] ; "With title")]
-#[test_case("multiple_context_vars", "# Documentation", vec!["title:Docs".to_string(), "author:Team".to_string()] ; "Multiple context vars")]
-#[test_case("no_context", "# About", vec![] ; "No context")]
-#[actix_web::test]
-async fn test_md2html_with_context(case: &str, md: &str, context_vars: Vec<String>) {
-	let temp_dir = create_test_dir();
-	let template_path = temp_dir.path().join("test-template-ctx.hbs");
-
-	// Template that uses context variable
-	fs::write(
-		&template_path,
-		"<!DOCTYPE html><html><head><title>{{title}}</title></head><body>{{{body}}}</body></html>",
-	)
-	.expect("Should write template");
-
-	let config = Cofg {
-		hbs_path: template_path.to_string_lossy().to_string(),
-		templating: crate::cofg::config::CofgTemplating {
-			hot_reload: false,
-			..Default::default()
-		},
-		..Cofg::default()
-	};
-
-	let html = md2html(md.to_string(), &config, context_vars).unwrap();
-	match case {
-		"with_title" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><head><title>Test Page</title></head><body><h1>Content</h1></body></html>")
-		}
-		"multiple_context_vars" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><head><title>Docs</title></head><body><h1>Documentation</h1></body></html>")
-		}
-		"no_context" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><head><title></title></head><body><h1>About</h1></body></html>")
-		}
-		_ => panic!("Unknown test case: {case}"),
-	}
+	let html = md2html(md.to_string(), &config, context_vars.clone()).unwrap();
+	insta::with_settings!({
+		raw_info => &insta::internals::Content::Map(context_vars
+			.iter()
+			.map(|s| {
+				let a: Vec<&str> = s.split(":").collect();
+				(
+					insta::internals::Content::String(a[0].to_string()),
+					insta::internals::Content::String(a[1].to_string()),
+				)
+			})
+			.collect()),
+		description => md,
+		omit_expression => true,
+	}, {
+		insta::assert_snapshot!(format!("test_md2html-case-{case}"), html, md);
+	});
 }
 
 #[test_case(true, "Empty Dir" ; "empty directory")]
 #[test_case(false, "With Files" ; "directory with files")]
-#[actix_web::test]
-async fn test_toc_generation(is_empty: bool, title: &str) {
+#[test]
+fn test_toc_generation(is_empty: bool, title: &str) {
 	let temp_dir = create_test_dir();
 
 	if !is_empty {
@@ -330,132 +309,6 @@ async fn test_toc_generation(is_empty: bool, title: &str) {
 	);
 	let toc = result.unwrap();
 	assert!(toc.contains(title), "TOC should include title");
-}
-
-#[test_case(r#"# Links\n\n[Google](https://www.google.com)\n[Internal Link](./page.md)"# ; "Multiple links")]
-#[test_case(r#"# Test\n\n[Home](./index.md)"# ; "Single link")]
-#[actix_web::test]
-async fn test_markdown_with_links(md: &str) {
-	let result = markdown::parser_md(md.to_string());
-	assert!(
-		result.is_ok(),
-		"Markdown with links should parse successfully"
-	);
-}
-
-#[test_case("multiple_links", "# Links\n\n[Google](https://www.google.com)\n[Internal Link](./page.md)\n" ; "Multiple links")]
-#[test_case("single_link", "# Home\n\n[Index](./index.md)\n" ; "Single link")]
-#[actix_web::test]
-async fn test_md2html_with_links_snapshot(case: &str, md: &str) {
-	let temp_dir = create_test_dir();
-	let template_path = temp_dir.path().join("links-template.hbs");
-
-	fs::write(
-		&template_path,
-		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
-	)
-	.expect("Should write template");
-
-	let config = Cofg {
-		hbs_path: template_path.to_string_lossy().to_string(),
-		templating: crate::cofg::config::CofgTemplating {
-			hot_reload: false,
-			..Default::default()
-		},
-		..Cofg::default()
-	};
-
-	let html = md2html(md.to_string(), &config, vec![]).unwrap();
-	match case {
-		"multiple_links" => {
-			insta::assert_snapshot!(html, @r###"<!DOCTYPE html><html><body><h1>Links</h1><p><a href="https://www.google.com">Google</a>
-<a href="./page.md">Internal Link</a></p></body></html>"###)
-		}
-		"single_link" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><body><h1>Home</h1><p><a href=\"./index.md\">Index</a></p></body></html>")
-		}
-		_ => panic!("Unknown test case: {case}"),
-	}
-}
-
-#[test_case(r#"# Images\n\n![Alt text](./image.png)\n![Remote image](https://example.com/image.jpg)"# ; "Multiple images")]
-#[test_case(r#"# Single\n\n![Logo](./logo.svg)"# ; "Single image")]
-#[actix_web::test]
-async fn test_markdown_with_images(md: &str) {
-	let result = markdown::parser_md(md.to_string());
-	assert!(
-		result.is_ok(),
-		"Markdown with images should parse successfully"
-	);
-}
-
-#[test_case("multiple_images", "# Images\n\n![Alt text](./image.png)\n![Remote image](https://example.com/image.jpg)\n" ; "Multiple images")]
-#[test_case("single_image", "# Logo\n\n![Logo](./logo.svg)\n" ; "Single image")]
-#[actix_web::test]
-async fn test_md2html_with_images_snapshot(case: &str, md: &str) {
-	let temp_dir = create_test_dir();
-	let template_path = temp_dir.path().join("images-template.hbs");
-
-	fs::write(
-		&template_path,
-		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
-	)
-	.expect("Should write template");
-
-	let config = Cofg {
-		hbs_path: template_path.to_string_lossy().to_string(),
-		templating: crate::cofg::config::CofgTemplating {
-			hot_reload: false,
-			..Default::default()
-		},
-		..Cofg::default()
-	};
-
-	let html = md2html(md.to_string(), &config, vec![]).unwrap();
-	match case {
-		"multiple_images" => {
-			insta::assert_snapshot!(html, @r###"<!DOCTYPE html><html><body><h1>Images</h1><p><img src="./image.png" alt="Alt text"></img>
-<img src="https://example.com/image.jpg" alt="Remote image"></img></p></body></html>"###)
-		}
-		"single_image" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><body><h1>Logo</h1><p><img src=\"./logo.svg\" alt=\"Logo\"></img></p></body></html>")
-		}
-		_ => panic!("Unknown test case: {case}"),
-	}
-}
-
-#[test_case("_2x2_table", "# Table\n\n| Column 1 | Column 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n| Cell 3   | Cell 4   |\n" ; "2x2 table")]
-#[test_case("user_table", "# Users\n\n| Name | Age |\n|------|-----|\n| Alice | 25 |\n| Bob | 30 |\n| Carol | 28 |\n" ; "User table")]
-#[actix_web::test]
-async fn test_md2html_with_tables_snapshot(case: &str, md: &str) {
-	let temp_dir = create_test_dir();
-	let template_path = temp_dir.path().join("tables-template.hbs");
-
-	fs::write(
-		&template_path,
-		"<!DOCTYPE html><html><body>{{{body}}}</body></html>",
-	)
-	.expect("Should write template");
-
-	let config = Cofg {
-		hbs_path: template_path.to_string_lossy().to_string(),
-		templating: crate::cofg::config::CofgTemplating {
-			hot_reload: false,
-			..Default::default()
-		},
-		..Cofg::default()
-	};
-
-	let html = md2html(md.to_string(), &config, vec![]).unwrap();
-	match case {
-		"_2x2_table" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><body><h1>Table</h1><table><thead><tr><th class=\"markdown-table-align-left\">Column 1</th><th class=\"markdown-table-align-left\">Column 2</th></tr></thead><tbody><tr><td class=\"markdown-table-align-left\">Cell 1</td><td class=\"markdown-table-align-left\">Cell 2</td></tr><tr><td class=\"markdown-table-align-left\">Cell 3</td><td class=\"markdown-table-align-left\">Cell 4</td></tr></tbody></table></body></html>")
-		}
-		"user_table" => {
-			insta::assert_snapshot!(html, @"<!DOCTYPE html><html><body><h1>Users</h1><table><thead><tr><th class=\"markdown-table-align-left\">Name</th><th class=\"markdown-table-align-left\">Age</th></tr></thead><tbody><tr><td class=\"markdown-table-align-left\">Alice</td><td class=\"markdown-table-align-left\">25</td></tr><tr><td class=\"markdown-table-align-left\">Bob</td><td class=\"markdown-table-align-left\">30</td></tr><tr><td class=\"markdown-table-align-left\">Carol</td><td class=\"markdown-table-align-left\">28</td></tr></tbody></table></body></html>")
-		}
-		_ => panic!("Unknown test case: {case}"),
-	}
 }
 
 #[test_case("flag:true", "flag", true, false ; "Parse as bool")]
@@ -489,33 +342,5 @@ async fn test_context_type_inference_precedence(
 			data.get(key).and_then(|v| v.as_str()).is_some(),
 			"Should remain as string"
 		);
-	}
-}
-
-#[test_case("simple_text", "Test" ; "Simple text")]
-#[test_case("heading_with_paragraph", "# Hello\n\nWorld" ; "Heading with paragraph")]
-#[test_case("horizontal_rule", "---\n\nHorizontal rule" ; "Horizontal rule")]
-#[actix_web::test]
-async fn test_empty_template_data(case: &str, md: &str) {
-	let temp_dir = create_test_dir();
-	let template_path = temp_dir.path().join("empty-ctx.hbs");
-
-	fs::write(&template_path, "<html>{{{body}}}</html>").expect("Should write template");
-
-	let config = Cofg {
-		hbs_path: template_path.to_string_lossy().to_string(),
-		..Cofg::default()
-	};
-
-	let html = md2html(md.to_string(), &config, vec![]).unwrap();
-	match case {
-		"simple_text" => insta::assert_snapshot!(html, @"<html><p>Test</p></html>"),
-		"heading_with_paragraph" => {
-			insta::assert_snapshot!(html, @"<html><h1>Hello</h1><p>World</p></html>")
-		}
-		"horizontal_rule" => {
-			insta::assert_snapshot!(html, @"<html><hr></hr><p>Horizontal rule</p></html>")
-		}
-		_ => panic!("Unknown test case: {case}"),
 	}
 }

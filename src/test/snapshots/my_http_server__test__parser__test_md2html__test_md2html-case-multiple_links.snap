@@ -1,0 +1,11 @@
+---
+source: src/test/parser.rs
+description: "# Links\n\n[Google](https://www.google.com)\n[Internal Link](./page.md)\n"
+info: {}
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<h1>Links</h1><p><a href="https://www.google.com">Google</a>
+<a href="./page.md">Internal Link</a></p>
+</body></html>
