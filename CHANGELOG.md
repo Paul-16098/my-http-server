@@ -4,6 +4,15 @@
 
 ## \[unreleased\]
 
+### Other
+
+- Merge branch 'main' into dev by @Paul-16098
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+
+## \[4.1.10\] - 2026-04-05
+
 ### Features
 
 - *release*: Automate merging of version bump pull requests by @Paul-16098
@@ -27,6 +36,8 @@
 - *request*: Enhance markdown rendering based on Accept header by @Paul-16098
 
 - *server*: Add HSTS header middleware for TLS-enabled responses by @Paul-16098
+
+- *justfile*: Update shell setting and improve version release command by @Paul-16098
 
 
 ### Bug Fixes
@@ -82,6 +93,8 @@
 - *request*: Correct HTML title escaping in markdown rendering test by @Paul-16098
 
 - *test*: Ignore not work test by @Paul-16098
+
+- *justfile*: Update shell setting to use PowerShell and correct version update command by @Paul-16098
 
 ### <details><summary>Deps</summary>
 
@@ -307,6 +320,12 @@
 
 - *tests*: Update insta snapshots for md2html tests and remove obsolete files by @Paul-16098
 
+- *tests*: Reorganize test configuration and improve markdown parsing tests by @Paul-16098
+
+- *config*: Simplify global config initialization and remove redundant public path canonicalization by @Paul-16098
+
+- *tests*: Improve test setup and utilize build-fs-tree for test files by @Paul-16098
+
 
 ### Miscellaneous Tasks
 
@@ -315,6 +334,12 @@
 - *justfile*: Update dependencies and fix argument patterns by @Paul-16098
 
 - *workflow*: Update cargo-binstall tools in test workflow by @Paul-16098
+
+- *env*: Add sample environment file with GitHub token example by @Paul-16098
+
+- *justfile*: Remove redundant dependency installation steps and improve release confirmation message by @Paul-16098
+
+- *doc*: Delete Copilot instructions and VSCode tasks configuration by @Paul-16098
 
 
 ## \[4.1.7\] - 2026-04-05
