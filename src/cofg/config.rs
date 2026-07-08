@@ -508,21 +508,6 @@ impl Cofg {
 			})
 	}
 
-	/// If the provided config matches the currently cached global config (by
-	/// `public_path` string), return the cached `public_root`. Otherwise return None.
-	///
-	/// This lets callers avoid canonicalizing when they're operating with the
-	/// same configuration instance used by the global cache (hot path).
-	pub fn get_public_root_for(c: &Cofg) -> Option<std::path::PathBuf> {
-		if let Some(cell) = GLOBAL_COFG.get()
-			&& let Ok(guard) = cell.read()
-			&& guard.config.public_path == c.public_path
-		{
-			return Some(guard.public_root.clone());
-		}
-		None
-	}
-
 	/// Initialize global configuration with CLI arguments.
 	///
 	/// This should be called once at startup to establish the config with full precedence chain.

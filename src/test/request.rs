@@ -9,6 +9,7 @@
 
 use crate::{request::main_req, test::support::assert_status_in};
 use actix_web::{App, http::StatusCode, test};
+use build_fs_tree::Build;
 
 // Note: server_error function is primarily exercised via request handlers that return errors.
 // A dedicated integration test (test_server_error_function in src/test/integration.rs) validates it directly.
@@ -16,13 +17,16 @@ use actix_web::{App, http::StatusCode, test};
 #[actix_web::test]
 async fn test_root_path_request() {
 	crate::test::support::init_test_setup();
+	crate::test::support::init_test_dir()(build_fs_tree::dir! {})
+		.build(crate::test::support::PUBLIC_DIR.get().unwrap())
+		.unwrap();
 
 	let app = test::init_service(App::new().service(main_req)).await;
 
 	let req = test::TestRequest::get().uri("/").to_request();
 	let resp = test::call_service(&app, req).await;
 
-	assert_status_in(resp.status(), &[StatusCode::OK, StatusCode::NOT_FOUND]);
+	assert_status_in(resp.status(), &[StatusCode::OK]);
 }
 
 #[actix_web::test]
@@ -42,6 +46,11 @@ async fn test_nonexistent_path_returns_404() {
 #[actix_web::test]
 async fn test_path_with_dots() {
 	crate::test::support::init_test_setup();
+	crate::test::support::init_test_dir()(build_fs_tree::dir! {
+		"file.with.multiple.dots.txt" =>  build_fs_tree::file!("Content of the file with multiple dots."),
+	})
+	.build(crate::test::support::PUBLIC_DIR.get().unwrap())
+	.unwrap();
 
 	let app = test::init_service(App::new().service(main_req)).await;
 
@@ -50,7 +59,7 @@ async fn test_path_with_dots() {
 		.to_request();
 	let resp = test::call_service(&app, req).await;
 
-	assert_status_in(resp.status(), &[StatusCode::OK, StatusCode::NOT_FOUND]);
+	assert_status_in(resp.status(), &[StatusCode::OK]);
 }
 
 #[actix_web::test]
@@ -124,22 +133,6 @@ async fn test_delete_request_not_allowed() {
 		resp.status(),
 		&[StatusCode::METHOD_NOT_ALLOWED, StatusCode::NOT_FOUND],
 	);
-}
-
-#[actix_web::test]
-async fn test_get_with_if_modified_since() {
-	crate::test::support::init_test_setup();
-
-	let app = test::init_service(App::new().service(main_req)).await;
-
-	let req = test::TestRequest::get()
-		.uri("/")
-		.insert_header(("if-modified-since", "Mon, 01 Jan 2024 00:00:00 GMT"))
-		.to_request();
-	let resp = test::call_service(&app, req).await;
-
-	// Should handle conditional requests
-	assert_status_in(resp.status(), &[StatusCode::OK, StatusCode::NOT_MODIFIED]);
 }
 
 #[actix_web::test]

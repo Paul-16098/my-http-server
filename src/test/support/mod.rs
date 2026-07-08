@@ -22,6 +22,7 @@
 //! ```
 
 use actix_web::http::StatusCode;
+use log::debug;
 use std::sync::Once;
 
 use crate::cofg::{cli, config::Cofg};
@@ -41,23 +42,13 @@ pub(crate) fn init_logger_once() {
 	});
 }
 
-/// Initialize global config exactly once per test process using thread-safe guard
-///
-/// WHY: Config initialization involves:
-/// - File I/O for XDG directories (skipped in tests with `no_xdg=true`)
-/// - Potential GitHub API calls for emoji cache (with `github_emojis` feature)
-/// - One-time setup that should not repeat across parallel tests
-pub(crate) fn init_global_config_once() {
-	crate::test::support::init_test_config();
-}
-
 /// Combined initialization for logger and config
 ///
 /// WHY: Most tests need both logger and config initialized.
 /// This helper reduces two calls to one.
 pub(crate) fn init_test_setup() {
 	init_logger_once();
-	init_global_config_once();
+	init_test_config();
 }
 
 /// Assert that status code is one of the allowed values
@@ -108,7 +99,7 @@ pub(crate) fn init_test_config() {
 
 		PUBLIC_DIR.get_or_init(|| {
 			// Create a temporary public directory for tests
-			tempfile::TempDir::with_prefix("my-http-server-test-public")
+			tempfile::TempDir::with_prefix("my-http-server-test-public-")
 				.expect("Failed to create temp dir")
 				.path()
 				.to_string_lossy()
@@ -117,6 +108,7 @@ pub(crate) fn init_test_config() {
 
 		let args = cli::Args::try_parse_from(["--public_path", PUBLIC_DIR.get().unwrap()].as_ref())
 			.unwrap_or_else(|_| cli::Args::parse());
+		debug!("init_test_config: args={:?}", args);
 		let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
 
 		// Create minimal emojis.json stub in temp directory to prevent GitHub API calls
@@ -136,5 +128,5 @@ pub(crate) fn init_test_config() {
 
 /// Helper function to create a temporary directory for test fixtures
 pub(crate) fn create_test_dir() -> tempfile::TempDir {
-	tempfile::TempDir::with_prefix("my-http-server-test").expect("Failed to create temp dir")
+	tempfile::TempDir::with_prefix("my-http-server-test-").expect("Failed to create temp dir")
 }

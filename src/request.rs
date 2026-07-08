@@ -1,4 +1,3 @@
-use percent_encoding::percent_decode_str;
 use std::{fs::read_to_string, path::Path};
 
 use actix_files::NamedFile;
@@ -96,24 +95,22 @@ fn render_toc_to_html_response(
 	c: &Cofg,
 ) -> actix_web::HttpResponse {
 	use actix_web::{HttpResponseBuilder, http::StatusCode};
-	let label = if ctx_label.is_empty() { "?" } else { ctx_label };
-	debug!("{}", label);
-	let toc = get_toc(dir_abs, c, Some(label.to_string()));
-	match toc {
-		Ok(v) => {
-			let r = md2html(v, c, vec![format!("path:toc:{label}")]);
-			match r {
-				Ok(html) => HttpResponseBuilder::new(StatusCode::OK)
-					.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-					.body(html),
-				Err(err) => {
-					warn!("{err}");
-					server_error(err.to_string())
-				}
+
+	let label = if ctx_label.is_empty() { "/" } else { ctx_label };
+	debug!("label={}", label);
+
+	match get_toc(dir_abs, c, Some(label.to_string())) {
+		Ok(v) => match md2html(v, c, vec![format!("path:toc:{label}")]) {
+			Ok(html) => HttpResponseBuilder::new(StatusCode::OK)
+				.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+				.body(html),
+			Err(err) => {
+				warn!("md2html build failed: {err}");
+				server_error(err.to_string())
 			}
-		}
+		},
 		Err(err) => {
-			warn!("{err}");
+			warn!("toc build failed: {err}");
 			server_error(err.to_string())
 		}
 	}
@@ -139,20 +136,12 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	let public_path = crate::cofg::config::Cofg::get_public_root();
 	debug!("public_path={}", public_path.display());
 
-	// Resolve the target path under the configured public root.
-	// path is "/" -> ""
-	// WHY: 8c648dc7d9dcbf6769238ead8810aa7f324aaf7d
-	// Percent-decode the request path so encoded characters (eg. "%2E") map to
-	// actual filesystem names (eg. "."). This prevents canonicalize() from
-	// failing when clients send encoded paths.
-	let decoded = percent_decode_str(req.path()).decode_utf8_lossy();
-	let filename_str = if decoded == "/" {
-		".".to_string()
-	} else {
-		format!(".{}", decoded)
-	};
+	let filename_str = req.match_info().query("filename");
+
 	debug!("filename_str={}", filename_str);
+
 	let req_path_buf = public_path.join(Path::new(&filename_str));
+
 	debug!("req_path_buf={}", req_path_buf.display());
 
 	if !req_path_buf.exists() {
@@ -170,12 +159,19 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 			req_path_buf
 		}
 	});
-	let req_strip_prefix_path = match req_path.strip_prefix(&public_path) {
+
+	debug!("req_path canonicalize={}", req_path.display());
+
+	// Do not remove the canonicalize() above, because windows has ``\\?\C:\path\to\file`` format
+	#[allow(clippy::unwrap_used)]
+	let req_strip_prefix_path = match req_path.strip_prefix(public_path.canonicalize().unwrap()) {
 		Ok(p) => p,
 		Err(e) => {
 			error!(
-				"{}: is a traversal dotdot attack? {req_path:?} to {public_path:?}",
-				e
+				"{}: is a traversal dotdot attack? {} not start with {}",
+				e,
+				req_path.display(),
+				public_path.display()
 			);
 			return actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::BAD_REQUEST)
 				.body("No traversal dotdot attack allowed");
@@ -239,7 +235,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 			render_toc_to_html_response(req_path, &label, c)
 		}
 	} else {
-		error!("{}: not file and dir", req_strip_prefix_path.display());
+		error!("{}: not file and dir", req_path.display());
 		server_error(format!(
 			"{}: not file and dir",
 			req_strip_prefix_path.display()

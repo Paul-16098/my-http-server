@@ -23,7 +23,7 @@ use simple_test_case::test_case;
 use crate::cofg::config::Cofg;
 use crate::parser::{markdown, md2html, templating};
 use crate::test::support::create_test_dir;
-use std::fs;
+use std::fs::{self, create_dir_all};
 
 #[test_case(
     "# Hello World\n\nThis is a test.",
@@ -282,21 +282,33 @@ fn test_md2html(case: &str, md: &str, context_vars: Vec<String>) {
 #[test_case(false, "With Files" ; "directory with files")]
 #[test]
 fn test_toc_generation(is_empty: bool, title: &str) {
-	let temp_dir = create_test_dir();
+	crate::test::support::init_test_setup();
+
+	let temp_dir = crate::test::support::PUBLIC_DIR.get().unwrap();
 
 	if !is_empty {
-		fs::write(temp_dir.path().join("test1.md"), "# Test 1").expect("Should write test1.md");
-		fs::write(temp_dir.path().join("test2.html"), "<h1>Test 2</h1>")
-			.expect("Should write test2.html");
-		fs::write(temp_dir.path().join("readme.txt"), "README").expect("Should write readme.txt");
+		use build_fs_tree::{Build, dir, file};
+		crate::test::support::init_test_dir()(dir! {
+			"test1.md" => file!("# Test 1"),
+			"test2.html" => file!("<h1>Test 2</h1>"),
+			"readme.txt" => file!("README"),
+		})
+		.build(temp_dir)
+		.unwrap();
+	} else {
+		create_dir_all(temp_dir).unwrap();
 	}
 
 	let config = Cofg {
-		public_path: temp_dir.path().to_string_lossy().to_string(),
+		public_path: temp_dir.clone(),
 		..Cofg::default()
 	};
 
-	let result = markdown::get_toc(temp_dir.path(), &config, Some(title.to_string()));
+	let result = markdown::get_toc(
+		std::path::Path::new(temp_dir),
+		&config,
+		Some(title.to_string()),
+	);
 
 	if let Err(e) = &result {
 		eprintln!("TOC error: {:?}", e);
