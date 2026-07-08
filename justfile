@@ -2,22 +2,20 @@ set windows-shell := ['pwsh', '-c']
 
 export RUST_LOG := 'debug'
 
-_install-dep:
-    cargo binstall cargo-hack cargo-nextest cargo-llvm-cov
-_clean-cov: _install-dep
+_clean-cov:
     cargo llvm-cov clean --workspace
 # Run tests with nextest
 [arg('ARG', help="additional arguments to pass to cargo nextest, e.g., --features=foo")]
 [default]
 [group('test')]
-test *ARG: _install-dep
+test *ARG:
     cargo nextest run {{ ARG }}
 # Run tests with all features enabled
 [arg('ARG', help="additional arguments to pass to cargo nextest, e.g., --features=foo")]
 [group('test')]
-all-features-test *ARG: _install-dep
+all-features-test *ARG:
     cargo hack --feature-powerset nextest run {{ ARG }}
-_b-cov: _clean-cov _install-dep
+_b-cov: _clean-cov
     cargo hack --feature-powerset llvm-cov --no-report nextest --profile ci
 # Generate coverage reports
 [group('coverage')]
@@ -29,7 +27,7 @@ html-cov: _b-cov
     cargo llvm-cov report --html
 # Release version
 [arg('version', pattern='^\d+\.\d+\.\d+$', help="version to release, e.g., 1.0.0")]
-[confirm("Are you sure you want to release version?")]
+[confirm("Are you sure you want to release version " + version + " ?")]
 [script('nu')]
 release version:
     # Get the current version from Cargo.toml
