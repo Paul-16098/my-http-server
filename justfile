@@ -1,4 +1,4 @@
-set shell := ["nu", "-c"]
+set windows-shell := ["pwsh", "-c"]
 
 export RUST_LOG := 'debug'
 
@@ -31,7 +31,7 @@ html-cov: _b-cov
 [script('nu')]
 release version:
     # Get the current version from Cargo.toml
-    open ./Cargo.toml |{{ if version != "" { ' update package.version {{ version }} |' } else { '' } }} save ./Cargo.toml --force
+    open ./Cargo.toml |{{ if version != "" { ' update package.version ' + version + ' |' } else { '' } }} save ./Cargo.toml --force
 
     # Fetch latest dependencies
     cargo fetch
