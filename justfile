@@ -1,4 +1,4 @@
-set windows-shell := ['pwsh', '-c']
+set shell := ["nu", "-c"]
 
 export RUST_LOG := 'debug'
 
@@ -26,12 +26,12 @@ cov: _b-cov
 html-cov: _b-cov
     cargo llvm-cov report --html
 # Release version
-[arg('version', pattern='^\d+\.\d+\.\d+$', help="version to release, e.g., 1.0.0")]
+[arg('version', pattern='^\d+\.\d+\.\d+|$', help="version to release, e.g., 1.0.0")]
 [confirm("Are you sure you want to release version " + version + " ?")]
 [script('nu')]
 release version:
     # Get the current version from Cargo.toml
-    open ./Cargo.toml | update package.version {{ version }} | save ./Cargo.toml --force
+    open ./Cargo.toml |{{ if version != "" { ' update package.version {{ version }} |' } else { '' } }} save ./Cargo.toml --force
 
     # Fetch latest dependencies
     cargo fetch
