@@ -486,6 +486,8 @@ impl Cofg {
 	/// This avoids calling `canonicalize()` on every request. If the global
 	/// configuration hasn't been initialized yet, compute a best-effort value
 	/// from the current (non-cached) configuration.
+	///
+	/// Must use before [`Self::init_global()`]
 	pub fn get_public_root() -> std::path::PathBuf {
 		if let Some(cell) = GLOBAL_COFG.get()
 			&& let Ok(guard) = cell.read()
@@ -529,31 +531,21 @@ impl Cofg {
 	pub fn init_global(cli: &super::cli::Args, no_xdg: bool) -> AppResult<Self> {
 		let config = Self::new_layered(cli, no_xdg)?;
 
-		// compute canonicalized public_root for the initial config
-		let public_root = std::path::Path::new(&config.public_path)
-			.canonicalize()
-			.unwrap_or_else(|e| {
-				warn!(
-					"Failed to canonicalize public_path: {} = {e}",
-					config.public_path
-				);
-				std::path::Path::new(&config.public_path).to_path_buf()
-			});
-
-		let cell = GLOBAL_COFG.get_or_init(|| {
+		GLOBAL_COFG.get_or_init(|| {
 			RwLock::new(GlobalConfig {
 				config: config.clone(),
 				cli_args: Some(cli.clone()),
-				public_root: public_root.clone(),
+				public_root: std::path::Path::new(&config.public_path).to_path_buf(),
 			})
 		});
 
 		// Update if already initialized (e.g., from tests)
-		if let Ok(mut guard) = cell.write() {
-			guard.config = config.clone();
-			guard.cli_args = Some(cli.clone());
-			guard.public_root = public_root.clone();
-		}
+		// todo:not use?
+		// if let Ok(mut guard) = cell.write() {
+		// 	guard.config = config.clone();
+		// 	guard.cli_args = Some(cli.clone());
+		// 	guard.public_root = public_root.clone();
+		// }
 
 		Ok(config)
 	}

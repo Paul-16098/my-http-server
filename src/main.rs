@@ -19,7 +19,6 @@ use actix_web::http::header;
 use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
 use clap::{CommandFactory as _, Parser as _};
 use log::{debug, error, info, warn};
-use std::fs::create_dir_all;
 use std::io::Write;
 use std::path::Path;
 use std::process::exit;
@@ -77,10 +76,6 @@ impl Default for Version {
 /// per-request race to create it lazily. Logger configured with module paths for traceability.
 fn init(_c: &Cofg) -> AppResult<()> {
 	if let Some(xdg_paths) = Cofg::get_xdg_paths() {
-		if let Some(parent) = xdg_paths.cofg.parent() {
-			create_dir_all(parent)?;
-		}
-
 		if !xdg_paths.cofg.exists() {
 			std::fs::write(&xdg_paths.cofg, include_str!("./cofg/cofg.yaml"))?;
 			info!("Created default XDG config at {}", xdg_paths.cofg.display());
@@ -505,6 +500,7 @@ async fn main() -> AppResult<()> {
 	// Parse CLI arguments
 	let cli_args = cli::Args::parse();
 
+	// if generate_completion is specified, generate the completion script and exit
 	if let Some(shell) = cli_args.generate_completion {
 		generate_completion_script(shell);
 		return Ok(());
@@ -516,13 +512,13 @@ async fn main() -> AppResult<()> {
 	if let Some(ref dir) = cli_args.root_dir {
 		std::env::set_current_dir(dir).map_err(|e| {
 			error!("Failed to change directory to '{}': {}", dir, e);
-			crate::error::AppError::CliError(format!("ROOT_DIR must be a valid path: {}", e))
+			crate::error::AppError::CliError(format!("--root_dir must be a valid path: {}", e))
 		})?;
 		info!("Changed working directory to: {}", dir);
 	}
 
 	// Initialize global config with full layered precedence
-	let mut s = Cofg::init_global(&cli_args, false)?;
+	let s = Cofg::init_global(&cli_args, false)?;
 
 	#[cfg(feature = "github_emojis")]
 	if cli_args.clear_cache {
@@ -533,19 +529,6 @@ async fn main() -> AppResult<()> {
 			error!("Cannot clear emoji cache: no valid XDG config path available");
 		}
 	}
-
-	// Canonicalize public_path for consistent path resolution
-	s.public_path = Path::new(&s.public_path)
-		.canonicalize()
-		.unwrap_or_else(|e| {
-			warn!(
-				"Failed to canonicalize public_path '{}': {}",
-				&s.public_path, e
-			);
-			(&s.public_path).into()
-		})
-		.to_string_lossy()
-		.to_string();
 
 	init(&s)?;
 	info!(
