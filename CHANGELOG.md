@@ -3,6 +3,12 @@
 # CHANGELOG
 
 ## \[unreleased\]
+### <details><summary>Deps</summary>
+
+
+- Update taiki-e/install-action action to v2.82.9 (#285) by @renovate\[bot] in [#285](https://github.com/Paul-16098/my-http-server/pull/285)
+
+</details>
 
 ### Other
 
