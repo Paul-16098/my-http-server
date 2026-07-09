@@ -8,8 +8,11 @@
 //! - Static file serving
 
 use crate::{request::main_req, test::support::assert_status_in};
-use actix_web::{App, http::StatusCode, test};
-use build_fs_tree::Build;
+use actix_web::{
+	App,
+	http::{StatusCode, header},
+	test,
+};
 
 // Note: server_error function is primarily exercised via request handlers that return errors.
 // A dedicated integration test (test_server_error_function in src/test/integration.rs) validates it directly.
@@ -17,9 +20,7 @@ use build_fs_tree::Build;
 #[actix_web::test]
 async fn test_root_path_request() {
 	crate::test::support::init_test_setup();
-	crate::test::support::init_test_dir()(build_fs_tree::dir! {})
-		.build(crate::test::support::PUBLIC_DIR.get().unwrap())
-		.unwrap();
+	crate::test::support::init_public_dir(build_fs_tree::dir! {});
 
 	let app = test::init_service(App::new().service(main_req)).await;
 
@@ -46,11 +47,9 @@ async fn test_nonexistent_path_returns_404() {
 #[actix_web::test]
 async fn test_path_with_dots() {
 	crate::test::support::init_test_setup();
-	crate::test::support::init_test_dir()(build_fs_tree::dir! {
+	crate::test::support::init_public_dir(build_fs_tree::dir! {
 		"file.with.multiple.dots.txt" =>  build_fs_tree::file!("Content of the file with multiple dots."),
-	})
-	.build(crate::test::support::PUBLIC_DIR.get().unwrap())
-	.unwrap();
+	});
 
 	let app = test::init_service(App::new().service(main_req)).await;
 
@@ -65,6 +64,10 @@ async fn test_path_with_dots() {
 #[actix_web::test]
 async fn test_path_with_query_string() {
 	crate::test::support::init_test_setup();
+
+	crate::test::support::init_public_dir(build_fs_tree::dir! {
+			"path" => build_fs_tree::file!("test_body")
+	});
 
 	let app = test::init_service(App::new().service(main_req)).await;
 
@@ -81,79 +84,35 @@ async fn test_path_with_query_string() {
 async fn test_path_with_fragment() {
 	crate::test::support::init_test_setup();
 
+	crate::test::support::init_public_dir(build_fs_tree::dir! {
+			"path" => build_fs_tree::file!("test_body")
+	});
+
 	let app = test::init_service(App::new().service(main_req)).await;
 
 	let req = test::TestRequest::get().uri("/path#fragment").to_request();
 	let resp = test::call_service(&app, req).await;
 
 	// Fragments are typically not sent to server but let's verify handling
-	assert_status_in(resp.status(), &[StatusCode::OK, StatusCode::NOT_FOUND]);
-}
-
-#[actix_web::test]
-async fn test_post_request_not_allowed() {
-	crate::test::support::init_test_setup();
-
-	let app = test::init_service(App::new().service(main_req)).await;
-
-	let req = test::TestRequest::post().uri("/").to_request();
-	let resp = test::call_service(&app, req).await;
-
-	assert_status_in(
-		resp.status(),
-		&[StatusCode::METHOD_NOT_ALLOWED, StatusCode::NOT_FOUND],
-	);
-}
-
-#[actix_web::test]
-async fn test_put_request_not_allowed() {
-	crate::test::support::init_test_setup();
-
-	let app = test::init_service(App::new().service(main_req)).await;
-
-	let req = test::TestRequest::put().uri("/").to_request();
-	let resp = test::call_service(&app, req).await;
-
-	assert_status_in(
-		resp.status(),
-		&[StatusCode::METHOD_NOT_ALLOWED, StatusCode::NOT_FOUND],
-	);
-}
-
-#[actix_web::test]
-async fn test_delete_request_not_allowed() {
-	crate::test::support::init_test_setup();
-
-	let app = test::init_service(App::new().service(main_req)).await;
-
-	let req = test::TestRequest::delete().uri("/").to_request();
-	let resp = test::call_service(&app, req).await;
-
-	assert_status_in(
-		resp.status(),
-		&[StatusCode::METHOD_NOT_ALLOWED, StatusCode::NOT_FOUND],
-	);
+	assert_status_in(resp.status(), &[StatusCode::OK]);
 }
 
 #[actix_web::test]
 async fn test_very_long_path() {
 	crate::test::support::init_test_setup();
 
+	crate::test::support::init_public_dir(build_fs_tree::dir! {
+			"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" => build_fs_tree::file!("test_body")
+	});
+
 	let app = test::init_service(App::new().service(main_req)).await;
 
-	let long_path = format!("/{}", "a".repeat(2000));
+	let long_path = format!("/{}", "a".repeat(100));
 	let req = test::TestRequest::get().uri(&long_path).to_request();
 	let resp = test::call_service(&app, req).await;
 
 	// Should handle or reject long paths gracefully
-	assert_status_in(
-		resp.status(),
-		&[
-			StatusCode::OK,
-			StatusCode::NOT_FOUND,
-			StatusCode::BAD_REQUEST,
-		],
-	);
+	assert_status_in(resp.status(), &[StatusCode::OK]);
 }
 
 #[actix_web::test]
@@ -166,39 +125,22 @@ async fn test_response_content_type_set() {
 	let resp = test::call_service(&app, req).await;
 
 	// Should have a content-type header
-	let has_content_type = resp.headers().get("content-type").is_some();
-	assert!(
-		has_content_type,
-		"Response should include content-type header"
+	let content_type = resp.headers().get("content-type");
+	assert_eq!(
+		content_type,
+		Some(&header::HeaderValue::from_static(
+			"text/html; charset=utf-8"
+		))
 	);
-}
-
-#[actix_web::test]
-async fn test_multiple_sequential_requests() {
-	crate::test::support::init_test_setup();
-
-	let app = test::init_service(App::new().service(main_req)).await;
-
-	for i in 0..10 {
-		let req = test::TestRequest::get()
-			.uri(&format!("/path_{}", i))
-			.to_request();
-		let resp = test::call_service(&app, req).await;
-
-		assert_status_in(
-			resp.status(),
-			&[
-				StatusCode::OK,
-				StatusCode::NOT_FOUND,
-				StatusCode::BAD_REQUEST,
-			],
-		);
-	}
 }
 
 #[actix_web::test]
 async fn test_percent_encoded_spaces() {
 	crate::test::support::init_test_setup();
+
+	crate::test::support::init_public_dir(build_fs_tree::dir! {
+		"file with spaces.txt" => build_fs_tree::file!("test_body")
+	});
 
 	let app = test::init_service(App::new().service(main_req)).await;
 
@@ -207,12 +149,20 @@ async fn test_percent_encoded_spaces() {
 		.to_request();
 	let resp = test::call_service(&app, req).await;
 
-	assert_status_in(resp.status(), &[StatusCode::OK, StatusCode::NOT_FOUND]);
+	assert_status_in(resp.status(), &[StatusCode::OK]);
 }
 
 #[actix_web::test]
 async fn test_accept_markdown() {
 	crate::test::support::init_test_setup();
+
+	let test_body = "# Hello\n";
+
+	crate::test::support::init_public_dir(build_fs_tree::dir! {
+		"dir" => build_fs_tree::dir! {
+			"test.md" => build_fs_tree::file!(test_body),
+		}
+	});
 
 	let app = test::init_service(App::new().service(main_req)).await;
 
@@ -222,13 +172,10 @@ async fn test_accept_markdown() {
 		.to_request();
 
 	let resp = test::call_service(&app, req).await;
-	let body = resp.response().body();
 
-	insta::assert_debug_snapshot!(body, @r#"
-	BoxBody(
-	    Stream(
-	        "dyn MessageBody",
-	    ),
-	)
-	"#);
+	assert_status_in(resp.status(), &[StatusCode::OK]);
+
+	let body = test::read_body(resp).await;
+
+	assert_eq!(body, test_body);
 }

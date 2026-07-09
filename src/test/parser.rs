@@ -289,14 +289,12 @@ fn test_toc_generation(is_empty: bool, title: &str) {
 	let temp_dir = crate::test::support::PUBLIC_DIR.get().unwrap();
 
 	if !is_empty {
-		use build_fs_tree::{Build, dir, file};
-		crate::test::support::init_test_dir()(dir! {
+		use build_fs_tree::{dir, file};
+		crate::test::support::init_public_dir(dir! {
 			"test1.md" => file!("# Test 1"),
 			"test2.html" => file!("<h1>Test 2</h1>"),
 			"readme.txt" => file!("README"),
-		})
-		.build(temp_dir)
-		.unwrap();
+		});
 	} else {
 		create_dir_all(temp_dir).unwrap();
 	}

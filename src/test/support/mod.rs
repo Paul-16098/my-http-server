@@ -22,6 +22,7 @@
 //! ```
 
 use actix_web::http::StatusCode;
+use build_fs_tree::Build;
 use log::debug;
 use std::sync::Once;
 
@@ -66,10 +67,18 @@ pub(crate) fn assert_status_in(status: StatusCode, allowed: &[StatusCode]) {
 
 pub(crate) static PUBLIC_DIR: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
+/// use [`init_public_dir`] to create a temporary public directory for tests and not use this function directly
 pub(crate) fn init_test_dir() -> fn(
 	_: build_fs_tree::FileSystemTree<&'static str, &'static str>,
 ) -> build_fs_tree::FileSystemTree<&'static str, &'static str> {
 	build_fs_tree::FileSystemTree::<&'static str, &'static str>::from
+}
+
+/// run before [`init_test_setup`] to create a temporary public directory for tests
+pub(crate) fn init_public_dir(dir_tree: build_fs_tree::FileSystemTree<&'static str, &'static str>) {
+	init_test_dir()(dir_tree)
+		.build(crate::test::support::PUBLIC_DIR.get().unwrap())
+		.unwrap()
 }
 
 /// Initialize global config for all test suites.
