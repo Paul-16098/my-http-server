@@ -116,13 +116,7 @@ pub(crate) fn init_test_config() {
 		// causing tests to hang or fail in CI environments without network access.
 		// Stored in temp directory (not project root) to avoid polluting repository.
 		#[cfg(feature = "github_emojis")]
-		{
-			let temp_dir = std::env::temp_dir();
-			let emoji_path = temp_dir.join("my-http-server-test-emojis.json");
-			if !emoji_path.exists() {
-				let _ = std::fs::write(emoji_path, r#"{"unicode":{},"else":{}}"#);
-			}
-		}
+		crate::emojis_init(None).unwrap();
 	});
 }
 

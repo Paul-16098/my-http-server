@@ -101,8 +101,9 @@ fn init(_c: &Cofg) -> AppResult<()> {
 	emojis_init(std::env::var("GITHUB_TOKEN").ok())?;
 	Ok(())
 }
+
 #[cfg(feature = "github_emojis")]
-fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
 	use parser::{EMOJIS, Emojis};
 	use std::collections::HashMap;
 

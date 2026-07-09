@@ -116,14 +116,6 @@ pub(crate) fn md2html(
 				}
 			}
 		}
-		// some test not initialize emojis
-		if let Err(e) = crate::emojis_init(None) {
-			log::error!("emojis not initialized: {}", e);
-			return Err(crate::error::AppError::OtherError(format!(
-				"emojis not initialized: {}",
-				e
-			)));
-		}
 		ast = markdown_ppp::ast_transform::Transform::transform_with(
 			ast,
 			match EMOJIS.get() {
