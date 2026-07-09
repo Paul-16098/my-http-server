@@ -107,8 +107,10 @@ pub(crate) fn init_test_config() {
 		});
 
 		let args = cli::Args::try_parse_from(["--public_path", PUBLIC_DIR.get().unwrap()].as_ref())
-			.unwrap_or_else(|_| cli::Args::parse());
+			.unwrap();
+
 		debug!("init_test_config: args={:?}", args);
+
 		let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
 
 		// Create minimal emojis.json stub in temp directory to prevent GitHub API calls

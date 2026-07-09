@@ -45,6 +45,8 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
 ///
 /// WHY: On-demand generation avoids stale TOC and eliminates pre-bake step. Lightweight glob walk
 /// acceptable since `/` root requests are comparatively infrequent.
+///
+/// not use c.public_path instead of [`crate::cofg::config::Cofg::get_public_root()`]
 pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppResult<String> {
 	debug!("root:{}", root_path.display());
 	// Prefer the cached global public_root when the caller's config matches
