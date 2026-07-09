@@ -3,16 +3,10 @@ use utoipa::OpenApi;
 
 use crate::request::server_error;
 
-// struct ServerAddon;
-// impl utoipa::Modify for ServerAddon {
-//     fn modify(&self, _openapi: &mut utoipa::openapi::OpenApi) {}
-// }
-
 #[derive(utoipa::OpenApi)]
 #[openapi(
     info(version = crate::VERSION.version, license(name = "gpl-3.0", url = "/api/license"), contact(name = "GitHub", url = "https://github.com/Paul-16098/my-http-server/")), 
     servers((url = ".", description = "Local server")), 
-    // modifiers(&ServerAddon), 
     paths(meta, license, file::get_raw_file, file::file_info, file::list_files, file::check_exists),
     components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse, file::PathType, crate::Version))
 )]
@@ -43,6 +37,7 @@ async fn raw_openapi() -> HttpResponse {
 		Err(e) => server_error(format!("Failed to generate OpenAPI JSON: {}", e)),
 	}
 }
+
 /// Get server meta information
 /// # Returns
 /// A JSON object containing the server version
@@ -55,6 +50,7 @@ async fn raw_openapi() -> HttpResponse {
 async fn meta() -> actix_web::web::Json<crate::Version> {
 	Json(crate::VERSION)
 }
+
 /// Get server license
 /// # Returns
 /// The full text of the server's license
@@ -67,6 +63,7 @@ async fn meta() -> actix_web::web::Json<crate::Version> {
 async fn license() -> &'static str {
 	include_str!("../../LICENSE.txt")
 }
+
 #[scope("/file")]
 pub(crate) mod file {
 	use std::path::{Path, PathBuf};
@@ -79,7 +76,7 @@ pub(crate) mod file {
 	use crate::{cofg::config::Cofg, error::AppError};
 
 	#[derive(Debug)]
-	pub(crate) enum ValidationError {
+	enum ValidationError {
 		Empty,
 		Traversal(String),
 		NotFound,
@@ -108,7 +105,7 @@ pub(crate) mod file {
 	/// WHY: All endpoints need a canonical, absolute root path to enforce prefix checks
 	/// for traversal protection. Centralizing this logic removes duplication and ensures
 	/// future security fixes apply everywhere.
-	pub(crate) fn get_canonical_public_path() -> Result<PathBuf, HttpResponse> {
+	fn get_canonical_public_path() -> Result<PathBuf, HttpResponse> {
 		let c = Cofg::get(false);
 		Path::new(&c.public_path).canonicalize().map_err(|e| {
 			warn!("public_path canonicalize failed: {}", e);
@@ -117,10 +114,7 @@ pub(crate) mod file {
 	}
 
 	/// Common validation logic for all path types
-	pub(crate) fn validate_path_base(
-		path: &str,
-		public_path: &Path,
-	) -> Result<PathBuf, ValidationError> {
+	fn validate_path_base(path: &str, public_path: &Path) -> Result<PathBuf, ValidationError> {
 		if path.trim().is_empty() {
 			return Err(ValidationError::Empty);
 		}
@@ -141,7 +135,7 @@ pub(crate) mod file {
 		Ok(resolved)
 	}
 
-	pub(crate) fn validate_and_resolve_path(
+	fn validate_and_resolve_path(
 		path: &str,
 		public_path: &Path,
 	) -> Result<PathBuf, ValidationError> {
@@ -154,14 +148,14 @@ pub(crate) mod file {
 		Ok(resolved)
 	}
 
-	pub(crate) fn validate_and_resolve_any_path(
+	fn validate_and_resolve_any_path(
 		path: &str,
 		public_path: &Path,
 	) -> Result<PathBuf, ValidationError> {
 		validate_path_base(path, public_path)
 	}
 
-	pub(crate) fn validate_and_resolve_directory_path(
+	fn validate_and_resolve_directory_path(
 		path: &str,
 		public_path: &Path,
 	) -> Result<PathBuf, ValidationError> {
@@ -238,7 +232,7 @@ pub(crate) mod file {
 	}
 
 	/// Response structure for path existence check
-	#[derive(Serialize, Deserialize, Clone, Debug, utoipa::ToSchema)]
+	#[derive(Serialize, Deserialize, Clone, Debug, utoipa::ToSchema, PartialEq, Eq)]
 	pub struct ExistsResponse {
 		/// Whether the path exists
 		pub exists: bool,
@@ -490,4 +484,16 @@ pub(crate) mod file {
 			path_type,
 		})
 	}
+}
+
+pub(crate) fn service() -> actix_web::Scope {
+	actix_web::web::scope("/api")
+		.service(docs)
+		.service(raw_openapi)
+		.service(meta)
+		.service(license)
+		.service(file::get_raw_file)
+		.service(file::file_info)
+		.service(file::list_files)
+		.service(file::check_exists)
 }
