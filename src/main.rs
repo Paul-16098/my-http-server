@@ -101,8 +101,9 @@ fn init(_c: &Cofg) -> AppResult<()> {
 	emojis_init(std::env::var("GITHUB_TOKEN").ok())?;
 	Ok(())
 }
+
 #[cfg(feature = "github_emojis")]
-fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
 	use parser::{EMOJIS, Emojis};
 	use std::collections::HashMap;
 
@@ -463,17 +464,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 				));
 		#[cfg(feature = "api")]
 		if api_enable {
-			app = app.service(
-				actix_web::web::scope("/api")
-					.service(api::docs)
-					.service(api::raw_openapi)
-					.service(api::meta)
-					.service(api::license)
-					.service(api::file::get_raw_file)
-					.service(api::file::file_info)
-					.service(api::file::list_files)
-					.service(api::file::check_exists),
-			);
+			app = app.service(api::service());
 		}
 		app = app.service(main_req);
 		app

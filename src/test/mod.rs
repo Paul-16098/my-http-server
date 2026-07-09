@@ -15,11 +15,11 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+#[cfg(feature = "api")]
+pub(crate) mod api;
 pub(crate) mod cli;
 pub(crate) mod config;
 pub(crate) mod error;
-pub(crate) mod integration;
-pub(crate) mod main;
 pub(crate) mod parser;
 pub(crate) mod request;
 pub(crate) mod security;

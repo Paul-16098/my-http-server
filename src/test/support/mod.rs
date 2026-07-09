@@ -22,6 +22,7 @@
 //! ```
 
 use actix_web::http::StatusCode;
+use build_fs_tree::Build;
 use log::debug;
 use std::sync::Once;
 
@@ -66,10 +67,18 @@ pub(crate) fn assert_status_in(status: StatusCode, allowed: &[StatusCode]) {
 
 pub(crate) static PUBLIC_DIR: std::sync::OnceLock<String> = std::sync::OnceLock::new();
 
+/// use [`init_public_dir`] to create a temporary public directory for tests and not use this function directly
 pub(crate) fn init_test_dir() -> fn(
 	_: build_fs_tree::FileSystemTree<&'static str, &'static str>,
 ) -> build_fs_tree::FileSystemTree<&'static str, &'static str> {
 	build_fs_tree::FileSystemTree::<&'static str, &'static str>::from
+}
+
+/// run before [`init_test_setup`] to create a temporary public directory for tests
+pub(crate) fn init_public_dir(dir_tree: build_fs_tree::FileSystemTree<&'static str, &'static str>) {
+	init_test_dir()(dir_tree)
+		.build(crate::test::support::PUBLIC_DIR.get().unwrap())
+		.unwrap()
 }
 
 /// Initialize global config for all test suites.
@@ -107,8 +116,10 @@ pub(crate) fn init_test_config() {
 		});
 
 		let args = cli::Args::try_parse_from(["--public_path", PUBLIC_DIR.get().unwrap()].as_ref())
-			.unwrap_or_else(|_| cli::Args::parse());
+			.unwrap();
+
 		debug!("init_test_config: args={:?}", args);
+
 		let _ = Cofg::init_global(&args, true); // true = skip XDG to avoid file I/O
 
 		// Create minimal emojis.json stub in temp directory to prevent GitHub API calls
@@ -116,13 +127,7 @@ pub(crate) fn init_test_config() {
 		// causing tests to hang or fail in CI environments without network access.
 		// Stored in temp directory (not project root) to avoid polluting repository.
 		#[cfg(feature = "github_emojis")]
-		{
-			let temp_dir = std::env::temp_dir();
-			let emoji_path = temp_dir.join("my-http-server-test-emojis.json");
-			if !emoji_path.exists() {
-				let _ = std::fs::write(emoji_path, r#"{"unicode":{},"else":{}}"#);
-			}
-		}
+		crate::emojis_init(None).unwrap();
 	});
 }
 
