@@ -3,6 +3,37 @@
 # CHANGELOG
 
 ## \[unreleased\]
+
+### Features
+
+- *lock-file*: Update by @Paul-16098
+
+
+### Bug Fixes
+
+- *tests*: Fuck why has 3 `test_accept_markdown` by @Paul-16098
+
+
+### Other
+
+- Merge branch 'main' into dev by @Paul-16098
+
+
+## \[4.1.11\] - 2026-07-08
+
+### Features
+
+- *emojis*: Make emojis_init function public and update test setup by @Paul-16098
+
+- *api*: Refactor API service registration and add tests for file endpoints by @Paul-16098
+
+
+### Bug Fixes
+
+- *gitattributes*: Add linguist-generated flag for CHANGELOG.md by @Paul-16098
+
+- Copilot Preview by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -15,6 +46,11 @@
 - Merge branch 'main' into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+
+### Miscellaneous Tasks
+
+- *tests*: Remove integration and main test modules, update test setup functions by @Paul-16098
 
 
 ## \[4.1.10\] - 2026-04-05
