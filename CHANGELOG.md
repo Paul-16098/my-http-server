@@ -13,6 +13,12 @@
 
 - *tests*: Fuck why has 3 `test_accept_markdown` by @Paul-16098
 
+### <details><summary>Deps</summary>
+
+
+- Update taiki-e/install-action action to v2.82.10 (#287) by @renovate\[bot] in [#287](https://github.com/Paul-16098/my-http-server/pull/287)
+
+</details>
 
 ### Other
 
