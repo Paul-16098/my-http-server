@@ -28,6 +28,8 @@
 
 - Update rust crate handlebars to v6.4.3 (#291) by @renovate\[bot] in [#291](https://github.com/Paul-16098/my-http-server/pull/291)
 
+- Update rust crate rustls to v0.23.42 (#293) by @renovate\[bot] in [#293](https://github.com/Paul-16098/my-http-server/pull/293)
+
 </details>
 
 ### Other
