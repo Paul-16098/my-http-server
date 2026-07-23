@@ -36,6 +36,10 @@
 
 - Update taiki-e/install-action action to v2.83.4 (#297) by @renovate\[bot] in [#297](https://github.com/Paul-16098/my-http-server/pull/297)
 
+- Update rust crate serde to v1.0.229 (#298) by @renovate\[bot] in [#298](https://github.com/Paul-16098/my-http-server/pull/298)
+
+- Update rust crate thiserror to v2.0.19 (#299) by @renovate\[bot] in [#299](https://github.com/Paul-16098/my-http-server/pull/299)
+
 </details>
 
 ### Other
