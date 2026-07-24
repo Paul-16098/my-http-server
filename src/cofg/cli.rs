@@ -30,6 +30,8 @@ pub(crate) enum CompletionShell {
 	PowerShell,
 	#[value(name = "zsh")]
 	Zsh,
+	#[value(name = "carapace-spec")]
+	Spec,
 }
 
 #[derive(Parser, Debug, Clone, Default)]

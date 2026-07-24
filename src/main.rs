@@ -190,6 +190,7 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 }
 
 fn generate_completion_script(shell: cli::CompletionShell) {
+	use carapace_spec_clap::Spec;
 	use clap_complete::{Shell, generate};
 	use std::io;
 
@@ -215,6 +216,9 @@ fn generate_completion_script(shell: cli::CompletionShell) {
 			if let Err(err) = io::stdout().write_all(f.as_bytes()) {
 				panic!("failed to write completion script: {err}");
 			}
+		}
+		cli::CompletionShell::Spec => {
+			generate(Spec, &mut cmd, bin_name, &mut io::stdout());
 		}
 	}
 }
