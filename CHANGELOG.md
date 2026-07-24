@@ -40,6 +40,10 @@
 
 - Update rust crate thiserror to v2.0.19 (#299) by @renovate\[bot] in [#299](https://github.com/Paul-16098/my-http-server/pull/299)
 
+- Update rust crate serde_json to v1.0.151 (#300) by @renovate\[bot] in [#300](https://github.com/Paul-16098/my-http-server/pull/300)
+
+- Update taiki-e/install-action action to v2.84.0 (#302) by @renovate\[bot] in [#302](https://github.com/Paul-16098/my-http-server/pull/302)
+
 </details>
 
 ### Other
