@@ -8,6 +8,8 @@
 
 - *lock-file*: Update by @Paul-16098
 
+- *cli*: Add carapace_spec_clap support for completion scripts by @Paul-16098
+
 
 ### Bug Fixes
 
