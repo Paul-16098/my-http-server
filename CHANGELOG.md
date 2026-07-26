@@ -46,6 +46,10 @@
 
 - Update taiki-e/install-action action to v2.84.0 (#302) by @renovate\[bot] in [#302](https://github.com/Paul-16098/my-http-server/pull/302)
 
+- Update rust crate clap to v4.6.4 (#301) by @renovate\[bot] in [#301](https://github.com/Paul-16098/my-http-server/pull/301)
+
+- Update taiki-e/install-action action to v2.84.1 (#303) by @renovate\[bot] in [#303](https://github.com/Paul-16098/my-http-server/pull/303)
+
 </details>
 
 ### Other
