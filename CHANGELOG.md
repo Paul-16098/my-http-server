@@ -50,6 +50,10 @@
 
 - Update taiki-e/install-action action to v2.84.1 (#303) by @renovate\[bot] in [#303](https://github.com/Paul-16098/my-http-server/pull/303)
 
+- Update rust crate rustls-pki-types to v1.15.1 (#304) by @renovate\[bot] in [#304](https://github.com/Paul-16098/my-http-server/pull/304)
+
+- Update taiki-e/install-action action to v2.85.0 (#305) by @renovate\[bot] in [#305](https://github.com/Paul-16098/my-http-server/pull/305)
+
 </details>
 
 ### Other
