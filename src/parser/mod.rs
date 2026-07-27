@@ -127,6 +127,7 @@ pub(crate) fn md2html(
 			},
 		)
 	}
+	// log::trace!("ast={:#?}", ast);
 	let html = markdown_ppp::html_printer::render_html(
 		&ast,
 		markdown_ppp::html_printer::config::Config::default(),
