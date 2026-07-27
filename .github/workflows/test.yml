@@ -7,46 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-with-httpyac:
-    if: false
-    runs-on: ubuntu-latest
-    name: test with httpyac
-    env:
-      PORT: 1234
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-
-      - name: Install netcat
-        run: |
-          if ! command -v nc &> /dev/null; then
-            apt-get update && apt-get install -y netcat-openbsd
-          fi
-
-      - run: cargo b
-      - run: echo "PORT=${{ env.PORT }}" > .env
-      - run: cargo run  -- port ${{ env.PORT }} &
-
-      - name: Wait for server to be ready
-        run: |
-          for i in {1..10}; do
-            if nc -z localhost ${{ env.PORT }}; then
-              echo "Server is up!"
-              break
-            else
-              echo "Waiting for server..."
-              sleep 1
-            fi
-          done
-
-      - name: test
-        id: test
-        run: npx httpyac send test/test.http -a -e ./.env
-
-      - run: rm ./.env
-
   cargo-test:
     runs-on: ubuntu-latest
     name: test
