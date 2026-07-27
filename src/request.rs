@@ -119,6 +119,16 @@ fn render_toc_to_html_response(
 	}
 }
 
+async fn open_named_file(req_path: &Path, req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
+	match NamedFile::open_async(req_path).await {
+		Ok(file) => file.into_response(req),
+		Err(err) => {
+			warn!("{err}: {}", err.kind());
+			server_error(err.to_string())
+		}
+	}
+}
+
 #[actix_web::get("/{filename:.*}")]
 /// Fallback handler for any path (captures `/{filename:.*}`) serving either a rendered markdown
 /// or static file; returns custom 404 page if missing.
@@ -181,22 +191,15 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		}
 	};
 
-	if req_path == public_path.as_path() {
+	let req_is_root = req.path() == "/";
+
+	if req_is_root {
 		let index_file = public_path.join("index.html");
 		if index_file.exists() {
-			let f = read_to_string(index_file);
-			match f {
-				Ok(value) => {
-					debug!("index exists=>show file");
-					return actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
-						.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-						.body(value);
-				}
-				Err(err) => {
-					warn!("{err}");
-					return server_error(err.to_string());
-				}
-			}
+			debug!("index exists=>open index.html");
+			return open_named_file(&index_file, &req).await;
+		} else {
+			debug!("index not exists=>show toc");
 		}
 	}
 	if !req_path.exists() {
@@ -221,16 +224,10 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		}
 	} else if req_path.is_file() {
 		debug!("no md");
-		match NamedFile::open_async(req_path).await {
-			Ok(file) => file.into_response(&req),
-			Err(err) => {
-				warn!("{err}: {}", err.kind());
-				server_error(err.to_string())
-			}
-		}
+		open_named_file(req_path, &req).await
 	} else if req_path.is_dir() {
 		debug!("is dir");
-		if req_path == public_path.as_path() {
+		if req_is_root {
 			// if is index
 			render_toc_to_html_response(req_path, "index", c)
 		} else {
