@@ -260,16 +260,15 @@ Content here", vec![] ; "H2 heading")]
 | Cell 1   | Cell 2   |
 | Cell 3   | Cell 4   |
 ", vec![] ; "2x2 table")]
-// wait https://github.com/johnlepikhin/markdown-ppp/issues/14
 #[test_case("toc", "# With Files
 
- - [readme.txt](/readme.txt)
- - [subdir](/subdir)
-     - [nested.md](/subdir/nested.md)
-     - [with space in subdir.txt](/subdir/with space in subdir.txt)
- - [test1.md](/test1.md)
- - [test2.html](/test2.html)
- - [with space.txt](/with space.txt)", vec![] ; "TOC")]
+- [readme.txt](/readme.txt)
+- [subdir](/subdir)
+    - [nested.md](/subdir/nested.md)
+    - [with space in subdir.txt](/subdir/with%20space%20in%20subdir.txt)
+- [test1.md](/test1.md)
+- [test2.html](/test2.html)
+- [with space.txt](/with%20space.txt)", vec![] ; "TOC")]
 #[test]
 fn test_md2html(case: &str, md: &str, context_vars: Vec<String>) {
 	crate::test::support::init_test_setup();

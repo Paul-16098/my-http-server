@@ -1792,6 +1792,7 @@ dependencies = [
  "markdown-ppp",
  "nest_struct",
  "nom 8.0.0",
+ "percent-encoding",
  "rustls",
  "rustls-pki-types",
  "serde",

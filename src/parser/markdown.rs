@@ -16,6 +16,10 @@ use wax::walk::Entry as _;
 use crate::error::AppResult;
 use crate::{cofg::config::Cofg, error};
 
+use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, percent_encode};
+
+static ASCII_SET_NOT_ALL: &AsciiSet = &NON_ALPHANUMERIC.remove(b'/').remove(b':').remove(b'.');
+
 #[derive(Default, Debug)]
 struct TocNode {
 	children: BTreeMap<String, TocNode>,
@@ -30,7 +34,11 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
 		};
 		let indent = " ".repeat(depth * 4);
 		trace!("emit_toc: node={node:?};prefix={prefix:#?};out={out};depth={depth}");
-		out.push_str(&format!("{indent}- [{}]({})\n", name, path));
+		out.push_str(&format!(
+			"{indent}- [{}]({})\n",
+			name,
+			percent_encode(path.as_bytes(), ASCII_SET_NOT_ALL)
+		));
 
 		prefix.push(name.clone());
 		emit_toc(child, prefix, out, depth + 1);

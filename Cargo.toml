@@ -37,6 +37,7 @@ clap-verbosity-flag = "3.0.4"
 clap_complete = "4.6.2"
 clap_complete_nushell = "4.6.0"
 carapace_spec_clap = "1.2.1"
+percent-encoding = "2.3.2"
 
 [dependencies.actix-web]
 version = "4.11.0"

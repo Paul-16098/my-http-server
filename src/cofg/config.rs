@@ -387,7 +387,7 @@ impl Cofg {
 			if self.toc.ext.contains(marker) {
 				self.toc.ext.remove(marker);
 				self.toc.ext.extend(
-					["html", "md", "pdf", "txt", "png"]
+					["html", "md", "pdf", "txt", "png", "jpg"]
 						.into_iter()
 						.map(String::from),
 				);
