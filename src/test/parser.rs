@@ -294,6 +294,11 @@ fn test_toc_generation(is_empty: bool, title: &str) {
 			"test1.md" => file!("# Test 1"),
 			"test2.html" => file!("<h1>Test 2</h1>"),
 			"readme.txt" => file!("README"),
+			"with space.txt" => file!("Space in filename"),
+			"subdir" => dir! {
+				"nested.md" => file!("# Nested"),
+				"with space in subdir.txt" => file!("Nested space"),
+			}
 		});
 	} else {
 		create_dir_all(temp_dir).unwrap();
@@ -320,7 +325,12 @@ fn test_toc_generation(is_empty: bool, title: &str) {
 		result.err()
 	);
 	let toc = result.unwrap();
-	assert!(toc.contains(title), "TOC should include title");
+	insta::with_settings!({
+		description => title,
+		omit_expression => true,
+	}, {
+		insta::assert_snapshot!(format!("test_toc_generation-{}", if is_empty { "empty" } else { "with_files" }), toc, title);
+	});
 }
 
 #[test_case("flag:true", "flag", true, false ; "Parse as bool")]
