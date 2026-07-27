@@ -69,24 +69,24 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
 	for entry in Glob::new(&glob_pattern)?.walk(root_path) {
 		let entry = entry?;
 
-		debug!("get_toc: entry={entry:?}");
+		trace!("get_toc: entry={entry:?}");
 
 		let raw_path = entry.path();
 
-		debug!("get_toc: raw_path={:?}", raw_path.display());
+		trace!("get_toc: raw_path={:?}", raw_path.display());
 
 		let canonicalize_path = raw_path.canonicalize()?;
 
-		debug!("canonicalize_path={}", canonicalize_path.display());
+		trace!("canonicalize_path={}", canonicalize_path.display());
 
 		let path = canonicalize_path.strip_prefix(root_path)?.to_path_buf();
 
-		debug!("path: {}", path.display());
+		trace!("path: {}", path.display());
 
 		// Skip entries matching any ignore token
 		let path_str = path.to_string_lossy();
 		if c.toc.ig.iter().any(|ele| path_str.contains(ele)) {
-			debug!("continue");
+			trace!("continue by ignore");
 			continue;
 		}
 

@@ -100,15 +100,18 @@ fn render_toc_to_html_response(
 	debug!("label={}", label);
 
 	match get_toc(dir_abs, c, Some(label.to_string())) {
-		Ok(v) => match md2html(v, c, vec![format!("path:toc:{label}")]) {
-			Ok(html) => HttpResponseBuilder::new(StatusCode::OK)
-				.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-				.body(html),
-			Err(err) => {
-				warn!("md2html build failed: {err}");
-				server_error(err.to_string())
+		Ok(v) => {
+			debug!("toc md={}", v);
+			match md2html(v, c, vec![format!("path:toc:{label}")]) {
+				Ok(html) => HttpResponseBuilder::new(StatusCode::OK)
+					.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+					.body(html),
+				Err(err) => {
+					warn!("md2html build failed: {err}");
+					server_error(err.to_string())
+				}
 			}
-		},
+		}
 		Err(err) => {
 			warn!("toc build failed: {err}");
 			server_error(err.to_string())
@@ -227,12 +230,11 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		}
 	} else if req_path.is_dir() {
 		debug!("is dir");
-		let label = req_strip_prefix_path.to_string_lossy();
 		if req_path == public_path.as_path() {
 			// if is index
 			render_toc_to_html_response(req_path, "index", c)
 		} else {
-			render_toc_to_html_response(req_path, &label, c)
+			render_toc_to_html_response(req_path, &req_strip_prefix_path.to_string_lossy(), c)
 		}
 	} else {
 		error!("{}: not file and dir", req_path.display());
