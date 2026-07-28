@@ -10,6 +10,10 @@
 
 - *cli*: Add carapace_spec_clap support for completion scripts by @Paul-16098
 
+- *parser*: Add percent-encoding support for TOC links and update tests by @Paul-16098
+
+- *request*: Implement async file opening and improve index handling by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -54,11 +58,33 @@
 
 - Update taiki-e/install-action action to v2.85.0 (#305) by @renovate\[bot] in [#305](https://github.com/Paul-16098/my-http-server/pull/305)
 
+- Update rust crate clap_complete_nushell to v4.6.1 (#296) by @renovate\[bot] in [#296](https://github.com/Paul-16098/my-http-server/pull/296)
+
+- Update dependency github-markdown-css to v5.9.0 (#282) by @renovate\[bot] in [#282](https://github.com/Paul-16098/my-http-server/pull/282)
+
+- Update dependency github-markdown-css to v5.9.0 by @Paul-16098
+
 </details>
 
 ### Other
 
 - Merge branch 'main' into dev by @Paul-16098
+
+
+### Testing
+
+- *toc*: Add tests for TOC generation with files and empty directory by @Paul-16098
+
+
+### Miscellaneous Tasks
+
+- *parser*: Remove debug trace logging for AST in md2html function by @Paul-16098
+
+- *request*: Replace debug logging with trace for TOC generation by @Paul-16098
+
+- *tests*: Update markdown test cases for better readability and add TOC test by @Paul-16098
+
+- *workflow*: Remove unused httpyac test job and associated files by @Paul-16098
 
 
 ## \[4.1.11\] - 2026-07-08
