@@ -64,6 +64,8 @@
 
 - Update dependency github-markdown-css to v5.9.0 by @Paul-16098
 
+- Update taiki-e/install-action action to v2.85.1 (#306) by @renovate\[bot] in [#306](https://github.com/Paul-16098/my-http-server/pull/306)
+
 </details>
 
 ### Other
