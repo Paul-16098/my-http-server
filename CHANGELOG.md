@@ -82,6 +82,8 @@
 
 - Update taiki-e/install-action action to v2.85.6 (#314) by @renovate\[bot] in [#314](https://github.com/Paul-16098/my-http-server/pull/314)
 
+- Update taiki-e/install-action action to v2.85.7 (#315) by @renovate\[bot] in [#315](https://github.com/Paul-16098/my-http-server/pull/315)
+
 </details>
 
 ### Other
