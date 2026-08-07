@@ -236,19 +236,6 @@ fn logger_init(filter_level: log::LevelFilter) {
 	l.init();
 }
 
-// SECURITY: Constant-time comparison to reduce timing attack surface.
-
-pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-	let max_len = a.len().max(b.len());
-	let mut diff: u8 = (a.len() ^ b.len()) as u8;
-	for i in 0..max_len {
-		let ai = *a.get(i).unwrap_or(&0);
-		let bi = *b.get(i).unwrap_or(&0);
-		diff |= ai ^ bi;
-	}
-	diff == 0
-}
-
 /// Constant-time comparison for Option<&str>.
 ///
 /// WHY: Wrap [`constant_time_eq`] for optional UTF-8 strings so that callers can
@@ -263,6 +250,7 @@ pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 /// Security: Prevents timing attacks by ensuring comparison time doesn't leak
 /// information about the length or content of the strings being compared.
 pub(crate) fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
+	use constant_time_eq::constant_time_eq;
 	match (a, b) {
 		(Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
 		(None, None) => true,
