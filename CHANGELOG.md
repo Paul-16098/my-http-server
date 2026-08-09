@@ -90,6 +90,8 @@
 
 - Update taiki-e/install-action action to v2.85.8 (#316) by @renovate\[bot] in [#316](https://github.com/Paul-16098/my-http-server/pull/316)
 
+- Update rust crate carapace_spec_clap to v1.2.2 (#317) by @renovate\[bot] in [#317](https://github.com/Paul-16098/my-http-server/pull/317)
+
 </details>
 
 ### Other
