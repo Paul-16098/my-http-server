@@ -92,6 +92,10 @@
 
 - Update rust crate carapace_spec_clap to v1.2.2 (#317) by @renovate\[bot] in [#317](https://github.com/Paul-16098/my-http-server/pull/317)
 
+- Update rust crate clap_complete to v4.6.9 (#318) by @renovate\[bot] in [#318](https://github.com/Paul-16098/my-http-server/pull/318)
+
+- Update taiki-e/install-action action to v2.85.9 (#319) by @renovate\[bot] in [#319](https://github.com/Paul-16098/my-http-server/pull/319)
+
 </details>
 
 ### Other
