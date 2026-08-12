@@ -100,6 +100,10 @@
 
 - Update taiki-e/install-action action to v2.85.10 (#321) by @renovate\[bot] in [#321](https://github.com/Paul-16098/my-http-server/pull/321)
 
+- Update rust crate ureq to v3.4.0 (#323) by @renovate\[bot] in [#323](https://github.com/Paul-16098/my-http-server/pull/323)
+
+- Update rust crate thiserror to v2.0.20 (#322) by @renovate\[bot] in [#322](https://github.com/Paul-16098/my-http-server/pull/322)
+
 </details>
 
 ### Other
