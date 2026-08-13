@@ -104,6 +104,10 @@
 
 - Update rust crate thiserror to v2.0.20 (#322) by @renovate\[bot] in [#322](https://github.com/Paul-16098/my-http-server/pull/322)
 
+- Update taiki-e/install-action action to v2.85.11 (#325) by @renovate\[bot] in [#325](https://github.com/Paul-16098/my-http-server/pull/325)
+
+- Update rust crate actix-web to v4.14.1 (#324) by @renovate\[bot] in [#324](https://github.com/Paul-16098/my-http-server/pull/324)
+
 </details>
 
 ### Other
