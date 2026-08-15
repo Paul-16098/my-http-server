@@ -108,6 +108,8 @@
 
 - Update rust crate actix-web to v4.14.1 (#324) by @renovate\[bot] in [#324](https://github.com/Paul-16098/my-http-server/pull/324)
 
+- Update rust crate clap_complete_nushell to v4.6.2 (#326) by @renovate\[bot] in [#326](https://github.com/Paul-16098/my-http-server/pull/326)
+
 </details>
 
 ### Other
