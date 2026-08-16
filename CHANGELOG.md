@@ -110,6 +110,10 @@
 
 - Update rust crate clap_complete_nushell to v4.6.2 (#326) by @renovate\[bot] in [#326](https://github.com/Paul-16098/my-http-server/pull/326)
 
+- Update rust crate handlebars to v6.4.4 (#327) by @renovate\[bot] in [#327](https://github.com/Paul-16098/my-http-server/pull/327)
+
+- Update taiki-e/install-action action to v2.85.12 (#328) by @renovate\[bot] in [#328](https://github.com/Paul-16098/my-http-server/pull/328)
+
 </details>
 
 ### Other
