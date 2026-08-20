@@ -1,4 +1,5 @@
-set windows-shell := ["pwsh", "-c"]
+[windows]
+set shell := ["pwsh", "-c"]
 
 export RUST_LOG := 'debug'
 
