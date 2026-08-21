@@ -23,6 +23,8 @@
 
 - Remove unuse test by @Paul-16098
 
+- *justfile*: Fix deprecate warn by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -119,6 +121,8 @@
 - Update rust crate carapace_spec_clap to v1.2.3 (#330) by @renovate\[bot] in [#330](https://github.com/Paul-16098/my-http-server/pull/330)
 
 - Update taiki-e/install-action action to v2.86.1 (#331) by @renovate\[bot] in [#331](https://github.com/Paul-16098/my-http-server/pull/331)
+
+- Update taiki-e/install-action action to v2.86.2 (#333) by @renovate\[bot] in [#333](https://github.com/Paul-16098/my-http-server/pull/333)
 
 </details>
 
