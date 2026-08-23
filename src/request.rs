@@ -23,12 +23,11 @@ async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
 	use actix_web::http::StatusCode;
 	let c = &Cofg::get(false);
 	let page_404_path = c.resolve_page_404_path();
-	match actix_files::NamedFile::open_async(&page_404_path).await {
+	match actix_files::NamedFile::open(&page_404_path) {
 		Ok(file) => {
 			let mut res = file.into_response(req);
 			res = res
 				.customize()
-				.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
 				.with_status(StatusCode::NOT_FOUND)
 				.respond_to(req)
 				.map_into_boxed_body();
@@ -119,8 +118,8 @@ fn render_toc_to_html_response(
 	}
 }
 
-async fn open_named_file(req_path: &Path, req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
-	match NamedFile::open_async(req_path).await {
+fn open_named_file(req_path: &Path, req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
+	match NamedFile::open(req_path) {
 		Ok(file) => file.into_response(req),
 		Err(err) => {
 			warn!("{err}: {}", err.kind());
@@ -197,7 +196,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		let index_file = public_path.join("index.html");
 		if index_file.exists() {
 			debug!("index exists=>open index.html");
-			return open_named_file(&index_file, &req).await;
+			return open_named_file(&index_file, &req);
 		} else {
 			debug!("index not exists=>show toc");
 		}
@@ -224,7 +223,7 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		}
 	} else if req_path.is_file() {
 		debug!("no md");
-		open_named_file(req_path, &req).await
+		open_named_file(req_path, &req)
 	} else if req_path.is_dir() {
 		debug!("is dir");
 		if req_is_root {

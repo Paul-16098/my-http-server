@@ -190,7 +190,7 @@ pub(crate) mod file {
 			Err(e) => return e.into_response(),
 		};
 
-		match NamedFile::open_async(&resolved).await {
+		match NamedFile::open(&resolved) {
 			Ok(file) => file.into_response(&req),
 			Err(e) => HttpResponse::BadRequest().body(AppError::from(e).to_string()),
 		}
