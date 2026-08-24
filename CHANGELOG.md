@@ -25,6 +25,8 @@
 
 - *justfile*: Fix deprecate warn by @Paul-16098
 
+- *deps*: Update rust crate actix-files to 0.7.0 (#332) by @renovate\[bot] in [#332](https://github.com/Paul-16098/my-http-server/pull/332)
+
 ### <details><summary>Deps</summary>
 
 
