@@ -128,6 +128,12 @@
 
 - Update taiki-e/install-action action to v2.86.3 (#334) by @renovate\[bot] in [#334](https://github.com/Paul-16098/my-http-server/pull/334)
 
+- Update taiki-e/install-action action to v2.86.5 (#336) by @renovate\[bot] in [#336](https://github.com/Paul-16098/my-http-server/pull/336)
+
+- Update rust crate log to v0.4.34 (#337) by @renovate\[bot] in [#337](https://github.com/Paul-16098/my-http-server/pull/337)
+
+- Update rust crate actix-web to v4.15.0 (#338) by @renovate\[bot] in [#338](https://github.com/Paul-16098/my-http-server/pull/338)
+
 </details>
 
 ### Other
