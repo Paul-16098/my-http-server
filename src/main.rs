@@ -19,7 +19,6 @@ use actix_web::http::header;
 use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
 use clap::{CommandFactory as _, Parser as _};
 use log::{debug, error, info, warn};
-use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 
@@ -187,40 +186,6 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 	})?;
 	EMOJIS.get_or_init(|| emojis);
 	Ok(())
-}
-
-fn generate_completion_script(shell: cli::CompletionShell) {
-	use carapace_spec_clap::Spec;
-	use clap_complete::{Shell, generate};
-	use std::io;
-
-	let mut cmd = cli::Args::command();
-	let bin_name = env!("CARGO_BIN_NAME");
-
-	match shell {
-		cli::CompletionShell::Bash => generate(Shell::Bash, &mut cmd, bin_name, &mut io::stdout()),
-		cli::CompletionShell::Elvish => {
-			generate(Shell::Elvish, &mut cmd, bin_name, &mut io::stdout())
-		}
-		cli::CompletionShell::Fish => generate(Shell::Fish, &mut cmd, bin_name, &mut io::stdout()),
-		cli::CompletionShell::PowerShell => {
-			generate(Shell::PowerShell, &mut cmd, bin_name, &mut io::stdout())
-		}
-		cli::CompletionShell::Zsh => generate(Shell::Zsh, &mut cmd, bin_name, &mut io::stdout()),
-		cli::CompletionShell::Nushell => {
-			let mut f = Vec::new();
-			generate(clap_complete_nushell::Nushell, &mut cmd, bin_name, &mut f);
-			let f = String::from_utf8(f)
-				.unwrap_or_else(|err| String::from_utf8_lossy(&err.into_bytes()).into_owned());
-			let f = f.replace("--port: string", "--port: int   ");
-			if let Err(err) = io::stdout().write_all(f.as_bytes()) {
-				panic!("failed to write completion script: {err}");
-			}
-		}
-		cli::CompletionShell::Spec => {
-			generate(Spec, &mut cmd, bin_name, &mut io::stdout());
-		}
-	}
 }
 
 fn logger_init(filter_level: log::LevelFilter) {
@@ -484,8 +449,13 @@ async fn main() -> AppResult<()> {
 	let cli_args = cli::Args::parse();
 
 	// if generate_completion is specified, generate the completion script and exit
-	if let Some(shell) = cli_args.generate_completion {
-		generate_completion_script(shell);
+	if let Some(shell) = cli_args.generate_completion.generate_completion {
+		clap_complete::generate(
+			shell,
+			&mut cli::Args::command(),
+			env!("CARGO_BIN_NAME"),
+			&mut std::io::stdout(),
+		);
 		return Ok(());
 	}
 

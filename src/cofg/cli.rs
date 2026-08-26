@@ -12,27 +12,9 @@
 //!
 //! 中文：提供分層配置系統，優先級由低到高：內建預設→XDG配置目錄→本地配置檔→環境變數→命令列參數。
 
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 
 use crate::error::AppError;
-
-#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
-pub(crate) enum CompletionShell {
-	#[value(name = "bash")]
-	Bash,
-	#[value(name = "elvish")]
-	Elvish,
-	#[value(name = "fish")]
-	Fish,
-	#[value(name = "nushell")]
-	Nushell,
-	#[value(name = "powershell")]
-	PowerShell,
-	#[value(name = "zsh")]
-	Zsh,
-	#[value(name = "carapace-spec")]
-	Spec,
-}
 
 #[derive(Parser, Debug, Clone, Default)]
 #[command(version = crate::VERSION.to_string())]
@@ -89,9 +71,9 @@ pub(crate) struct Args {
 	/// Enable hot reload for templates and config (overrides config file)
 	pub(crate) hot_reload: Option<bool>,
 
-	#[arg(long, value_enum, value_name = "Shell")]
+	#[command(flatten)]
 	/// Generate shell completion script to stdout and exit
-	pub(crate) generate_completion: Option<CompletionShell>,
+	pub(crate) generate_completion: clap_completion_flag::Completion,
 
 	#[cfg(feature = "github_emojis")]
 	#[arg(long)]
