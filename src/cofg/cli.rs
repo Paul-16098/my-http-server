@@ -38,6 +38,10 @@ pub(crate) struct Args {
 	/// Path to TLS private key file (PEM format)
 	pub(crate) tls_key: Option<String>,
 
+	#[arg(long)]
+	/// Disable TLS (overrides config file)
+	pub(crate) no_tls: bool,
+
 	// === Config File Control ===
 	#[arg(long, value_name = "Path", value_hint = clap::ValueHint::FilePath)]
 	/// Path to configuration file (default if exists: ./cofg.yaml)

@@ -251,6 +251,10 @@ impl Cofg {
 			self.tls.key = key.clone();
 			self.tls.enable = true;
 		}
+		// Disable TLS in case of --no-tls flag, even if cert/key are provided in config or CLI
+		if cli.no_tls {
+			self.tls.enable = false;
+		}
 
 		// Public path
 		if let Some(ref path) = cli.public_path {
