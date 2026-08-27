@@ -97,14 +97,15 @@ dependencies = [
 
 [[package]]
 name = "actix-ip-filter"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6034ba9bf9c361d72f658a1a7bce29ae2da6597100743ad722a625e803fbcacc"
+checksum = "dbdd3fab6295bb2e2d2aed089215fa994c93df1c545e1a1c388e0fb344a6561e"
 dependencies = [
  "actix-service",
  "actix-web",
  "futures-util",
  "glob",
+ "ipware",
 ]
 
 [[package]]
@@ -1533,6 +1534,22 @@ dependencies = [
  "once_cell",
  "similar",
  "tempfile",
+]
+
+[[package]]
+name = "ip_rfc"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b8a253fc120dd6c624b7beb0a82330fc0135e0a9cec685bf039a07ba032af1e"
+
+[[package]]
+name = "ipware"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08c1c646316b92107cf552c353a1719e2e3e2f8d2c5d382bfe845339c2d09d79"
+dependencies = [
+ "http 0.2.12",
+ "ip_rfc",
 ]
 
 [[package]]
