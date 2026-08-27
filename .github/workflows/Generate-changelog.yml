@@ -1,9 +1,5 @@
 name: Generate changelog
 on:
-  push:
-    # Trigger only on version tag pushes
-    tags:
-      - "v*"
   schedule:
     - cron: "0 0 * * 6"
   workflow_dispatch:
