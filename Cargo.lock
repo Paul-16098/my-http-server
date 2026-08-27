@@ -1811,7 +1811,7 @@ dependencies = [
 
 [[package]]
 name = "my-http-server"
-version = "4.1.12"
+version = "4.1.13"
 dependencies = [
  "actix-files",
  "actix-governor",
