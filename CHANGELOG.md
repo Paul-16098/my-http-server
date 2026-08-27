@@ -4,6 +4,13 @@
 
 ## \[unreleased\]
 
+### Other
+
+- Merge remote-tracking branch 'origin/main' into dev by @Paul-16098
+
+
+## \[4.1.12\] - 2026-07-09
+
 ### Features
 
 - *lock-file*: Update by @Paul-16098
@@ -28,6 +35,8 @@
 - *justfile*: Fix deprecate warn by @Paul-16098
 
 - *deps*: Update rust crate actix-files to 0.7.0 (#332) by @renovate\[bot] in [#332](https://github.com/Paul-16098/my-http-server/pull/332)
+
+- *deps*: Update rust crate actix-ip-filter to 0.4.0 (#340) by @renovate\[bot] in [#340](https://github.com/Paul-16098/my-http-server/pull/340)
 
 ### <details><summary>Deps</summary>
 
@@ -136,6 +145,8 @@
 
 - Update rust crate actix-web to v4.15.0 (#338) by @renovate\[bot] in [#338](https://github.com/Paul-16098/my-http-server/pull/338)
 
+- Update actions/checkout action to v7 (#341) by @renovate\[bot] in [#341](https://github.com/Paul-16098/my-http-server/pull/341)
+
 </details>
 
 ### Other
@@ -146,6 +157,8 @@
 ### Refactor
 
 - *main*: Use crate to handle timing-safe string comparison by @Paul-16098
+
+- *release*: Remove automatic squash merge behavior by @Paul-16098
 
 
 ### Testing
@@ -162,6 +175,22 @@
 - *tests*: Update markdown test cases for better readability and add TOC test by @Paul-16098
 
 - *workflow*: Remove unused httpyac test job and associated files by @Paul-16098
+
+- *dist*: Use dist 0.32.0 by @Paul-16098
+
+- *push*: Add trusted publishing by @Paul-16098
+
+- *docker*: Add ci to push docker image to ghcr.io by @Paul-16098
+
+- Remove unuse dir by @Paul-16098
+
+- Schedule changelog generation for Saturday by @Paul-16098
+
+- Update changelog commit configuration by @Paul-16098
+
+- Pin ref to commit hash by @Paul-16098
+
+- Change auto-merge PR schedule and triggers by @Paul-16098
 
 
 ## \[4.1.11\] - 2026-07-08
