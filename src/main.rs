@@ -19,7 +19,6 @@ use actix_web::http::header;
 use actix_web::{App, HttpServer, dev::Server, http::KeepAlive, middleware};
 use clap::{CommandFactory as _, Parser as _};
 use log::{debug, error, info, warn};
-use std::io::Write;
 use std::path::Path;
 use std::process::exit;
 
@@ -189,36 +188,6 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 	Ok(())
 }
 
-fn generate_completion_script(shell: cli::CompletionShell) {
-	use clap_complete::{Shell, generate};
-	use std::io;
-
-	let mut cmd = cli::Args::command();
-	let bin_name = env!("CARGO_BIN_NAME");
-
-	match shell {
-		cli::CompletionShell::Bash => generate(Shell::Bash, &mut cmd, bin_name, &mut io::stdout()),
-		cli::CompletionShell::Elvish => {
-			generate(Shell::Elvish, &mut cmd, bin_name, &mut io::stdout())
-		}
-		cli::CompletionShell::Fish => generate(Shell::Fish, &mut cmd, bin_name, &mut io::stdout()),
-		cli::CompletionShell::PowerShell => {
-			generate(Shell::PowerShell, &mut cmd, bin_name, &mut io::stdout())
-		}
-		cli::CompletionShell::Zsh => generate(Shell::Zsh, &mut cmd, bin_name, &mut io::stdout()),
-		cli::CompletionShell::Nushell => {
-			let mut f = Vec::new();
-			generate(clap_complete_nushell::Nushell, &mut cmd, bin_name, &mut f);
-			let f = String::from_utf8(f)
-				.unwrap_or_else(|err| String::from_utf8_lossy(&err.into_bytes()).into_owned());
-			let f = f.replace("--port: string", "--port: int   ");
-			if let Err(err) = io::stdout().write_all(f.as_bytes()) {
-				panic!("failed to write completion script: {err}");
-			}
-		}
-	}
-}
-
 fn logger_init(filter_level: log::LevelFilter) {
 	let mut l = env_logger::builder();
 	l.default_format()
@@ -230,19 +199,6 @@ fn logger_init(filter_level: log::LevelFilter) {
 	l.format_source_path(true);
 
 	l.init();
-}
-
-// SECURITY: Constant-time comparison to reduce timing attack surface.
-
-pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-	let max_len = a.len().max(b.len());
-	let mut diff: u8 = (a.len() ^ b.len()) as u8;
-	for i in 0..max_len {
-		let ai = *a.get(i).unwrap_or(&0);
-		let bi = *b.get(i).unwrap_or(&0);
-		diff |= ai ^ bi;
-	}
-	diff == 0
 }
 
 /// Constant-time comparison for Option<&str>.
@@ -259,6 +215,7 @@ pub(crate) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 /// Security: Prevents timing attacks by ensuring comparison time doesn't leak
 /// information about the length or content of the strings being compared.
 pub(crate) fn ct_eq_str_opt(a: Option<&str>, b: Option<&str>) -> bool {
+	use constant_time_eq::constant_time_eq;
 	match (a, b) {
 		(Some(a), Some(b)) => constant_time_eq(a.as_bytes(), b.as_bytes()),
 		(None, None) => true,
@@ -492,8 +449,13 @@ async fn main() -> AppResult<()> {
 	let cli_args = cli::Args::parse();
 
 	// if generate_completion is specified, generate the completion script and exit
-	if let Some(shell) = cli_args.generate_completion {
-		generate_completion_script(shell);
+	if let Some(shell) = cli_args.generate_completion.generate_completion {
+		clap_complete::generate(
+			shell,
+			&mut cli::Args::command(),
+			env!("CARGO_BIN_NAME"),
+			&mut std::io::stdout(),
+		);
 		return Ok(());
 	}
 

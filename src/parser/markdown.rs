@@ -16,6 +16,10 @@ use wax::walk::Entry as _;
 use crate::error::AppResult;
 use crate::{cofg::config::Cofg, error};
 
+use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, percent_encode};
+
+static ASCII_SET_NOT_ALL: &AsciiSet = &NON_ALPHANUMERIC.remove(b'/').remove(b':').remove(b'.');
+
 #[derive(Default, Debug)]
 struct TocNode {
 	children: BTreeMap<String, TocNode>,
@@ -30,7 +34,11 @@ fn emit_toc(node: &TocNode, prefix: &mut Vec<String>, out: &mut String, depth: u
 		};
 		let indent = " ".repeat(depth * 4);
 		trace!("emit_toc: node={node:?};prefix={prefix:#?};out={out};depth={depth}");
-		out.push_str(&format!("{indent}- [{}]({})\n", name, path));
+		out.push_str(&format!(
+			"{indent}- [{}]({})\n",
+			name,
+			percent_encode(path.as_bytes(), ASCII_SET_NOT_ALL)
+		));
 
 		prefix.push(name.clone());
 		emit_toc(child, prefix, out, depth + 1);
@@ -69,24 +77,24 @@ pub(crate) fn get_toc(root_path: &Path, c: &Cofg, title: Option<String>) -> AppR
 	for entry in Glob::new(&glob_pattern)?.walk(root_path) {
 		let entry = entry?;
 
-		debug!("get_toc: entry={entry:?}");
+		trace!("get_toc: entry={entry:?}");
 
 		let raw_path = entry.path();
 
-		debug!("get_toc: raw_path={:?}", raw_path.display());
+		trace!("get_toc: raw_path={:?}", raw_path.display());
 
 		let canonicalize_path = raw_path.canonicalize()?;
 
-		debug!("canonicalize_path={}", canonicalize_path.display());
+		trace!("canonicalize_path={}", canonicalize_path.display());
 
 		let path = canonicalize_path.strip_prefix(root_path)?.to_path_buf();
 
-		debug!("path: {}", path.display());
+		trace!("path: {}", path.display());
 
 		// Skip entries matching any ignore token
 		let path_str = path.to_string_lossy();
 		if c.toc.ig.iter().any(|ele| path_str.contains(ele)) {
-			debug!("continue");
+			trace!("continue by ignore");
 			continue;
 		}
 

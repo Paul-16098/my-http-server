@@ -3,6 +3,211 @@
 # CHANGELOG
 
 ## \[unreleased\]
+
+### Other
+
+- Merge remote-tracking branch 'origin/main' into dev by @Paul-16098
+
+
+## \[4.1.12\] - 2026-07-09
+
+### Features
+
+- *lock-file*: Update by @Paul-16098
+
+- *cli*: Add carapace_spec_clap support for completion scripts by @Paul-16098
+
+- *parser*: Add percent-encoding support for TOC links and update tests by @Paul-16098
+
+- *request*: Implement async file opening and improve index handling by @Paul-16098
+
+- Add a dependencies for gen shell completion by @Paul-16098
+
+
+### Bug Fixes
+
+- *tests*: Fuck why has 3 `test_accept_markdown` by @Paul-16098
+
+- Remove unuse dir by @Paul-16098
+
+- Remove unuse test by @Paul-16098
+
+- *justfile*: Fix deprecate warn by @Paul-16098
+
+- *deps*: Update rust crate actix-files to 0.7.0 (#332) by @renovate\[bot] in [#332](https://github.com/Paul-16098/my-http-server/pull/332)
+
+- *deps*: Update rust crate actix-ip-filter to 0.4.0 (#340) by @renovate\[bot] in [#340](https://github.com/Paul-16098/my-http-server/pull/340)
+
+### <details><summary>Deps</summary>
+
+
+- Update taiki-e/install-action action to v2.82.10 (#287) by @renovate\[bot] in [#287](https://github.com/Paul-16098/my-http-server/pull/287)
+
+- Update taiki-e/install-action action to v2.82.11 (#288) by @renovate\[bot] in [#288](https://github.com/Paul-16098/my-http-server/pull/288)
+
+- Update taiki-e/install-action action to v2.83.0 (#289) by @renovate\[bot] in [#289](https://github.com/Paul-16098/my-http-server/pull/289)
+
+- Update taiki-e/install-action action to v2.83.1 (#290) by @renovate\[bot] in [#290](https://github.com/Paul-16098/my-http-server/pull/290)
+
+- Update taiki-e/install-action action to v2.83.2 (#292) by @renovate\[bot] in [#292](https://github.com/Paul-16098/my-http-server/pull/292)
+
+- Update rust crate handlebars to v6.4.3 (#291) by @renovate\[bot] in [#291](https://github.com/Paul-16098/my-http-server/pull/291)
+
+- Update rust crate rustls to v0.23.42 (#293) by @renovate\[bot] in [#293](https://github.com/Paul-16098/my-http-server/pull/293)
+
+- Update rust crate clap to v4.6.2 (#294) by @renovate\[bot] in [#294](https://github.com/Paul-16098/my-http-server/pull/294)
+
+- Update taiki-e/install-action action to v2.83.3 (#295) by @renovate\[bot] in [#295](https://github.com/Paul-16098/my-http-server/pull/295)
+
+- Update taiki-e/install-action action to v2.83.4 (#297) by @renovate\[bot] in [#297](https://github.com/Paul-16098/my-http-server/pull/297)
+
+- Update rust crate serde to v1.0.229 (#298) by @renovate\[bot] in [#298](https://github.com/Paul-16098/my-http-server/pull/298)
+
+- Update rust crate thiserror to v2.0.19 (#299) by @renovate\[bot] in [#299](https://github.com/Paul-16098/my-http-server/pull/299)
+
+- Update rust crate serde_json to v1.0.151 (#300) by @renovate\[bot] in [#300](https://github.com/Paul-16098/my-http-server/pull/300)
+
+- Update taiki-e/install-action action to v2.84.0 (#302) by @renovate\[bot] in [#302](https://github.com/Paul-16098/my-http-server/pull/302)
+
+- Update rust crate clap to v4.6.4 (#301) by @renovate\[bot] in [#301](https://github.com/Paul-16098/my-http-server/pull/301)
+
+- Update taiki-e/install-action action to v2.84.1 (#303) by @renovate\[bot] in [#303](https://github.com/Paul-16098/my-http-server/pull/303)
+
+- Update rust crate rustls-pki-types to v1.15.1 (#304) by @renovate\[bot] in [#304](https://github.com/Paul-16098/my-http-server/pull/304)
+
+- Update taiki-e/install-action action to v2.85.0 (#305) by @renovate\[bot] in [#305](https://github.com/Paul-16098/my-http-server/pull/305)
+
+- Update rust crate clap_complete_nushell to v4.6.1 (#296) by @renovate\[bot] in [#296](https://github.com/Paul-16098/my-http-server/pull/296)
+
+- Update dependency github-markdown-css to v5.9.0 (#282) by @renovate\[bot] in [#282](https://github.com/Paul-16098/my-http-server/pull/282)
+
+- Update dependency github-markdown-css to v5.9.0 by @Paul-16098
+
+- Update taiki-e/install-action action to v2.85.1 (#306) by @renovate\[bot] in [#306](https://github.com/Paul-16098/my-http-server/pull/306)
+
+- Update taiki-e/install-action action to v2.85.2 (#307) by @renovate\[bot] in [#307](https://github.com/Paul-16098/my-http-server/pull/307)
+
+- Update rust crate clap_complete to v4.6.8 (#308) by @renovate\[bot] in [#308](https://github.com/Paul-16098/my-http-server/pull/308)
+
+- Update taiki-e/install-action action to v2.85.3 (#309) by @renovate\[bot] in [#309](https://github.com/Paul-16098/my-http-server/pull/309)
+
+- Update taiki-e/install-action action to v2.85.4 (#311) by @renovate\[bot] in [#311](https://github.com/Paul-16098/my-http-server/pull/311)
+
+- Update rust crate rustls to v0.23.43 (#310) by @renovate\[bot] in [#310](https://github.com/Paul-16098/my-http-server/pull/310)
+
+- Update taiki-e/install-action action to v2.85.5 (#312) by @renovate\[bot] in [#312](https://github.com/Paul-16098/my-http-server/pull/312)
+
+- Update rust crate clap to v4.6.5 (#313) by @renovate\[bot] in [#313](https://github.com/Paul-16098/my-http-server/pull/313)
+
+- Update taiki-e/install-action action to v2.85.6 (#314) by @renovate\[bot] in [#314](https://github.com/Paul-16098/my-http-server/pull/314)
+
+- Update taiki-e/install-action action to v2.85.7 (#315) by @renovate\[bot] in [#315](https://github.com/Paul-16098/my-http-server/pull/315)
+
+- Update taiki-e/install-action action to v2.85.8 (#316) by @renovate\[bot] in [#316](https://github.com/Paul-16098/my-http-server/pull/316)
+
+- Update rust crate carapace_spec_clap to v1.2.2 (#317) by @renovate\[bot] in [#317](https://github.com/Paul-16098/my-http-server/pull/317)
+
+- Update rust crate clap_complete to v4.6.9 (#318) by @renovate\[bot] in [#318](https://github.com/Paul-16098/my-http-server/pull/318)
+
+- Update taiki-e/install-action action to v2.85.9 (#319) by @renovate\[bot] in [#319](https://github.com/Paul-16098/my-http-server/pull/319)
+
+- Update rust crate clap to v4.6.6 (#320) by @renovate\[bot] in [#320](https://github.com/Paul-16098/my-http-server/pull/320)
+
+- Update taiki-e/install-action action to v2.85.10 (#321) by @renovate\[bot] in [#321](https://github.com/Paul-16098/my-http-server/pull/321)
+
+- Update rust crate ureq to v3.4.0 (#323) by @renovate\[bot] in [#323](https://github.com/Paul-16098/my-http-server/pull/323)
+
+- Update rust crate thiserror to v2.0.20 (#322) by @renovate\[bot] in [#322](https://github.com/Paul-16098/my-http-server/pull/322)
+
+- Update taiki-e/install-action action to v2.85.11 (#325) by @renovate\[bot] in [#325](https://github.com/Paul-16098/my-http-server/pull/325)
+
+- Update rust crate actix-web to v4.14.1 (#324) by @renovate\[bot] in [#324](https://github.com/Paul-16098/my-http-server/pull/324)
+
+- Update rust crate clap_complete_nushell to v4.6.2 (#326) by @renovate\[bot] in [#326](https://github.com/Paul-16098/my-http-server/pull/326)
+
+- Update rust crate handlebars to v6.4.4 (#327) by @renovate\[bot] in [#327](https://github.com/Paul-16098/my-http-server/pull/327)
+
+- Update taiki-e/install-action action to v2.85.12 (#328) by @renovate\[bot] in [#328](https://github.com/Paul-16098/my-http-server/pull/328)
+
+- Update taiki-e/install-action action to v2.85.13 (#329) by @renovate\[bot] in [#329](https://github.com/Paul-16098/my-http-server/pull/329)
+
+- Update rust crate carapace_spec_clap to v1.2.3 (#330) by @renovate\[bot] in [#330](https://github.com/Paul-16098/my-http-server/pull/330)
+
+- Update taiki-e/install-action action to v2.86.1 (#331) by @renovate\[bot] in [#331](https://github.com/Paul-16098/my-http-server/pull/331)
+
+- Update taiki-e/install-action action to v2.86.2 (#333) by @renovate\[bot] in [#333](https://github.com/Paul-16098/my-http-server/pull/333)
+
+- Update taiki-e/install-action action to v2.86.3 (#334) by @renovate\[bot] in [#334](https://github.com/Paul-16098/my-http-server/pull/334)
+
+- Update taiki-e/install-action action to v2.86.5 (#336) by @renovate\[bot] in [#336](https://github.com/Paul-16098/my-http-server/pull/336)
+
+- Update rust crate log to v0.4.34 (#337) by @renovate\[bot] in [#337](https://github.com/Paul-16098/my-http-server/pull/337)
+
+- Update rust crate actix-web to v4.15.0 (#338) by @renovate\[bot] in [#338](https://github.com/Paul-16098/my-http-server/pull/338)
+
+- Update actions/checkout action to v7 (#341) by @renovate\[bot] in [#341](https://github.com/Paul-16098/my-http-server/pull/341)
+
+</details>
+
+### Other
+
+- Merge branch 'main' into dev by @Paul-16098
+
+
+### Refactor
+
+- *main*: Use crate to handle timing-safe string comparison by @Paul-16098
+
+- *release*: Remove automatic squash merge behavior by @Paul-16098
+
+
+### Testing
+
+- *toc*: Add tests for TOC generation with files and empty directory by @Paul-16098
+
+
+### Miscellaneous Tasks
+
+- *parser*: Remove debug trace logging for AST in md2html function by @Paul-16098
+
+- *request*: Replace debug logging with trace for TOC generation by @Paul-16098
+
+- *tests*: Update markdown test cases for better readability and add TOC test by @Paul-16098
+
+- *workflow*: Remove unused httpyac test job and associated files by @Paul-16098
+
+- *dist*: Use dist 0.32.0 by @Paul-16098
+
+- *push*: Add trusted publishing by @Paul-16098
+
+- *docker*: Add ci to push docker image to ghcr.io by @Paul-16098
+
+- Remove unuse dir by @Paul-16098
+
+- Schedule changelog generation for Saturday by @Paul-16098
+
+- Update changelog commit configuration by @Paul-16098
+
+- Pin ref to commit hash by @Paul-16098
+
+- Change auto-merge PR schedule and triggers by @Paul-16098
+
+
+## \[4.1.11\] - 2026-07-08
+
+### Features
+
+- *emojis*: Make emojis_init function public and update test setup by @Paul-16098
+
+- *api*: Refactor API service registration and add tests for file endpoints by @Paul-16098
+
+
+### Bug Fixes
+
+- *gitattributes*: Add linguist-generated flag for CHANGELOG.md by @Paul-16098
+
+- Copilot Preview by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -15,6 +220,11 @@
 - Merge branch 'main' into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+
+### Miscellaneous Tasks
+
+- *tests*: Remove integration and main test modules, update test setup functions by @Paul-16098
 
 
 ## \[4.1.10\] - 2026-04-05

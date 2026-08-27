@@ -75,8 +75,6 @@ pub(crate) fn md2html(
 	}
 	#[cfg_attr(not(feature = "github_emojis"), allow(unused_mut))]
 	let mut ast = markdown::parser_md(md)?;
-	// PERF: 只在 trace 開啟時輸出 AST；大型 Markdown 可能造成龐大日誌量。
-	log::trace!("ast={ast:#?}");
 	#[cfg(feature = "github_emojis")]
 	{
 		struct ReplaceGithubEmojis<'a>(&'a Emojis);
@@ -89,7 +87,7 @@ pub(crate) fn md2html(
 				match inline {
 					markdown_ppp::ast::Inline::Text(code) => {
 						let mut text = code;
-						for (k, _v) in e.r#else.iter() {
+						for k in e.r#else.keys() {
 							let pat = format!(":{k}:");
 							if text.contains(&pat) {
 								log::warn!(
@@ -129,7 +127,7 @@ pub(crate) fn md2html(
 			},
 		)
 	}
-	log::trace!("ast={ast:#?}");
+	// log::trace!("ast={:#?}", ast);
 	let html = markdown_ppp::html_printer::render_html(
 		&ast,
 		markdown_ppp::html_printer::config::Config::default(),

@@ -23,12 +23,11 @@ async fn respond_404(req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
 	use actix_web::http::StatusCode;
 	let c = &Cofg::get(false);
 	let page_404_path = c.resolve_page_404_path();
-	match actix_files::NamedFile::open_async(&page_404_path).await {
+	match actix_files::NamedFile::open(&page_404_path) {
 		Ok(file) => {
 			let mut res = file.into_response(req);
 			res = res
 				.customize()
-				.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
 				.with_status(StatusCode::NOT_FOUND)
 				.respond_to(req)
 				.map_into_boxed_body();
@@ -100,17 +99,30 @@ fn render_toc_to_html_response(
 	debug!("label={}", label);
 
 	match get_toc(dir_abs, c, Some(label.to_string())) {
-		Ok(v) => match md2html(v, c, vec![format!("path:toc:{label}")]) {
-			Ok(html) => HttpResponseBuilder::new(StatusCode::OK)
-				.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-				.body(html),
-			Err(err) => {
-				warn!("md2html build failed: {err}");
-				server_error(err.to_string())
+		Ok(v) => {
+			debug!("toc md={}", v);
+			match md2html(v, c, vec![format!("path:toc:{label}")]) {
+				Ok(html) => HttpResponseBuilder::new(StatusCode::OK)
+					.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
+					.body(html),
+				Err(err) => {
+					warn!("md2html build failed: {err}");
+					server_error(err.to_string())
+				}
 			}
-		},
+		}
 		Err(err) => {
 			warn!("toc build failed: {err}");
+			server_error(err.to_string())
+		}
+	}
+}
+
+fn open_named_file(req_path: &Path, req: &actix_web::HttpRequest) -> actix_web::HttpResponse {
+	match NamedFile::open(req_path) {
+		Ok(file) => file.into_response(req),
+		Err(err) => {
+			warn!("{err}: {}", err.kind());
 			server_error(err.to_string())
 		}
 	}
@@ -178,22 +190,15 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		}
 	};
 
-	if req_path == public_path.as_path() {
+	let req_is_root = req.path() == "/";
+
+	if req_is_root {
 		let index_file = public_path.join("index.html");
 		if index_file.exists() {
-			let f = read_to_string(index_file);
-			match f {
-				Ok(value) => {
-					debug!("index exists=>show file");
-					return actix_web::HttpResponseBuilder::new(actix_web::http::StatusCode::OK)
-						.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
-						.body(value);
-				}
-				Err(err) => {
-					warn!("{err}");
-					return server_error(err.to_string());
-				}
-			}
+			debug!("index exists=>open index.html");
+			return open_named_file(&index_file, &req);
+		} else {
+			debug!("index not exists=>show toc");
 		}
 	}
 	if !req_path.exists() {
@@ -218,21 +223,14 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		}
 	} else if req_path.is_file() {
 		debug!("no md");
-		match NamedFile::open_async(req_path).await {
-			Ok(file) => file.into_response(&req),
-			Err(err) => {
-				warn!("{err}: {}", err.kind());
-				server_error(err.to_string())
-			}
-		}
+		open_named_file(req_path, &req)
 	} else if req_path.is_dir() {
 		debug!("is dir");
-		let label = req_strip_prefix_path.to_string_lossy();
-		if req_path == public_path.as_path() {
+		if req_is_root {
 			// if is index
 			render_toc_to_html_response(req_path, "index", c)
 		} else {
-			render_toc_to_html_response(req_path, &label, c)
+			render_toc_to_html_response(req_path, &req_strip_prefix_path.to_string_lossy(), c)
 		}
 	} else {
 		error!("{}: not file and dir", req_path.display());

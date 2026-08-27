@@ -107,8 +107,8 @@ fn test_cli_args_generate_completion_nushell() {
 
 	assert!(args.is_ok(), "Nushell completion should parse");
 	assert_eq!(
-		args.unwrap().generate_completion,
-		Some(crate::cofg::cli::CompletionShell::Nushell)
+		args.unwrap().generate_completion.generate_completion,
+		Some(clap_completion_flag::CompletionShell::Nushell)
 	);
 }
 
@@ -118,8 +118,8 @@ fn test_cli_args_generate_completion_powershell() {
 
 	assert!(args.is_ok(), "PowerShell completion should parse");
 	assert_eq!(
-		args.unwrap().generate_completion,
-		Some(crate::cofg::cli::CompletionShell::PowerShell)
+		args.unwrap().generate_completion.generate_completion,
+		Some(clap_completion_flag::CompletionShell::PowerShell)
 	);
 }
 

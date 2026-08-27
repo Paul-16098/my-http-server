@@ -22,5 +22,4 @@ pub(crate) mod config;
 pub(crate) mod error;
 pub(crate) mod parser;
 pub(crate) mod request;
-pub(crate) mod security;
 pub(crate) mod support;

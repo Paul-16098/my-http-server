@@ -203,7 +203,7 @@ impl Cofg {
 			builder = builder.add_source(config::File::from(xdg_path));
 		}
 
-		// Layer 3: Local config file (unless --no-config)
+		// Layer 3: Cli Local config file (unless --no-config)
 		if let Some(config_path) = cli.config_file_path() {
 			let path = std::path::Path::new(config_path);
 			if path.exists() {
@@ -250,6 +250,10 @@ impl Cofg {
 			self.tls.cert = cert.clone();
 			self.tls.key = key.clone();
 			self.tls.enable = true;
+		}
+		// Disable TLS in case of --no-tls flag, even if cert/key are provided in config or CLI
+		if cli.no_tls {
+			self.tls.enable = false;
 		}
 
 		// Public path
@@ -387,7 +391,7 @@ impl Cofg {
 			if self.toc.ext.contains(marker) {
 				self.toc.ext.remove(marker);
 				self.toc.ext.extend(
-					["html", "md", "pdf", "txt", "png"]
+					["html", "md", "pdf", "txt", "png", "jpg"]
 						.into_iter()
 						.map(String::from),
 				);

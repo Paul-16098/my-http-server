@@ -222,22 +222,53 @@ async fn test_set_context_value_invalid_format() {
 }
 
 // Basic markdown to HTML conversion tests
-#[test_case("heading_and_text", "# Test\n\nHello world!", vec![] ; "Heading and text")]
-#[test_case("simple_markdown", "# Welcome\n\nSimple content", vec![] ; "Simple markdown")]
-#[test_case("h2_heading", "## Section\n\nContent here", vec![] ; "H2 heading")]
+#[test_case("heading_and_text", "# Test
+
+Hello world!", vec![] ; "Heading and text")]
+#[test_case("simple_markdown", "# Welcome
+
+Simple content", vec![] ; "Simple markdown")]
+#[test_case("h2_heading", "## Section
+
+Content here", vec![] ; "H2 heading")]
 // Test with context variables
 #[test_case("with_title", "# Content", vec!["title:Test Page".to_string()] ; "With title")]
 #[test_case("multiple_context_vars", "# Documentation", vec!["title:Docs".to_string(), "author:Team".to_string()] ; "Multiple context vars")]
 #[test_case("no_context", "# About", vec![] ; "No context")]
 // link
-#[test_case("multiple_links", "# Links\n\n[Google](https://www.google.com)\n[Internal Link](./page.md)\n", vec![] ; "Multiple links")]
-#[test_case("single_link", "# Home\n\n[Index](./index.md)\n", vec![] ; "Single link")]
+#[test_case("multiple_links", "# Links
+
+[Google](https://www.google.com)
+[Internal Link](./page.md)
+", vec![] ; "Multiple links")]
+#[test_case("single_link", "# Home
+[Index](./index.md)
+", vec![] ; "Single link")]
 // image
-#[test_case("multiple_images", "# Images\n\n![Alt text](./image.png)\n![Remote image](https://example.com/image.jpg)", vec![] ; "Multiple images")]
-#[test_case("single_image", "# Single\n\n![Logo](./logo.svg)", vec![] ; "Single image")]
+#[test_case("multiple_images", "# Images
+
+![Alt text](./image.png)
+![Remote image](https://example.com/image.jpg)", vec![] ; "Multiple images")]
+#[test_case("single_image", "# Single
+
+![Logo](./logo.svg)", vec![] ; "Single image")]
 // table
-#[test_case("_2x2_table", "# Table\n\n| Column 1 | Column 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n| Cell 3   | Cell 4   |\n", vec![] ; "2x2 table")]
-#[test_case("user_table", "# Users\n\n| Name | Age |\n|------|-----|\n| Alice | 25 |\n| Bob | 30 |\n| Carol | 28 |\n", vec![] ; "User table")]
+#[test_case("_2x2_table", "# Table
+
+| Column 1 | Column 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+| Cell 3   | Cell 4   |
+", vec![] ; "2x2 table")]
+#[test_case("toc", "# With Files
+
+- [readme.txt](/readme.txt)
+- [subdir](/subdir)
+    - [nested.md](/subdir/nested.md)
+    - [with space in subdir.txt](/subdir/with%20space%20in%20subdir.txt)
+- [test1.md](/test1.md)
+- [test2.html](/test2.html)
+- [with space.txt](/with%20space.txt)", vec![] ; "TOC")]
 #[test]
 fn test_md2html(case: &str, md: &str, context_vars: Vec<String>) {
 	crate::test::support::init_test_setup();
@@ -294,6 +325,11 @@ fn test_toc_generation(is_empty: bool, title: &str) {
 			"test1.md" => file!("# Test 1"),
 			"test2.html" => file!("<h1>Test 2</h1>"),
 			"readme.txt" => file!("README"),
+			"with space.txt" => file!("Space in filename"),
+			"subdir" => dir! {
+				"nested.md" => file!("# Nested"),
+				"with space in subdir.txt" => file!("Nested space"),
+			}
 		});
 	} else {
 		create_dir_all(temp_dir).unwrap();
@@ -320,7 +356,12 @@ fn test_toc_generation(is_empty: bool, title: &str) {
 		result.err()
 	);
 	let toc = result.unwrap();
-	assert!(toc.contains(title), "TOC should include title");
+	insta::with_settings!({
+		description => title,
+		omit_expression => true,
+	}, {
+		insta::assert_snapshot!(format!("test_toc_generation-{}", if is_empty { "empty" } else { "with_files" }), toc, title);
+	});
 }
 
 #[test_case("flag:true", "flag", true, false ; "Parse as bool")]
