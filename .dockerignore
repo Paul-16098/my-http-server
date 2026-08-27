@@ -1,0 +1,10 @@
+*
+
+!src
+!.cargo
+!.config
+!meta
+!build.rs
+!Cargo.lock
+!Cargo.toml
+!LICENSE.txt
