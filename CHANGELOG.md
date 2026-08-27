@@ -14,6 +14,8 @@
 
 - *request*: Implement async file opening and improve index handling by @Paul-16098
 
+- Add a dependencies for gen shell completion by @Paul-16098
+
 
 ### Bug Fixes
 
