@@ -203,7 +203,7 @@ impl Cofg {
 			builder = builder.add_source(config::File::from(xdg_path));
 		}
 
-		// Layer 3: Local config file (unless --no-config)
+		// Layer 3: Cli Local config file (unless --no-config)
 		if let Some(config_path) = cli.config_file_path() {
 			let path = std::path::Path::new(config_path);
 			if path.exists() {
