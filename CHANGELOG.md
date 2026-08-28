@@ -4,6 +4,33 @@
 
 ## \[unreleased\]
 
+### Other
+
+- Merge branch 'main' into dev
+
+- Merge 0b82cd511721d47083aa49a51e208ab193aec2f6 into 6ae4e9dc819250f0af0bcc7950259f4f2da6977d
+
+- Merge d0a595c21d70726544a479129f9bd77f0adbfbf4 into 6ae4e9dc819250f0af0bcc7950259f4f2da6977d
+
+- Merge a5437fc4a58baecf3f136d1a4c1392d04bbcb072 into 6ae4e9dc819250f0af0bcc7950259f4f2da6977d
+
+
+## \[4.2.4\] - 2026-08-27
+
+### Bug Fixes
+
+- Allow Generate changelog continue on error
+
+
+### Other
+
+- Merge branch 'main' into dev
+
+- Merge 44955971b4cdebbecd948c25a1e168247d56b0f4 into cc57db7c9cc29bcf7daaf7a0d3137401f29a2279
+
+
+## \[4.2.2\] - 2026-08-27
+
 ### Bug Fixes
 
 - Fuck merge
@@ -22,6 +49,10 @@
 - Merge 99ea4ae365336609953ff4050efe6770bd9b83b3 into 31027406cfd883340e6bd4186ab3cd0b0d0b28a3
 
 - Merge 7777d902ba8fa5b1e13687d1e7c0494c4a8f8038 into 31027406cfd883340e6bd4186ab3cd0b0d0b28a3
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev
+
+- Fuck changelog
 
 
 ## \[4.2.1\] - 2026-08-27
