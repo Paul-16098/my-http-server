@@ -8,6 +8,20 @@
 
 - Merge branch 'main' into dev
 
+- Merge 0b82cd511721d47083aa49a51e208ab193aec2f6 into 6ae4e9dc819250f0af0bcc7950259f4f2da6977d
+
+
+## \[4.2.4\] - 2026-08-27
+
+### Bug Fixes
+
+- Allow Generate changelog continue on error
+
+
+### Other
+
+- Merge branch 'main' into dev
+
 - Merge 44955971b4cdebbecd948c25a1e168247d56b0f4 into cc57db7c9cc29bcf7daaf7a0d3137401f29a2279
 
 
