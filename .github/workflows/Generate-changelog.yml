@@ -1,13 +1,14 @@
 name: Generate changelog
 on:
-  schedule:
-    - cron: "0 0 * * 6"
   workflow_dispatch:
-  workflow_call:
-    inputs:
-      plan:
-        required: false
-        type: string
+  pull_request_target:
+    branches:
+      - main
+      - dev
+    types:
+      - closed
+  push:
+    branches: dev
 
 permissions:
   contents: write
