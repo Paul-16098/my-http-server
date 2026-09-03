@@ -4,6 +4,11 @@
 
 ## \[unreleased\]
 
+### Bug Fixes
+
+- *deps*: Update rust crate constant_time_eq to 0.6.0 (#347) by @renovate\[bot] in [#347](https://github.com/Paul-16098/my-http-server/pull/347)
+
+
 ### Other
 
 - Merge branch 'main' into dev by @Paul-16098
