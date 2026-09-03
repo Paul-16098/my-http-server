@@ -17,6 +17,11 @@
 - Merge 71b43ce44d357985196d50a3b4eee66fa125830a into 6ae4e9dc819250f0af0bcc7950259f4f2da6977d by @Paul-16098
 
 
+### Refactor
+
+- *ci*: Change changelog generation to PR merge triggers by @Paul-16098
+
+
 ## \[4.2.4\] - 2026-08-27
 
 ### Bug Fixes
