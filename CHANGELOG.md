@@ -8,6 +8,12 @@
 
 - *deps*: Update rust crate constant_time_eq to 0.6.0 (#347) by @renovate\[bot] in [#347](https://github.com/Paul-16098/my-http-server/pull/347)
 
+### <details><summary>Deps</summary>
+
+
+- Update rust crate ureq to v3.4.1 (#348) by @renovate\[bot] in [#348](https://github.com/Paul-16098/my-http-server/pull/348)
+
+</details>
 
 ### Other
 
