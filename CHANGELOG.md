@@ -468,6 +468,8 @@
 
 - Update rust crate markdown-ppp to v2.12.0 (#349) by @renovate\[bot] in [#349](https://github.com/Paul-16098/my-http-server/pull/349)
 
+- Update rust crate ureq to v3.4.2 (#354) by @renovate\[bot] in [#354](https://github.com/Paul-16098/my-http-server/pull/354)
+
 </details>
 
 ### Other
