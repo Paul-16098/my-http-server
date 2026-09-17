@@ -529,6 +529,8 @@
 
 - *ci*: Change changelog generation to PR merge triggers by @Paul-16098
 
+- *default config*: Fmt by @Paul-16098
+
 
 ### Styling
 
