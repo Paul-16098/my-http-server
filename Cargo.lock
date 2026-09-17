@@ -524,9 +524,9 @@ dependencies = [
 
 [[package]]
 name = "clap-completion-flag"
-version = "1.0.1"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4f426d9b3d74b5edac41acc4f61f00a481e56f126565aef5d4577155e54a8cd"
+checksum = "e480fa1657a7bc450525d1ddb69e4bb3537ee67b0014e99ec24ad1023a0a5140"
 dependencies = [
  "carapace_spec_clap",
  "clap",
@@ -2609,7 +2609,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",

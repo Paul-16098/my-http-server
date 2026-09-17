@@ -450,7 +450,7 @@ async fn main() -> AppResult<()> {
 
 	// if generate_completion is specified, generate the completion script and exit
 	if let Some(shell) = cli_args.generate_completion.generate_completion {
-		clap_complete::generate(
+		clap_completion_flag::generate(
 			shell,
 			&mut cli::Args::command(),
 			env!("CARGO_BIN_NAME"),
