@@ -105,11 +105,11 @@ pub(crate) mod file {
 	/// WHY: All endpoints need a canonical, absolute root path to enforce prefix checks
 	/// for traversal protection. Centralizing this logic removes duplication and ensures
 	/// future security fixes apply everywhere.
-	fn get_canonical_public_path() -> Result<PathBuf, HttpResponse> {
+	fn get_canonical_public_path() -> Result<PathBuf, Box<HttpResponse>> {
 		let c = Cofg::get(false);
 		Path::new(&c.public_path).canonicalize().map_err(|e| {
 			warn!("public_path canonicalize failed: {}", e);
-			HttpResponse::InternalServerError().body(AppError::from(e).to_string())
+			Box::new(HttpResponse::InternalServerError().body(AppError::from(e).to_string()))
 		})
 	}
 
@@ -182,7 +182,7 @@ pub(crate) mod file {
 	async fn get_raw_file(req: actix_web::HttpRequest, path: String) -> HttpResponse {
 		let public_path = match get_canonical_public_path() {
 			Ok(v) => v,
-			Err(resp) => return resp,
+			Err(resp) => return *resp,
 		};
 
 		let resolved = match validate_and_resolve_path(&path, &public_path) {
@@ -265,7 +265,7 @@ pub(crate) mod file {
 	async fn file_info(path: String) -> HttpResponse {
 		let public_path = match get_canonical_public_path() {
 			Ok(v) => v,
-			Err(resp) => return resp,
+			Err(resp) => return *resp,
 		};
 
 		let resolved = match validate_and_resolve_any_path(&path, &public_path) {
@@ -342,7 +342,7 @@ pub(crate) mod file {
 	async fn list_files(path: String) -> HttpResponse {
 		let public_path = match get_canonical_public_path() {
 			Ok(v) => v,
-			Err(resp) => return resp,
+			Err(resp) => return *resp,
 		};
 
 		let resolved = match validate_and_resolve_directory_path(&path, &public_path) {
@@ -457,7 +457,7 @@ pub(crate) mod file {
 	async fn check_exists(path: String) -> HttpResponse {
 		let public_path = match get_canonical_public_path() {
 			Ok(v) => v,
-			Err(resp) => return resp,
+			Err(resp) => return *resp,
 		};
 
 		let resolved = match validate_and_resolve_any_path(&path, &public_path) {
