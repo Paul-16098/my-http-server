@@ -533,6 +533,13 @@
 
 - *dep*: Remove unused dep by @Paul-16098
 
+- *cli*: Replace clap_complete with clap_completion_flag by @Paul-16098
+
+
+### Performance
+
+- *api*: Wrap HttpResponse in Box for canonical path by @Paul-16098
+
 
 ### Styling
 
