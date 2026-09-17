@@ -531,6 +531,8 @@
 
 - *default config*: Fmt by @Paul-16098
 
+- *dep*: Remove unused dep by @Paul-16098
+
 
 ### Styling
 
