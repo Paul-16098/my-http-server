@@ -470,6 +470,8 @@
 
 - Update rust crate ureq to v3.4.2 (#354) by @renovate\[bot] in [#354](https://github.com/Paul-16098/my-http-server/pull/354)
 
+- Update rust crate clap to v4.6.7 (#355) by @renovate\[bot] in [#355](https://github.com/Paul-16098/my-http-server/pull/355)
+
 </details>
 
 ### Other
