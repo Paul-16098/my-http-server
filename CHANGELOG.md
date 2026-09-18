@@ -518,6 +518,8 @@
 
 - Merge 71b43ce44d357985196d50a3b4eee66fa125830a into 6ae4e9dc819250f0af0bcc7950259f4f2da6977d by @Paul-16098
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
 
 ### Refactor
 
@@ -596,6 +598,8 @@
 - Pin ref to commit hash by @Paul-16098
 
 - Change auto-merge PR schedule and triggers by @Paul-16098
+
+- *config*: Comment out rust-lld linker by @Paul-16098
 
 
 
