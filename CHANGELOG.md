@@ -474,6 +474,8 @@
 
 - Update rust crate rustls to v0.23.45 (#357) by @renovate\[bot] in [#357](https://github.com/Paul-16098/my-http-server/pull/357)
 
+- Update codecov/codecov-action action to v7.1.0 (#358) by @renovate\[bot] in [#358](https://github.com/Paul-16098/my-http-server/pull/358)
+
 </details>
 
 ### Other
