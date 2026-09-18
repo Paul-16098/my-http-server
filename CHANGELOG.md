@@ -472,6 +472,8 @@
 
 - Update rust crate clap to v4.6.7 (#355) by @renovate\[bot] in [#355](https://github.com/Paul-16098/my-http-server/pull/355)
 
+- Update rust crate rustls to v0.23.45 (#357) by @renovate\[bot] in [#357](https://github.com/Paul-16098/my-http-server/pull/357)
+
 </details>
 
 ### Other
