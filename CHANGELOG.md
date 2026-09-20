@@ -480,6 +480,8 @@
 
 - Update rust crate actix-web-httpauth to v0.8.3 (#359) by @renovate\[bot] in [#359](https://github.com/Paul-16098/my-http-server/pull/359)
 
+- Update codecov/codecov-action action to v7.1.1 (#360) by @renovate\[bot] in [#360](https://github.com/Paul-16098/my-http-server/pull/360)
+
 </details>
 
 ### Other
