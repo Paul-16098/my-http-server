@@ -57,7 +57,7 @@ fn init(_c: &Cofg) -> AppResult<()> {
 }
 
 #[cfg(feature = "github_emojis")]
-pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 	use parser::{EMOJIS, Emojis};
 	use std::collections::HashMap;
 
