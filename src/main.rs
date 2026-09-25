@@ -7,13 +7,13 @@ mod test;
 #[cfg(feature = "api")]
 mod api;
 mod cofg;
+mod error;
 mod parser;
+mod request;
 mod version;
 
 use crate::cofg::{cli, config::Cofg};
-mod error;
 use crate::error::AppResult;
-mod request;
 use crate::request::main_req;
 
 use actix_web::HttpResponse;
