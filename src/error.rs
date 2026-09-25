@@ -88,8 +88,9 @@ impl actix_web::ResponseError for AppError {
 			| AppError::TLSError(_)
 			| AppError::CliError(_)
 			| AppError::OtherError(_)
-			| AppError::NetIo(_)
 			| AppError::Serde(_) => StatusCode::INTERNAL_SERVER_ERROR,
+			#[cfg(feature = "github_emojis")]
+			AppError::NetIo(_) => StatusCode::INTERNAL_SERVER_ERROR,
 		}
 	}
 
