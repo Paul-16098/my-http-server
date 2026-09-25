@@ -571,6 +571,8 @@
 
 - *emojis*: Improve logging and path handling in emojis_init by @Paul-16098
 
+- *parser*: Add clippy hints and cfg attributes by @Paul-16098
+
 
 ### Performance
 
