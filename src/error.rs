@@ -14,6 +14,14 @@ use thiserror::Error;
 pub(crate) enum AppError {
 	#[error("IO error: {0}")]
 	Io(#[from] std::io::Error),
+
+	#[cfg(feature = "github_emojis")]
+	#[error("Net IO error: {0}")]
+	NetIo(#[from] ureq::Error),
+
+	#[error("Serde error: {0}")]
+	Serde(#[from] serde_json::Error),
+
 	#[error("Glob pattern error: {0}")]
 	GlobPatternError(#[from] wax::BuildError),
 	#[error("Glob walk error: {0}")]
@@ -79,7 +87,9 @@ impl actix_web::ResponseError for AppError {
 			| AppError::StripPrefixError(_)
 			| AppError::TLSError(_)
 			| AppError::CliError(_)
-			| AppError::OtherError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+			| AppError::OtherError(_)
+			| AppError::NetIo(_)
+			| AppError::Serde(_) => StatusCode::INTERNAL_SERVER_ERROR,
 		}
 	}
 
