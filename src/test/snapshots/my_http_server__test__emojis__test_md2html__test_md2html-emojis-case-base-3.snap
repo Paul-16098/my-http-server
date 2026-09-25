@@ -1,0 +1,9 @@
+---
+source: src/test/emojis.rs
+description: "> :arrow_down:"
+---
+<!DOCTYPE html><html>
+<head><title></title></head>
+<body>
+<blockquote><p>⬇</p></blockquote>
+</body></html>
