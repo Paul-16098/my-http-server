@@ -551,6 +551,12 @@
 
 - *cli*: Replace clap_complete with clap_completion_flag by @Paul-16098
 
+- Move version info to a dedicated module by @Paul-16098
+
+- Move module by @Paul-16098
+
+- *config*: Simplify XDG path resolution by @Paul-16098
+
 
 ### Performance
 
