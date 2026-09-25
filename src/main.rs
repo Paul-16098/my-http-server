@@ -94,7 +94,7 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 					});
 				match unicode {
 					Some(unicode) => {
-						debug!("Found unicode emoji: {k} -> {unicode}");
+						log::trace!("Found unicode emoji: {k} -> {unicode}");
 						unicode_emojis.insert(k.clone(), unicode);
 					}
 					None => {
@@ -102,7 +102,7 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 					}
 				}
 			} else {
-				debug!("Found non-unicode emoji: {k} -> {v}");
+				log::trace!("Found non-unicode emoji: {k} -> {v}");
 				else_emojis.insert(k.clone(), v.clone());
 			}
 		}
