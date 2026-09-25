@@ -62,12 +62,13 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 	use std::collections::HashMap;
 
 	// Determine emoji cache path with XDG fallback
-	let emoji_path = cofg::config::Cofg::get_xdg_paths().emojis;
+	let emoji_path = &cofg::config::Cofg::get_xdg_paths().emojis;
 
 	if !emoji_path.exists() {
 		info!(
-			"emoji json file not found at {}, fetching from github api...",
-			emoji_path.display()
+			"emoji json file not found at {}, fetching from github api{}...",
+			emoji_path.display(),
+			(if ght.is_some() { " with token" } else { "" })
 		);
 		let mut resp = ureq::get("https://api.github.com/emojis")
 			.header("User-Agent", "Paul-16098/my-http-server");
@@ -111,7 +112,8 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 			unicode: unicode_emojis,
 			r#else: else_emojis,
 		})?;
-		std::fs::write(&emoji_path, json)?;
+		debug!("cache: {json}");
+		std::fs::write(emoji_path, json)?;
 		info!("Saved emoji cache to {}", emoji_path.display());
 	} else {
 		info!(
@@ -120,7 +122,7 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 		);
 	}
 
-	let emojis_json = std::fs::read_to_string(&emoji_path).map_err(|e| {
+	let emojis_json = std::fs::read_to_string(emoji_path).map_err(|e| {
 		error!(
 			"Failed to read emojis.json from {}: {}",
 			emoji_path.display(),
@@ -128,8 +130,11 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 		);
 		e
 	})?;
+
+	debug!("emojis json is: {emojis_json}");
+
 	let emojis: parser::Emojis = serde_json::from_str(&emojis_json).map_err(|e| {
-		error!("Failed to parse emojis.json as valid JSON: {}", e);
+		error!("Failed to parse as valid JSON: {e}");
 		e
 	})?;
 	EMOJIS.get_or_init(|| emojis);
