@@ -52,6 +52,8 @@
 
 - *error*: Add NetIo and Serde variants to AppError by @Paul-16098
 
+- *parser*: Support escaped github emojis by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -567,6 +569,8 @@
 
 - *error*: Make NetIo mapping conditional on github_emojis by @Paul-16098
 
+- *emojis*: Improve logging and path handling in emojis_init by @Paul-16098
+
 
 ### Performance
 
@@ -581,6 +585,10 @@
 ### Testing
 
 - *toc*: Add tests for TOC generation with files and empty directory by @Paul-16098
+
+- *support*: Use GITHUB_TOKEN for emoji initialization by @Paul-16098
+
+- *emojis*: Add emoji rendering tests by @Paul-16098
 
 
 ### Miscellaneous Tasks
