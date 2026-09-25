@@ -65,6 +65,10 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 	let emoji_path = &cofg::config::Cofg::get_xdg_paths().emojis;
 
 	if !emoji_path.exists() {
+		if let Some(pat) = emoji_path.parent() {
+			std::fs::create_dir_all(pat)?
+		}
+
 		info!(
 			"emoji json file not found at {}, fetching from github api{}...",
 			emoji_path.display(),
