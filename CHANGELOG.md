@@ -50,6 +50,8 @@
 
 - Allow pr ci build by @Paul-16098
 
+- *error*: Add NetIo and Serde variants to AppError by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -556,6 +558,10 @@
 - Move module by @Paul-16098
 
 - *config*: Simplify XDG path resolution by @Paul-16098
+
+- *emojis_init*: Update return type to AppResult by @Paul-16098
+
+- *emojis_init*: Use trace logs for emoji identification by @Paul-16098
 
 
 ### Performance
