@@ -89,24 +89,21 @@ hbs_path: "./meta/html-t.hbs"
 #[actix_web::test]
 async fn test_xdg_paths_available() {
 	// This test checks that XDG path resolution doesn't panic
-	let xdg_paths = Cofg::get_xdg_paths();
-
 	// On most systems, XDG paths should be available
 	// But we don't assert it exists since it might not be available in all environments
-	if let Some(paths) = xdg_paths {
-		assert!(
-			!paths.cofg.as_os_str().is_empty(),
-			"Config path should not be empty"
-		);
-		assert!(
-			!paths.page_404.as_os_str().is_empty(),
-			"404 page path should not be empty"
-		);
-		assert!(
-			!paths.template_hbs.as_os_str().is_empty(),
-			"Template path should not be empty"
-		);
-	}
+	let paths = Cofg::get_xdg_paths();
+	assert!(
+		!paths.cofg.as_os_str().is_empty(),
+		"Config path should not be empty"
+	);
+	assert!(
+		!paths.page_404.as_os_str().is_empty(),
+		"404 page path should not be empty"
+	);
+	assert!(
+		!paths.template_hbs.as_os_str().is_empty(),
+		"Template path should not be empty"
+	);
 }
 
 #[actix_web::test]
