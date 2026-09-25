@@ -54,6 +54,8 @@
 
 - *parser*: Support escaped github emojis by @Paul-16098
 
+- *emojis*: Create parent directory if missing by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -531,6 +533,8 @@
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Harden changelog workflow against shell injection in ref handling (#361)<br><br>* Initial plan<br><br>* Fix CodeQL shell injection risk in changelog workflow<br><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com><br><br>---------<br><br>Co-authored-by: copilot-swe-agent\[bot] <198982749+Copilot@users.noreply.github.com><br>Co-authored-by: Paul-16098 <127955132+Paul-16098@users.noreply.github.com> by @Copilot in [#361](https://github.com/Paul-16098/my-http-server/pull/361)
+
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
