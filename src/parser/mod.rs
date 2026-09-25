@@ -76,8 +76,10 @@ pub(crate) fn md2html(
 
 	#[cfg(feature = "github_emojis")]
 	let mut md = md;
+	#[cfg(feature = "github_emojis")]
 	// Private Use Area Unicode characters used as temporary sentinels
 	const SENTINEL_START: &str = "\u{E000}";
+	#[cfg(feature = "github_emojis")]
 	const SENTINEL_END: &str = "\u{E001}";
 
 	#[cfg(feature = "github_emojis")]
@@ -124,6 +126,7 @@ pub(crate) fn md2html(
 	}
 
 	/// Helper to strip sentinels
+	#[cfg(feature = "github_emojis")]
 	fn restore_sentinels(text: &str) -> String {
 		if text.contains(SENTINEL_START) {
 			text.replace(SENTINEL_START, "").replace(SENTINEL_END, "")
@@ -165,10 +168,13 @@ pub(crate) fn md2html(
 	}
 
 	#[cfg(feature = "github_emojis")]
+	#[allow(clippy::unwrap_used)]
 	// 1. Protect escaped emojis on the raw string FIRST
 	{
 		md = protect_escaped_emojis(&md, EMOJIS.get().unwrap());
 	}
+
+	#[allow(unused_mut)]
 	// 2. Parse Markdown to AST
 	let mut ast = markdown::parser_md(md)?;
 
