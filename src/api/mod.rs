@@ -5,10 +5,10 @@ use crate::request::server_error;
 
 #[derive(utoipa::OpenApi)]
 #[openapi(
-    info(version = crate::VERSION.version, license(name = "gpl-3.0", url = "/api/license"), contact(name = "GitHub", url = "https://github.com/Paul-16098/my-http-server/")), 
+    info(version = crate::version::VERSION.version, license(name = "gpl-3.0", url = "/api/license"), contact(name = "GitHub", url = "https://github.com/Paul-16098/my-http-server/")), 
     servers((url = ".", description = "Local server")), 
     paths(meta, license, file::get_raw_file, file::file_info, file::list_files, file::check_exists),
-    components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse, file::PathType, crate::Version))
+    components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse, file::PathType, crate::version::Version))
 )]
 pub(crate) struct ApiDoc;
 
@@ -43,12 +43,12 @@ async fn raw_openapi() -> HttpResponse {
 /// A JSON object containing the server version
 #[utoipa::path(
     responses(
-        (status = 200, body = crate::Version)
+        (status = 200, body = crate::version::Version)
     )
 )]
 #[get("/meta")]
-async fn meta() -> actix_web::web::Json<crate::Version> {
-	Json(crate::VERSION)
+async fn meta() -> actix_web::web::Json<crate::version::Version> {
+	Json(crate::version::VERSION)
 }
 
 /// Get server license
