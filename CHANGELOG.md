@@ -488,6 +488,8 @@
 
 - Update codecov/codecov-action action to v7.1.1 (#360) by @renovate\[bot] in [#360](https://github.com/Paul-16098/my-http-server/pull/360)
 
+- Update rust crate config to v0.15.26 (#363) by @renovate\[bot] in [#363](https://github.com/Paul-16098/my-http-server/pull/363)
+
 </details>
 
 ### Other
