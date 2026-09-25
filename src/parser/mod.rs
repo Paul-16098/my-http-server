@@ -73,59 +73,114 @@ pub(crate) fn md2html(
 		let hbs_path = c.resolve_hbs_path();
 		engine.register_template_file("html-t", &hbs_path)?;
 	}
-	#[cfg_attr(not(feature = "github_emojis"), allow(unused_mut))]
-	let mut ast = markdown::parser_md(md)?;
+
 	#[cfg(feature = "github_emojis")]
-	{
-		struct ReplaceGithubEmojis<'a>(&'a Emojis);
-		impl<'a> markdown_ppp::ast_transform::Transformer for ReplaceGithubEmojis<'a> {
-			fn transform_inline(
-				&mut self,
-				inline: markdown_ppp::ast::Inline,
-			) -> markdown_ppp::ast::Inline {
-				let e = self.0;
-				match inline {
-					markdown_ppp::ast::Inline::Text(code) => {
-						let mut text = code;
-						for k in e.r#else.keys() {
-							let pat = format!(":{k}:");
-							if text.contains(&pat) {
-								log::warn!(
-									"for security, github emoji replacement uses only unicode mapping; custom image replacement is not secure, so {pat} is skipped"
-								);
-								// let rep = format!(
-								//     r#"<img class="emoji" alt="{pat} emoji" src="{v}" style="width: 1em;">"#
-								// );
-								// text = text.replace(&pat, &rep);
-							}
-						}
-						for (k, v) in e.unicode.iter() {
-							let pat = format!(":{k}:");
-							// is skip check faster than check contains?
-							// 如果模式很少出现（大多数情况下无命中），先做 contains（或 find）能避免调用 replace 导致的分配，整体更快。
-							// 如果模式经常出现，先 contains 反而多做一次遍历（双扫描），直接调用 replace 更快（单次遍历＋必要的分配）。
-							if text.contains(&pat) {
-								text = text.replace(&pat, v);
-							}
-						}
-						markdown_ppp::ast::Inline::Text(text)
-					}
-					other => self.walk_transform_inline(other),
+	let mut md = md;
+	// Private Use Area Unicode characters used as temporary sentinels
+	const SENTINEL_START: &str = "\u{E000}";
+	const SENTINEL_END: &str = "\u{E001}";
+
+	#[cfg(feature = "github_emojis")]
+	/// 1. Pre-process raw markdown string: Protect escaped emojis (\:emoji:)
+	pub fn protect_escaped_emojis(raw_md: &str, emojis: &Emojis) -> String {
+		let mut text = raw_md.to_string();
+
+		for k in emojis.unicode.keys() {
+			let pat = format!(":{k}:");
+			if !text.contains(&pat) {
+				continue;
+			}
+
+			let mut result = String::with_capacity(text.len());
+			let mut last_end = 0;
+
+			for (start, _) in text.match_indices(&pat) {
+				// Count backslashes immediately preceding :emoji:
+				let backslash_count = text[..start]
+					.chars()
+					.rev()
+					.take_while(|&c| c == '\\')
+					.count();
+
+				if backslash_count % 2 != 0 {
+					// ODD backslashes: Escaped pattern (e.g. \:arrow_down:)
+					// Protect the inner pattern so the AST Transformer skips it
+					result.push_str(&text[last_end..start]);
+					result.push(':');
+					result.push_str(SENTINEL_START);
+					result.push_str(k);
+					result.push_str(SENTINEL_END);
+					result.push(':');
+				} else {
+					// EVEN backslashes: Active pattern, keep as-is
+					result.push_str(&text[last_end..start + pat.len()]);
 				}
+				last_end = start + pat.len();
+			}
+			result.push_str(&text[last_end..]);
+			text = result;
+		}
+		text
+	}
+
+	/// Helper to strip sentinels
+	fn restore_sentinels(text: &str) -> String {
+		if text.contains(SENTINEL_START) {
+			text.replace(SENTINEL_START, "").replace(SENTINEL_END, "")
+		} else {
+			text.to_string()
+		}
+	}
+
+	#[cfg(feature = "github_emojis")]
+	/// 2. AST Transformer
+	struct ReplaceGithubEmojis<'a>(&'a Emojis);
+
+	#[cfg(feature = "github_emojis")]
+	impl<'a> markdown_ppp::ast_transform::Transformer for ReplaceGithubEmojis<'a> {
+		fn transform_inline(
+			&mut self,
+			inline: markdown_ppp::ast::Inline,
+		) -> markdown_ppp::ast::Inline {
+			let e = self.0;
+			match inline {
+				// Only process plain text nodes
+				markdown_ppp::ast::Inline::Text(mut text) => {
+					for (k, v) in e.unicode.iter() {
+						let pat = format!(":{k}:");
+						if text.contains(&pat) {
+							text = text.replace(&pat, v);
+						}
+					}
+					// Restore protected escaped patterns back to literal text
+					markdown_ppp::ast::Inline::Text(restore_sentinels(&text))
+				}
+				// Code blocks remain untouched, but clean up sentinels if any were inside code
+				markdown_ppp::ast::Inline::Code(code) => {
+					markdown_ppp::ast::Inline::Code(restore_sentinels(&code))
+				}
+				other => self.walk_transform_inline(other),
 			}
 		}
-		ast = markdown_ppp::ast_transform::Transform::transform_with(
-			ast,
-			match EMOJIS.get() {
-				Some(emojis) => ReplaceGithubEmojis(emojis),
-				None => {
-					log::error!("EMOJIS static not initialized");
-					return Err(crate::error::AppError::OtherError(
-						"EMOJIS static not initialized".to_string(),
-					));
-				}
-			},
-		)
+	}
+
+	#[cfg(feature = "github_emojis")]
+	// 1. Protect escaped emojis on the raw string FIRST
+	{
+		md = protect_escaped_emojis(&md, EMOJIS.get().unwrap());
+	}
+	// 2. Parse Markdown to AST
+	let mut ast = markdown::parser_md(md)?;
+
+	// 3. Run AST Transformer
+	#[cfg(feature = "github_emojis")]
+	{
+		if let Some(emojis) = EMOJIS.get() {
+			ast = markdown_ppp::ast_transform::Transform::transform_with(
+				ast,
+				ReplaceGithubEmojis(emojis),
+			);
+		}
 	}
 	// log::trace!("ast={:#?}", ast);
 	let html = markdown_ppp::html_printer::render_html(
