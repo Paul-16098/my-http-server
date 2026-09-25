@@ -1,39 +1,42 @@
 name: test
 permissions:
-  contents: read
+    contents: read
 
 on:
-  push:
-  workflow_dispatch:
+    push:
+    workflow_dispatch:
 
 jobs:
-  cargo-test:
-    runs-on: ubuntu-latest
-    name: test
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+    cargo-test:
+        runs-on: ubuntu-latest
+        name: test
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
 
-      - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
-        with:
-          cache-all-crates: true
+            - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+              with:
+                  cache-all-crates: true
 
-      # actions-rust-lang/setup-rust-toolchain is Caching for Rust tools and build artifacts is enabled.
+            # actions-rust-lang/setup-rust-toolchain is Caching for Rust tools and build artifacts is enabled.
 
-      - uses: taiki-e/install-action@26e9283f268b880168bdbd2c545dfcd60ec2c6ab # v2.87.13
-        with:
-          tool: cargo-binstall just cargo-hack cargo-nextest cargo-llvm-cov
+            - uses: taiki-e/install-action@26e9283f268b880168bdbd2c545dfcd60ec2c6ab # v2.87.13
+              with:
+                  tool: cargo-binstall just cargo-hack cargo-nextest cargo-llvm-cov
 
-      - run: just cov
+            - name: cov test
+              run: just cov
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./lcov.info
-      - name: Upload test results to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./target/nextest/ci/junit.xml
-          report_type: test_results
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  files: ./lcov.info
+            - name: Upload test results to Codecov
+              uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  files: ./target/nextest/ci/junit.xml
+                  report_type: test_results
