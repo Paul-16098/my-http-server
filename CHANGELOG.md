@@ -143,6 +143,8 @@
 
 - *deps*: Update rust crate constant_time_eq to 0.6.0 (#347) by @renovate\[bot] in [#347](https://github.com/Paul-16098/my-http-server/pull/347)
 
+- *deps*: Update rust crate utoipa to v6 (#364) by @renovate\[bot] in [#364](https://github.com/Paul-16098/my-http-server/pull/364)
+
 ### <details><summary>Deps</summary>
 
 
