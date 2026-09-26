@@ -492,6 +492,8 @@
 
 - Update rust crate config to v0.15.26 (#363) by @renovate\[bot] in [#363](https://github.com/Paul-16098/my-http-server/pull/363)
 
+- Update rust crate thiserror to v2.0.21 (#365) by @renovate\[bot] in [#365](https://github.com/Paul-16098/my-http-server/pull/365)
+
 </details>
 
 ### Other
