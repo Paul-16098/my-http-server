@@ -494,6 +494,8 @@
 
 - Update rust crate thiserror to v2.0.21 (#365) by @renovate\[bot] in [#365](https://github.com/Paul-16098/my-http-server/pull/365)
 
+- Update taiki-e/install-action action to v2.87.21 (#362) by @renovate\[bot] in [#362](https://github.com/Paul-16098/my-http-server/pull/362)
+
 </details>
 
 ### Other
