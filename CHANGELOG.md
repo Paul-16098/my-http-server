@@ -496,6 +496,10 @@
 
 - Update taiki-e/install-action action to v2.87.21 (#362) by @renovate\[bot] in [#362](https://github.com/Paul-16098/my-http-server/pull/362)
 
+- Update taiki-e/install-action action to v2.87.22 (#368) by @renovate\[bot] in [#368](https://github.com/Paul-16098/my-http-server/pull/368)
+
+- Update rust crate insta to v1.49.0 (#369) by @renovate\[bot] in [#369](https://github.com/Paul-16098/my-http-server/pull/369)
+
 </details>
 
 ### Other
