@@ -500,6 +500,8 @@
 
 - Update rust crate insta to v1.49.0 (#369) by @renovate\[bot] in [#369](https://github.com/Paul-16098/my-http-server/pull/369)
 
+- Update rust crate constant_time_eq to v0.6.1 (#367) by @renovate\[bot] in [#367](https://github.com/Paul-16098/my-http-server/pull/367)
+
 </details>
 
 ### Other
