@@ -56,6 +56,8 @@
 
 - *emojis*: Create parent directory if missing by @Paul-16098
 
+- *logger*: Include HTTP method in log format by @Paul-16098
+
 
 ### Bug Fixes
 
