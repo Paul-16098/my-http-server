@@ -23,7 +23,7 @@ middleware:
     # 啟用請求日誌記錄
     enabling: true
     # 日誌的輸出格式，支援自定義格式化
-    format: '"%{url}xi" %s "%{Referer}i" "%{User-Agent}i"'
+    format: '%{method}xi "%{url}xi" %s "%{Referer}i" "%{User-Agent}i"'
 
   http_base_authentication:
     # 是否啟用 HTTP 基本驗證

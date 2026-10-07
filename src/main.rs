@@ -259,6 +259,7 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 				middleware_cofg.logger.enabling,
 				middleware::Logger::new(&middleware_cofg.logger.format)
 					.custom_request_replace("url", |req| req.uri().to_string())
+					.custom_request_replace("method", |req| req.method().to_string())
 					.log_target("http-log"),
 			))
 			.wrap(middleware::Condition::new(
