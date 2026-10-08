@@ -5,7 +5,7 @@ use crate::request::server_error;
 
 #[derive(utoipa::OpenApi)]
 #[openapi(
-    info(version = crate::version::VERSION.version, license(name = "gpl-3.0", url = "/api/license"), contact(name = "GitHub", url = "https://github.com/Paul-16098/my-http-server/")), 
+    info(version = crate::version::VERSION, license(name = "gpl-3.0", url = "/api/license"), contact(name = "GitHub", url = "https://github.com/Paul-16098/my-http-server/")), 
     servers((url = ".", description = "Local server")), 
     paths(meta, license, file::get_raw_file, file::file_info, file::list_files, file::check_exists),
     components(schemas(file::FileInfo, file::DirectoryListing, file::ExistsResponse, file::PathType, crate::version::Version))

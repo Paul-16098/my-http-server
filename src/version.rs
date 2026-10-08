@@ -1,19 +1,25 @@
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 #[derive(serde::Serialize)]
 pub(crate) struct Version {
-	pub(crate) version: &'static str,
+	version: &'static str,
 	profile: &'static str,
 	commit_hash: &'static str,
 	env_suffix: &'static str,
 	features: &'static str,
 }
+
 pub(crate) const VERSION: Version = Version::new();
 
+impl std::convert::Into<String> for Version {
+	fn into(self) -> String {
+		self.to_string()
+	}
+}
 impl std::fmt::Display for Version {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(
 			f,
-			"{}({} Profile)-{}({})[f:{}]",
+			"{}+profile.{}.sha.{}.build.{}.features.{}",
 			self.version,
 			self.profile,
 			self.commit_hash,
