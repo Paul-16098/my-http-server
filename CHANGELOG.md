@@ -593,6 +593,8 @@
 
 - *parser*: Add clippy hints and cfg attributes by @Paul-16098
 
+- *version*: Update display format and build metadata by @Paul-16098
+
 
 ### Performance
 
