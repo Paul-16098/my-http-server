@@ -230,11 +230,6 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 	#[cfg(feature = "api")]
 	let api_enable = s.api.enable;
 
-	info!(
-		"run in {}{addrs}",
-		if s.tls.enable { "https://" } else { "http://" }
-	);
-
 	let server = HttpServer::new(move || {
 		let mut app = App::new()
 			// Add HSTS header for HTTPS responses when TLS is enabled. This ensures
@@ -402,6 +397,11 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 	} else {
 		server.bind(addrs)?
 	};
+
+	info!(
+		"run in {}{addrs}",
+		if s.tls.enable { "https://" } else { "http://" }
+	);
 
 	Ok(server.run())
 }
