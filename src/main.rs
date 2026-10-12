@@ -189,8 +189,14 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerC
 	};
 	use std::io::BufReader;
 
-	let cert_file = &mut BufReader::new(std::fs::File::open(cert_path)?);
-	let key_file = &mut BufReader::new(std::fs::File::open(key_path)?);
+	let cert_full_path = std::fs::canonicalize(cert_path)?;
+	let key_full_path = std::fs::canonicalize(key_path)?;
+
+	debug!("tls cert={}", cert_full_path.display());
+	debug!("tls key={}", key_full_path.display());
+
+	let cert_file = &mut BufReader::new(std::fs::File::open(cert_full_path)?);
+	let key_file = &mut BufReader::new(std::fs::File::open(key_full_path)?);
 
 	let cert_chain =
 		CertificateDer::pem_reader_iter(cert_file).collect::<Result<Vec<CertificateDer>, _>>()?;
