@@ -10,9 +10,9 @@ pub(crate) struct Version {
 
 pub(crate) const VERSION: Version = Version::new();
 
-impl std::convert::Into<String> for Version {
-	fn into(self) -> String {
-		self.to_string()
+impl From<Version> for String {
+	fn from(val: Version) -> Self {
+		val.to_string()
 	}
 }
 impl std::fmt::Display for Version {
