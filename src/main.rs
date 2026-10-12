@@ -135,7 +135,7 @@ pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 		e
 	})?;
 
-	debug!("emojis json is: {emojis_json}");
+	log::trace!("emojis json is: {emojis_json}");
 
 	let emojis: parser::Emojis = serde_json::from_str(&emojis_json).map_err(|e| {
 		error!("Failed to parse as valid JSON: {e}");
