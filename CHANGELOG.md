@@ -58,6 +58,8 @@
 
 - *logger*: Include HTTP method in log format by @Paul-16098
 
+- *tls*: Canonicalize certificate and key paths by @Paul-16098
+
 
 ### Bug Fixes
 
@@ -556,6 +558,8 @@
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
 
 ### Refactor
 
@@ -598,6 +602,10 @@
 - *version*: Update display format and build metadata by @Paul-16098
 
 - *version*: Replace Into with From for String conversion by @Paul-16098
+
+- *emojis_init*: Change emojis json logging to trace by @Paul-16098
+
+- *server*: Move server info log after binding by @Paul-16098
 
 
 ### Performance
