@@ -508,6 +508,8 @@
 
 - Update taiki-e/install-action action to v2.87.26 (#370) by @renovate\[bot] in [#370](https://github.com/Paul-16098/my-http-server/pull/370)
 
+- Update rust crate config to v0.15.27 (#366) by @renovate\[bot] in [#366](https://github.com/Paul-16098/my-http-server/pull/366)
+
 </details>
 
 ### Other
