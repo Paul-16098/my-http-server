@@ -510,6 +510,8 @@
 
 - Update rust crate config to v0.15.27 (#366) by @renovate\[bot] in [#366](https://github.com/Paul-16098/my-http-server/pull/366)
 
+- Update rust crate serde_json to v1.0.154 (#372) by @renovate\[bot] in [#372](https://github.com/Paul-16098/my-http-server/pull/372)
+
 </details>
 
 ### Other
