@@ -673,6 +673,8 @@
 
 - *ci*: Reformat test workflow yaml by @Paul-16098
 
+- *config*: Update rust-version to 1.88.0 by @Paul-16098
+
 
 
 - @github-actions[bot] made their first contribution## \[4.1.7\] - 2026-04-05
