@@ -512,6 +512,8 @@
 
 - Update rust crate serde_json to v1.0.154 (#372) by @renovate\[bot] in [#372](https://github.com/Paul-16098/my-http-server/pull/372)
 
+- Update rust crate actix-web to v4.16.0 (#373) by @renovate\[bot] in [#373](https://github.com/Paul-16098/my-http-server/pull/373)
+
 </details>
 
 ### Other
