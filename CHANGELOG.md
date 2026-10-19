@@ -516,6 +516,8 @@
 
 - Update rust crate rustls to v0.23.46 (#374) by @renovate\[bot] in [#374](https://github.com/Paul-16098/my-http-server/pull/374)
 
+- Update rust crate actix-web to v4.17.0 (#380) by @renovate\[bot] in [#380](https://github.com/Paul-16098/my-http-server/pull/380)
+
 </details>
 
 ### Other
