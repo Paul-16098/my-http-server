@@ -518,6 +518,8 @@
 
 - Update rust crate actix-web to v4.17.0 (#380) by @renovate\[bot] in [#380](https://github.com/Paul-16098/my-http-server/pull/380)
 
+- Add regex crate by @Paul-16098
+
 </details>
 
 ### Other
@@ -617,6 +619,12 @@
 
 - *server*: Move server info log after binding by @Paul-16098
 
+- *request*: Reorganize actix_web imports by @Paul-16098
+
+- *request*: Improve markdown rendering and TOC logic by @Paul-16098
+
+- *test*: Use header constants in test requests by @Paul-16098
+
 
 ### Performance
 
@@ -635,6 +643,8 @@
 - *support*: Use GITHUB_TOKEN for emoji initialization by @Paul-16098
 
 - *emojis*: Add emoji rendering tests by @Paul-16098
+
+- *request*: Add test_accept_html by @Paul-16098
 
 
 ### Miscellaneous Tasks
