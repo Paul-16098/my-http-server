@@ -1,7 +1,11 @@
 use std::{fs::read_to_string, path::Path};
 
 use actix_files::NamedFile;
-use actix_web::{Responder, http::header, mime};
+use actix_web::{
+	Responder,
+	http::header::{self, Accept, Header},
+	mime,
+};
 use log::{debug, error, warn};
 
 use crate::{
