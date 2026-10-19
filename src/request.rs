@@ -61,15 +61,20 @@ fn render_markdown_to_html_response(
 	match read_to_string(req_path) {
 		Ok(md_source) => {
 			// Render Markdown directly into the HTML template with path context.
-			let rel = req_path
-				.strip_prefix(public_root)
-				.unwrap_or_else(|e| {
-					warn!("{e}");
+			match md2html(
+				md_source,
+				c,
+				vec![format!(
+					"path:{:?}",
 					req_path
-				})
-				.to_path_buf();
-
-			match md2html(md_source, c, vec![format!("path:{:?}", rel)]) {
+						.strip_prefix(public_root)
+						.unwrap_or_else(|e| {
+							warn!("{e}");
+							req_path
+						})
+						.to_path_buf()
+				)],
+			) {
 				Ok(html) => Ok(HttpResponseBuilder::new(StatusCode::OK)
 					.append_header(header::ContentType(mime::TEXT_HTML_UTF_8))
 					.body(html)),
@@ -211,13 +216,10 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 	}
 
 	let is_md = req_path.extension().and_then(|v| v.to_str()) == Some("md");
-	let accept = req
-		.headers()
-		.get(actix_web::http::header::ACCEPT)
-		.and_then(|v| v.to_str().ok())
-		.unwrap_or("text/html");
-	debug!("accept={accept}");
-	if is_md && !accept.contains("text/markdown") {
+	let accepts = Accept::parse(&req).unwrap_or(Accept::html());
+	debug!("accept={accepts}");
+
+	if is_md && accepts.preference() == mime::TEXT_HTML_UTF_8 {
 		debug!("is md");
 
 		// Render Markdown to HTML and return.
@@ -230,12 +232,13 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 		open_named_file(req_path, &req)
 	} else if req_path.is_dir() {
 		debug!("is dir");
-		if req_is_root {
-			// if is index
-			render_toc_to_html_response(req_path, "index", c)
+		let title = if req_is_root {
+			"index"
 		} else {
-			render_toc_to_html_response(req_path, &req_strip_prefix_path.to_string_lossy(), c)
-		}
+			&req_strip_prefix_path.to_string_lossy()
+		};
+
+		render_toc_to_html_response(req_path, title, c)
 	} else {
 		error!("{}: not file and dir", req_path.display());
 		server_error(format!(
