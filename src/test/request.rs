@@ -10,7 +10,10 @@
 use crate::{request::main_req, test::support::assert_status_in};
 use actix_web::{
 	App,
-	http::{StatusCode, header},
+	http::{
+		StatusCode,
+		header::{self},
+	},
 	test,
 };
 
@@ -168,7 +171,7 @@ async fn test_accept_markdown() {
 
 	let req = test::TestRequest::get()
 		.uri("/dir/test.md")
-		.insert_header(("accept", "text/markdown"))
+		.insert_header((header::ACCEPT, "text/markdown"))
 		.to_request();
 
 	let resp = test::call_service(&app, req).await;
