@@ -520,6 +520,8 @@
 
 - Add regex crate by @Paul-16098
 
+- Update rust crate actix-files to v0.7.1 (#381) by @renovate\[bot] in [#381](https://github.com/Paul-16098/my-http-server/pull/381)
+
 </details>
 
 ### Other
