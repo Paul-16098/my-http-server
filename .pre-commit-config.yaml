@@ -4,7 +4,7 @@ repos:
       - id: fmt
         name: fmt
         files: .*\.rs$
-        language: rust
+        language: system
         entry: cargo
         args:
           - fmt
