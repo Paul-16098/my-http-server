@@ -149,6 +149,8 @@
 
 - *deps*: Update rust crate utoipa to v6 (#364) by @renovate\[bot] in [#364](https://github.com/Paul-16098/my-http-server/pull/364)
 
+- Update yanked crate by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -696,6 +698,8 @@
 - *ci*: Reformat test workflow yaml by @Paul-16098
 
 - *config*: Update rust-version to 1.88.0 by @Paul-16098
+
+- *pre-commit*: Change fmt hook language to system by @Paul-16098
 
 
 
