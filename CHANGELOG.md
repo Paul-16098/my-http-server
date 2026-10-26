@@ -155,6 +155,8 @@
 
 - *rustls-webpki*: Address RUSTSEC-2026-0382 by @Paul-16098
 
+- *deps*: RUSTSEC-2026-0386 by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
