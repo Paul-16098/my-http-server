@@ -534,6 +534,8 @@
 
 - Update rust crate ureq to v3.5.0 (#384) by @renovate\[bot] in [#384](https://github.com/Paul-16098/my-http-server/pull/384)
 
+- Update rust crate actix-web to v4.18.1 (#383) by @renovate\[bot] in [#383](https://github.com/Paul-16098/my-http-server/pull/383)
+
 </details>
 
 ### Other
