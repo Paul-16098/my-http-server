@@ -532,6 +532,8 @@
 
 - Update rust crate actix-files to v0.7.2 (#382) by @renovate\[bot] in [#382](https://github.com/Paul-16098/my-http-server/pull/382)
 
+- Update rust crate ureq to v3.5.0 (#384) by @renovate\[bot] in [#384](https://github.com/Paul-16098/my-http-server/pull/384)
+
 </details>
 
 ### Other
