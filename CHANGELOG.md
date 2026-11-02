@@ -536,6 +536,8 @@
 
 - Update rust crate actix-web to v4.18.1 (#383) by @renovate\[bot] in [#383](https://github.com/Paul-16098/my-http-server/pull/383)
 
+- Update taiki-e/install-action action to v2.87.32 (#371) by @renovate\[bot] in [#371](https://github.com/Paul-16098/my-http-server/pull/371)
+
 </details>
 
 ### Other
@@ -712,6 +714,8 @@
 - *config*: Update rust-version to 1.88.0 by @Paul-16098
 
 - *pre-commit*: Change fmt hook language to system by @Paul-16098
+
+- *cargo-dist*: Upgrade to version 0.34.0 by @Paul-16098
 
 
 
