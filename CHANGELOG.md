@@ -540,6 +540,8 @@
 
 - Update taiki-e/install-action action to v2.88.1 (#388) by @renovate\[bot] in [#388](https://github.com/Paul-16098/my-http-server/pull/388)
 
+- Update rust crate actix-files to v0.7.3 (#390) by @renovate\[bot] in [#390](https://github.com/Paul-16098/my-http-server/pull/390)
+
 </details>
 
 ### Other
