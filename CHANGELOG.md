@@ -544,6 +544,8 @@
 
 - Update actions-rust-lang/setup-rust-toolchain action to v2.0.1 (#392) by @renovate\[bot] in [#392](https://github.com/Paul-16098/my-http-server/pull/392)
 
+- Update rust crate log to v0.4.35 (#389) by @renovate\[bot] in [#389](https://github.com/Paul-16098/my-http-server/pull/389)
+
 </details>
 
 ### Other
