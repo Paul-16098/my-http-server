@@ -542,6 +542,8 @@
 
 - Update rust crate actix-files to v0.7.3 (#390) by @renovate\[bot] in [#390](https://github.com/Paul-16098/my-http-server/pull/390)
 
+- Update actions-rust-lang/setup-rust-toolchain action to v2.0.1 (#392) by @renovate\[bot] in [#392](https://github.com/Paul-16098/my-http-server/pull/392)
+
 </details>
 
 ### Other
