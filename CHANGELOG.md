@@ -546,6 +546,8 @@
 
 - Update rust crate log to v0.4.35 (#389) by @renovate\[bot] in [#389](https://github.com/Paul-16098/my-http-server/pull/389)
 
+- Update rust crate ureq to v3.5.1 (#393) by @renovate\[bot] in [#393](https://github.com/Paul-16098/my-http-server/pull/393)
+
 </details>
 
 ### Other
