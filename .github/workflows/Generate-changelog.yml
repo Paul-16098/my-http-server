@@ -1,6 +1,7 @@
 name: Generate changelog
 on:
   workflow_dispatch:
+  workflow_call:
   pull_request_target:
     branches:
       - main
@@ -8,7 +9,8 @@ on:
     types:
       - closed
   push:
-    branches: dev
+    branches:
+      - dev
 
 permissions:
   contents: write
