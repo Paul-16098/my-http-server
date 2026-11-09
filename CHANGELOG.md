@@ -157,6 +157,8 @@
 
 - *deps*: RUSTSEC-2026-0386 by @Paul-16098
 
+- Fixup! ci(changelog): add workflow_call and update push branches by @Paul-16098
+
 ### <details><summary>Deps</summary>
 
 
@@ -609,6 +611,8 @@
 - Merge branch 'main' into dev by @Paul-16098
 
 - Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+- Merge branch 'main' into dev by @Paul-16098
 
 - Merge branch 'main' into dev by @Paul-16098
 
