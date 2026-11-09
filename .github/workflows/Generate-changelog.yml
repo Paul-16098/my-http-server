@@ -2,6 +2,10 @@ name: Generate changelog
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      plan:
+        type: string
+        required: false
   pull_request_target:
     branches:
       - main
