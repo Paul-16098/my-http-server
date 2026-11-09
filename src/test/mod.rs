@@ -19,6 +19,8 @@
 pub(crate) mod api;
 pub(crate) mod cli;
 pub(crate) mod config;
+#[cfg(feature = "github_emojis")]
+pub(crate) mod emojis;
 pub(crate) mod error;
 pub(crate) mod parser;
 pub(crate) mod request;

@@ -10,7 +10,10 @@
 use crate::{request::main_req, test::support::assert_status_in};
 use actix_web::{
 	App,
-	http::{StatusCode, header},
+	http::{
+		StatusCode,
+		header::{self},
+	},
 	test,
 };
 
@@ -168,7 +171,7 @@ async fn test_accept_markdown() {
 
 	let req = test::TestRequest::get()
 		.uri("/dir/test.md")
-		.insert_header(("accept", "text/markdown"))
+		.insert_header((header::ACCEPT, "text/markdown"))
 		.to_request();
 
 	let resp = test::call_service(&app, req).await;
@@ -178,4 +181,43 @@ async fn test_accept_markdown() {
 	let body = test::read_body(resp).await;
 
 	assert_eq!(body, test_body);
+}
+
+#[actix_web::test]
+async fn test_accept_html() {
+	crate::test::support::init_test_setup();
+
+	let test_body = "# Hello\n";
+
+	crate::test::support::init_public_dir(build_fs_tree::dir! {
+		"dir" => build_fs_tree::dir! {
+			"test.md" => build_fs_tree::file!(test_body),
+		}
+	});
+
+	let app = test::init_service(App::new().service(main_req)).await;
+
+	let req = test::TestRequest::get()
+		.uri("/dir/test.md")
+		.insert_header((header::ACCEPT, actix_web::mime::TEXT_HTML_UTF_8))
+		.to_request();
+
+	let resp = test::call_service(&app, req).await;
+
+	assert_status_in(resp.status(), &[StatusCode::OK]);
+
+	let body = String::from_utf8(test::read_body(resp).await.to_vec()).unwrap();
+	let body_f = regex::Regex::new(r"<title>[^<]+</title>")
+		.unwrap()
+		.replace(&body, "<title>test</title>");
+
+	assert_eq!(
+		body_f,
+		crate::parser::md2html(
+			test_body.to_owned(),
+			&crate::cofg::config::Cofg::get(false),
+			vec!["path:test".to_string()]
+		)
+		.unwrap()
+	);
 }

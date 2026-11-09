@@ -46,14 +46,16 @@ fn main() {
 	};
 
 	let env_suffix = match var("ACTIONS_ID") {
-		Ok(id) => format!("actions/runs/{id}"),
+		Ok(id) => format!("CI.{id}"),
 		Err(std::env::VarError::NotPresent) if !in_docker => "Local".to_string(),
 		Err(_) if in_docker => "Docker".to_string(),
 		Err(_) => "unknown".to_string(),
 	};
 	println!(
 		"cargo:rustc-env=FEATURES={}",
-		var("CARGO_CFG_FEATURE").unwrap_or_default()
+		var("CARGO_CFG_FEATURE")
+			.unwrap_or_default()
+			.replace(",", ".")
 	);
 	println!(
 		"cargo:rustc-env=PROFILE={}",

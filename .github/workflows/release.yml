@@ -64,7 +64,7 @@ jobs:
         # we specify bash to get pipefail; it guards against the `curl` command
         # failing. otherwise `sh` won't catch that `curl` returned non-0
         shell: bash
-        run: "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.32.0/cargo-dist-installer.sh | sh"
+        run: "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.34.0/cargo-dist-installer.sh | sh"
       - name: Cache dist
         uses: actions/upload-artifact@v7
         with:
@@ -297,7 +297,7 @@ jobs:
       - plan
       - build-local-artifacts
       - build-global-artifacts
-    uses: ./.github/workflows/Generate-changelog.yml
+    uses: $/.github/workflows/Generate-changelog.yml
     with:
       plan: ${{ needs.plan.outputs.val }}
     secrets: inherit
@@ -308,7 +308,7 @@ jobs:
       - host
       - custom-Generate-changelog
     if: ${{ !fromJson(needs.plan.outputs.val).announcement_is_prerelease || fromJson(needs.plan.outputs.val).publish_prereleases }}
-    uses: ./.github/workflows/cargo-push.yml
+    uses: $/.github/workflows/cargo-push.yml
     with:
       plan: ${{ needs.plan.outputs.val }}
     secrets: inherit
@@ -323,7 +323,7 @@ jobs:
       - host
       - custom-Generate-changelog
     if: ${{ !fromJson(needs.plan.outputs.val).announcement_is_prerelease || fromJson(needs.plan.outputs.val).publish_prereleases }}
-    uses: ./.github/workflows/push-docker-image.yml
+    uses: $/.github/workflows/push-docker-image.yml
     with:
       plan: ${{ needs.plan.outputs.val }}
     secrets: inherit

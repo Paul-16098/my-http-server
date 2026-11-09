@@ -156,25 +156,23 @@ impl Cofg {
 	///
 	/// WHY: Follow XDG Base Directory specification and platform conventions for cross-platform config management
 	/// while keeping template, 404 assets, and emoji cache alongside the config file.
-	///
-	/// `None`, if no valid home directory path could be retrieved from the operating system.
-	pub(crate) fn get_xdg_paths() -> Option<XdgPaths> {
-		directories::ProjectDirs::from("", "", "my-http-server").map(|proj_dirs| {
-			let base = proj_dirs.config_local_dir();
-			XdgPaths {
-				cofg: base.join("cofg.yaml"),
-				page_404: base.join("404.html"),
-				template_hbs: base.join("html-t.hbs"),
-				#[cfg(feature = "github_emojis")]
-				emojis: base.join("emojis.json"),
-			}
-		})
+	pub(crate) fn get_xdg_paths() -> XdgPaths {
+		#[allow(clippy::unwrap_used)]
+		let xdg = directories::ProjectDirs::from("", "", "my-http-server").unwrap();
+		let base = xdg.config_local_dir();
+		XdgPaths {
+			cofg: base.join("cofg.yaml"),
+			page_404: base.join("404.html"),
+			template_hbs: base.join("html-t.hbs"),
+			#[cfg(feature = "github_emojis")]
+			emojis: base.join("emojis.json"),
+		}
 	}
 
 	/// Backward-compatible helper returning only the config path.
 	/// Prefer `get_xdg_paths()` when callers also need template/404 locations.
-	pub(crate) fn get_xdg_config_path() -> Option<std::path::PathBuf> {
-		Self::get_xdg_paths().map(|paths| paths.cofg)
+	pub(crate) fn get_xdg_config_path() -> std::path::PathBuf {
+		Self::get_xdg_paths().cofg
 	}
 
 	/// Load configuration from disk.
@@ -194,13 +192,13 @@ impl Cofg {
 			.add_source(config::File::from_str(BUILD_COFG, config::FileFormat::Yaml));
 
 		// Layer 2: XDG config directory (unless --no-config)
-		if !cli.no_config
-			&& !no_xdg
-			&& let Some(xdg_path) = Self::get_xdg_config_path()
-			&& xdg_path.exists()
-		{
-			debug!("Loading config from XDG path: {}", xdg_path.display());
-			builder = builder.add_source(config::File::from(xdg_path));
+		if !cli.no_config && !no_xdg {
+			let xdg_config_path = Self::get_xdg_config_path();
+			debug!(
+				"Loading config from XDG path: {}",
+				xdg_config_path.display()
+			);
+			builder = builder.add_source(config::File::from(xdg_config_path));
 		}
 
 		// Layer 3: Cli Local config file (unless --no-config)
@@ -306,7 +304,7 @@ impl Cofg {
 		}
 
 		// Try XDG path
-		if let Some(xdg_paths) = Self::get_xdg_paths()
+		if let xdg_paths = Self::get_xdg_paths()
 			&& xdg_paths.page_404.exists()
 		{
 			debug!("Using 404 from XDG path: {}", xdg_paths.page_404.display());
@@ -336,7 +334,7 @@ impl Cofg {
 		}
 
 		// Try XDG path
-		if let Some(xdg_paths) = Self::get_xdg_paths()
+		if let xdg_paths = Self::get_xdg_paths()
 			&& xdg_paths.template_hbs.exists()
 		{
 			debug!(

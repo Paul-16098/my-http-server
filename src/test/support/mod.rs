@@ -127,7 +127,7 @@ pub(crate) fn init_test_config() {
 		// causing tests to hang or fail in CI environments without network access.
 		// Stored in temp directory (not project root) to avoid polluting repository.
 		#[cfg(feature = "github_emojis")]
-		crate::emojis_init(None).unwrap();
+		crate::emojis_init(std::env::var("GITHUB_TOKEN").ok()).unwrap();
 	});
 }
 

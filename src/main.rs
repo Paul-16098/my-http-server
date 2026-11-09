@@ -7,11 +7,13 @@ mod test;
 #[cfg(feature = "api")]
 mod api;
 mod cofg;
-mod parser;
-use crate::cofg::{cli, config::Cofg};
 mod error;
-use crate::error::AppResult;
+mod parser;
 mod request;
+mod version;
+
+use crate::cofg::{cli, config::Cofg};
+use crate::error::AppResult;
 use crate::request::main_req;
 
 use actix_web::HttpResponse;
@@ -22,105 +24,55 @@ use log::{debug, error, info, warn};
 use std::path::Path;
 use std::process::exit;
 
-#[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
-#[derive(serde::Serialize)]
-pub(crate) struct Version {
-	version: &'static str,
-	profile: &'static str,
-	commit_hash: &'static str,
-	env_suffix: &'static str,
-	features: &'static str,
-}
-const VERSION: Version = Version::new();
-
-impl std::fmt::Display for Version {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(
-			f,
-			"{}({} Profile)-{}({})[f:{}]",
-			self.version,
-			self.profile,
-			self.commit_hash,
-			self.env_suffix,
-			if self.features.is_empty() {
-				"none"
-			} else {
-				self.features
-			},
-		)
-	}
-}
-
-impl Version {
-	pub(crate) const fn new() -> Self {
-		Self {
-			version: env!("CARGO_PKG_VERSION"),
-			profile: env!("PROFILE"),
-			commit_hash: env!("commit_hash"),
-			env_suffix: env!("env_suffix"),
-			features: env!("FEATURES"),
-		}
-	}
-}
-
-impl Default for Version {
-	fn default() -> Self {
-		Self::new()
-	}
-}
-
 /// Initialize logging & ensure `public_path` directory exists.
 ///
 /// WHY: Keep side-effect setup isolated from `main()`. Directory creation early prevents
 /// per-request race to create it lazily. Logger configured with module paths for traceability.
 fn init(_c: &Cofg) -> AppResult<()> {
-	if let Some(xdg_paths) = Cofg::get_xdg_paths() {
-		if !xdg_paths.cofg.exists() {
-			std::fs::write(&xdg_paths.cofg, include_str!("./cofg/cofg.yaml"))?;
-			info!("Created default XDG config at {}", xdg_paths.cofg.display());
-		}
-
-		if !xdg_paths.template_hbs.exists() {
-			std::fs::write(&xdg_paths.template_hbs, include_str!("../meta/html-t.hbs"))?;
-			info!(
-				"Created default XDG template at {}",
-				xdg_paths.template_hbs.display()
-			);
-		}
-
-		if !xdg_paths.page_404.exists() {
-			std::fs::write(&xdg_paths.page_404, include_str!("../meta/404.html"))?;
-			info!(
-				"Created default XDG 404 page at {}",
-				xdg_paths.page_404.display()
-			);
-		}
+	let xdg_paths = Cofg::get_xdg_paths();
+	if !xdg_paths.cofg.exists() {
+		std::fs::write(&xdg_paths.cofg, include_str!("./cofg/cofg.yaml"))?;
+		info!("Created default XDG config at {}", xdg_paths.cofg.display());
 	}
+
+	if !xdg_paths.template_hbs.exists() {
+		std::fs::write(&xdg_paths.template_hbs, include_str!("../meta/html-t.hbs"))?;
+		info!(
+			"Created default XDG template at {}",
+			xdg_paths.template_hbs.display()
+		);
+	}
+
+	if !xdg_paths.page_404.exists() {
+		std::fs::write(&xdg_paths.page_404, include_str!("../meta/404.html"))?;
+		info!(
+			"Created default XDG 404 page at {}",
+			xdg_paths.page_404.display()
+		);
+	}
+
 	#[cfg(feature = "github_emojis")]
 	emojis_init(std::env::var("GITHUB_TOKEN").ok())?;
 	Ok(())
 }
 
 #[cfg(feature = "github_emojis")]
-pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn emojis_init(ght: Option<String>) -> crate::error::AppResult<()> {
 	use parser::{EMOJIS, Emojis};
 	use std::collections::HashMap;
 
 	// Determine emoji cache path with XDG fallback
-	let emoji_path = if let Some(xdg_paths) = cofg::config::Cofg::get_xdg_paths() {
-		// Ensure XDG directory exists
-		if let Some(parent) = xdg_paths.emojis.parent() {
-			std::fs::create_dir_all(parent).ok();
-		}
-		xdg_paths.emojis
-	} else {
-		Path::new("./emojis.json").to_path_buf()
-	};
+	let emoji_path = &cofg::config::Cofg::get_xdg_paths().emojis;
 
 	if !emoji_path.exists() {
+		if let Some(pat) = emoji_path.parent() {
+			std::fs::create_dir_all(pat)?
+		}
+
 		info!(
-			"emoji json file not found at {}, fetching from github api...",
-			emoji_path.display()
+			"emoji json file not found at {}, fetching from github api{}...",
+			emoji_path.display(),
+			(if ght.is_some() { " with token" } else { "" })
 		);
 		let mut resp = ureq::get("https://api.github.com/emojis")
 			.header("User-Agent", "Paul-16098/my-http-server");
@@ -147,7 +99,7 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 					});
 				match unicode {
 					Some(unicode) => {
-						debug!("Found unicode emoji: {k} -> {unicode}");
+						log::trace!("Found unicode emoji: {k} -> {unicode}");
 						unicode_emojis.insert(k.clone(), unicode);
 					}
 					None => {
@@ -155,7 +107,7 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 					}
 				}
 			} else {
-				debug!("Found non-unicode emoji: {k} -> {v}");
+				log::trace!("Found non-unicode emoji: {k} -> {v}");
 				else_emojis.insert(k.clone(), v.clone());
 			}
 		}
@@ -164,7 +116,8 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 			unicode: unicode_emojis,
 			r#else: else_emojis,
 		})?;
-		std::fs::write(&emoji_path, json)?;
+		debug!("cache: {json}");
+		std::fs::write(emoji_path, json)?;
 		info!("Saved emoji cache to {}", emoji_path.display());
 	} else {
 		info!(
@@ -172,7 +125,8 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 			emoji_path.display()
 		);
 	}
-	let emojis_json = std::fs::read_to_string(&emoji_path).map_err(|e| {
+
+	let emojis_json = std::fs::read_to_string(emoji_path).map_err(|e| {
 		error!(
 			"Failed to read emojis.json from {}: {}",
 			emoji_path.display(),
@@ -180,8 +134,11 @@ pub(crate) fn emojis_init(ght: Option<String>) -> Result<(), Box<dyn std::error:
 		);
 		e
 	})?;
+
+	log::trace!("emojis json is: {emojis_json}");
+
 	let emojis: parser::Emojis = serde_json::from_str(&emojis_json).map_err(|e| {
-		error!("Failed to parse emojis.json as valid JSON: {}", e);
+		error!("Failed to parse as valid JSON: {e}");
 		e
 	})?;
 	EMOJIS.get_or_init(|| emojis);
@@ -232,8 +189,14 @@ fn load_tls_config(cert_path: &str, key_path: &str) -> AppResult<rustls::ServerC
 	};
 	use std::io::BufReader;
 
-	let cert_file = &mut BufReader::new(std::fs::File::open(cert_path)?);
-	let key_file = &mut BufReader::new(std::fs::File::open(key_path)?);
+	let cert_full_path = std::fs::canonicalize(cert_path)?;
+	let key_full_path = std::fs::canonicalize(key_path)?;
+
+	debug!("tls cert={}", cert_full_path.display());
+	debug!("tls key={}", key_full_path.display());
+
+	let cert_file = &mut BufReader::new(std::fs::File::open(cert_full_path)?);
+	let key_file = &mut BufReader::new(std::fs::File::open(key_full_path)?);
 
 	let cert_chain =
 		CertificateDer::pem_reader_iter(cert_file).collect::<Result<Vec<CertificateDer>, _>>()?;
@@ -267,61 +230,56 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 	#[cfg(feature = "api")]
 	let api_enable = s.api.enable;
 
-	info!(
-		"run in {}{addrs}",
-		if s.tls.enable { "https://" } else { "http://" }
-	);
-
 	let server = HttpServer::new(move || {
-		let mut app =
-			App::new()
-				// Add HSTS header for HTTPS responses when TLS is enabled. This ensures
-				// browsers will enforce HTTPS for the configured max-age.
-				.wrap(middleware::Condition::new(
-					tls_enable,
-					middleware::DefaultHeaders::new().add((
-						header::STRICT_TRANSPORT_SECURITY,
-						// 1 year + include subdomains and preload directive
-						"max-age=31536000; includeSubDomains; preload",
-					)),
-				))
-				.wrap(middleware::Condition::new(
-					middleware_cofg.rate_limiting.enable,
-					{
-						let cfg = actix_governor::GovernorConfigBuilder::default()
-							.seconds_per_request(middleware_cofg.rate_limiting.seconds_per_request)
-							.burst_size(middleware_cofg.rate_limiting.burst_size)
-							.finish()
-							.unwrap_or_else(|| {
-								error!("Failed to build rate limiting config");
-								actix_governor::GovernorConfig::default()
-							});
-						actix_governor::Governor::new(&cfg)
-					},
-				))
-				.wrap(middleware::Condition::new(
-					middleware_cofg.logger.enabling,
-					middleware::Logger::new(&middleware_cofg.logger.format)
-						.custom_request_replace("url", |req| req.uri().to_string())
-						.log_target("http-log"),
-				))
-				.wrap(middleware::Condition::new(
-					middleware_cofg.normalize_path,
-					middleware::NormalizePath::new(middleware::TrailingSlash::Trim),
-				))
-				.wrap(middleware::Condition::new(
-					middleware_cofg.compress,
-					middleware::Compress::default(),
-				))
-				.wrap(middleware::Condition::new(
-					middleware_cofg.http_base_authentication.enable,
-					{
-						use std::sync::Arc;
-						let users_arc =
-							Arc::new(middleware_cofg.http_base_authentication.users.clone());
-						actix_web_httpauth::middleware::HttpAuthentication::basic({
-							let users_arc = users_arc.clone();
-							move |
+		let mut app = App::new()
+			// Add HSTS header for HTTPS responses when TLS is enabled. This ensures
+			// browsers will enforce HTTPS for the configured max-age.
+			.wrap(middleware::Condition::new(
+				tls_enable,
+				middleware::DefaultHeaders::new().add((
+					header::STRICT_TRANSPORT_SECURITY,
+					// 1 year + include subdomains and preload directive
+					"max-age=31536000; includeSubDomains; preload",
+				)),
+			))
+			.wrap(middleware::Condition::new(
+				middleware_cofg.rate_limiting.enable,
+				{
+					let cfg = actix_governor::GovernorConfigBuilder::default()
+						.seconds_per_request(middleware_cofg.rate_limiting.seconds_per_request)
+						.burst_size(middleware_cofg.rate_limiting.burst_size)
+						.finish()
+						.unwrap_or_else(|| {
+							error!("Failed to build rate limiting config");
+							actix_governor::GovernorConfig::default()
+						});
+					actix_governor::Governor::new(&cfg)
+				},
+			))
+			.wrap(middleware::Condition::new(
+				middleware_cofg.logger.enabling,
+				middleware::Logger::new(&middleware_cofg.logger.format)
+					.custom_request_replace("url", |req| req.uri().to_string())
+					.custom_request_replace("method", |req| req.method().to_string())
+					.log_target("http-log"),
+			))
+			.wrap(middleware::Condition::new(
+				middleware_cofg.normalize_path,
+				middleware::NormalizePath::new(middleware::TrailingSlash::Trim),
+			))
+			.wrap(middleware::Condition::new(
+				middleware_cofg.compress,
+				middleware::Compress::default(),
+			))
+			.wrap(middleware::Condition::new(
+				middleware_cofg.http_base_authentication.enable,
+				{
+					use std::sync::Arc;
+					let users_arc =
+						Arc::new(middleware_cofg.http_base_authentication.users.clone());
+					actix_web_httpauth::middleware::HttpAuthentication::basic({
+						let users_arc = users_arc.clone();
+						move |
 			  req: actix_web::dev::ServiceRequest,
 			  credentials: actix_web_httpauth::extractors::basic::BasicAuth
 			| {
@@ -380,45 +338,45 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 				Err((actix_web::error::ErrorUnauthorized("Unauthorized: access denied"), req))
 			  }
 			}
-						})
-					},
-				))
-				.wrap(middleware::Condition::new(
-					middleware_cofg.ip_filter.enable,
-					{
-						use actix_ip_filter::IPFilter;
-						let mut filter = IPFilter::new();
+					})
+				},
+			))
+			.wrap(middleware::Condition::new(
+				middleware_cofg.ip_filter.enable,
+				{
+					use actix_ip_filter::IPFilter;
+					let mut filter = IPFilter::new();
 
-						for rule in middleware_cofg.ip_filter.rules.iter() {
-							// If allow list is specified, use whitelist mode
-							if let Some(allow_list) = rule.allow.as_ref() {
-								let allow_refs: Vec<&str> =
-									allow_list.iter().map(|s| s.as_str()).collect();
-								filter = filter.allow(allow_refs);
-							}
-
-							// If block list is specified, add to blocklist
-							if let Some(block_list) = rule.block.as_ref() {
-								let block_refs: Vec<&str> =
-									block_list.iter().map(|s| s.as_str()).collect();
-								filter = filter.block(block_refs);
-							}
-							filter =
-								filter.limit_to(rule.limit_to.iter().map(|f| f.as_str()).collect());
+					for rule in middleware_cofg.ip_filter.rules.iter() {
+						// If allow list is specified, use whitelist mode
+						if let Some(allow_list) = rule.allow.as_ref() {
+							let allow_refs: Vec<&str> =
+								allow_list.iter().map(|s| s.as_str()).collect();
+							filter = filter.allow(allow_refs);
 						}
-						filter = filter.on_block(
-							|_flt: &IPFilter, ip: &str, req: &actix_web::dev::ServiceRequest| {
-								debug!("ip_filter: block ip {ip} req={:?}", req);
-								Some(
-									HttpResponse::Forbidden()
-										.body(format!("IP is blocked, your IP is {ip}")),
-								)
-							},
-						);
 
-						filter
-					},
-				));
+						// If block list is specified, add to blocklist
+						if let Some(block_list) = rule.block.as_ref() {
+							let block_refs: Vec<&str> =
+								block_list.iter().map(|s| s.as_str()).collect();
+							filter = filter.block(block_refs);
+						}
+						filter =
+							filter.limit_to(rule.limit_to.iter().map(|f| f.as_str()).collect());
+					}
+					filter = filter.on_block(
+						|_flt: &IPFilter, ip: &str, req: &actix_web::dev::ServiceRequest| {
+							debug!("ip_filter: block ip {ip} req={:?}", req);
+							Some(
+								HttpResponse::Forbidden()
+									.body(format!("IP is blocked, your IP is {ip}")),
+							)
+						},
+					);
+
+					filter
+				},
+			));
 		#[cfg(feature = "api")]
 		if api_enable {
 			app = app.service(api::service());
@@ -440,6 +398,11 @@ fn build_server(s: &Cofg) -> AppResult<Server> {
 		server.bind(addrs)?
 	};
 
+	info!(
+		"run in {}{addrs}",
+		if s.tls.enable { "https://" } else { "http://" }
+	);
+
 	Ok(server.run())
 }
 
@@ -450,7 +413,7 @@ async fn main() -> AppResult<()> {
 
 	// if generate_completion is specified, generate the completion script and exit
 	if let Some(shell) = cli_args.generate_completion.generate_completion {
-		clap_complete::generate(
+		clap_completion_flag::generate(
 			shell,
 			&mut cli::Args::command(),
 			env!("CARGO_BIN_NAME"),
@@ -475,18 +438,15 @@ async fn main() -> AppResult<()> {
 
 	#[cfg(feature = "github_emojis")]
 	if cli_args.clear_cache {
-		if let Some(xdg_paths) = cofg::config::Cofg::get_xdg_paths() {
-			std::fs::remove_file(&xdg_paths.emojis)?;
-			info!("Cleared emoji cache at {}", xdg_paths.emojis.display());
-		} else {
-			error!("Cannot clear emoji cache: no valid XDG config path available");
-		}
+		let xdg_paths = cofg::config::Cofg::get_xdg_paths();
+		std::fs::remove_file(&xdg_paths.emojis)?;
+		info!("Cleared emoji cache at {}", xdg_paths.emojis.display());
 	}
 
 	init(&s)?;
 	info!(
 		"VERSION: {} in {}",
-		VERSION,
+		version::VERSION,
 		Path::new(".").canonicalize()?.display()
 	);
 	debug!("cofg: {s:#?}");
