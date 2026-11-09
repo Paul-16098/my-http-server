@@ -1,6 +1,7 @@
 name: Generate changelog
 on:
   workflow_dispatch:
+<<<<<<< HEAD
   workflow_call:
     inputs:
       plan:
@@ -15,6 +16,22 @@ on:
   push:
     branches:
       - dev
+||||||| e8d67df
+  workflow_call:
+    inputs:
+      plan:
+        required: false
+        type: string
+=======
+  pull_request_target:
+    branches:
+      - main
+      - dev
+    types:
+      - closed
+  push:
+    branches: dev
+>>>>>>> refs/rewritten/onto
 
 permissions:
   contents: write
