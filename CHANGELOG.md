@@ -733,6 +733,8 @@
 
 - *cargo-dist*: Upgrade to version 0.34.0 by @Paul-16098
 
+- *changelog*: Add workflow_call and update push branches by @Paul-16098
+
 
 
 - @github-actions[bot] made their first contribution## \[4.1.7\] - 2026-04-05
