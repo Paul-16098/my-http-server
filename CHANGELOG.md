@@ -550,6 +550,8 @@
 
 - Update rust crate actix-files to v0.7.4 (#399) by @renovate\[bot] in [#399](https://github.com/Paul-16098/my-http-server/pull/399)
 
+- Update rust crate actix-web to v4.18.2 (#400) by @renovate\[bot] in [#400](https://github.com/Paul-16098/my-http-server/pull/400)
+
 </details>
 
 ### Other
