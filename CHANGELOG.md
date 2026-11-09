@@ -608,6 +608,10 @@
 
 - Merge branch 'main' into dev by @Paul-16098
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
+- Merge branch 'main' into dev by @Paul-16098
+
 
 ### Refactor
 
@@ -732,6 +736,8 @@
 - *pre-commit*: Change fmt hook language to system by @Paul-16098
 
 - *cargo-dist*: Upgrade to version 0.34.0 by @Paul-16098
+
+- *changelog*: Add workflow_call and update push branches by @Paul-16098
 
 
 
