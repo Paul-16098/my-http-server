@@ -13,7 +13,7 @@ workflows:
         - 'actions/github-script@v9.0.0'
     '.github/workflows/cargo-push.yml':
         - 'actions/checkout@v7.0.1'
-        - 'rust-lang/crates-io-auth-action@v1.0.5'
+        - 'rust-lang/crates-io-auth-action@v1.0.6'
     '.github/workflows/push-docker-image.yml':
         - 'actions/attest@v4.2.2'
         - 'actions/checkout@v7.0.1'
@@ -99,9 +99,9 @@ dependencies:
         commit: 'sha1-9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7'
         owner_id: 5429470
         repo_id: 306769011
-    'rust-lang/crates-io-auth-action@v1.0.5':
-        ref: 'v1.0.5'
-        commit: 'sha1-c6f97d42243bad5fab37ca0427f495c86d5b1a18'
+    'rust-lang/crates-io-auth-action@v1.0.6':
+        ref: 'v1.0.6'
+        commit: 'sha1-3268eb413133e2960fa4ae0e963ca76380c54cd9'
         owner_id: 5430905
         repo_id: 1008931044
     'rustsec/audit-check@v2.0.0':
