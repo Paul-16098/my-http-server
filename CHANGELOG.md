@@ -60,6 +60,8 @@
 
 - *tls*: Canonicalize certificate and key paths
 
+- *request*: Support both TEXT_HTML and TEXT_HTML_UTF_8 for md
+
 
 ### Bug Fixes
 
@@ -554,6 +556,8 @@
 
 - Update rust crate actix-web to v4.18.2 (#400)
 
+- Update rust-lang/crates-io-auth-action action to v1.0.6 (#404)
+
 </details>
 
 ### Other
@@ -619,6 +623,10 @@
 - Merge 22616a7ae4228f32d5449286ea40367b92eb4606 into 1934a1e5636fb2d71adc77b50352a8c586b8bad4
 
 - Merge 722d2b461f9dc1bb6535d851cc625933ef9bee8e into 1934a1e5636fb2d71adc77b50352a8c586b8bad4
+
+- Merge branch 'main' into dev
+
+- Merge d1ca4476d1365edfa2238673e3ff7bca1b098a65 into 94020b381a44faff564e3af3645511285ee037a7
 
 
 ### Refactor
@@ -746,6 +754,8 @@
 - *cargo-dist*: Upgrade to version 0.34.0
 
 - *changelog*: Add workflow_call and update push branches
+
+- Pin GitHub Action versions
 
 
 ## \[4.1.7\] - 2026-04-05
