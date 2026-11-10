@@ -217,9 +217,11 @@ pub(crate) async fn main_req(req: actix_web::HttpRequest) -> impl actix_web::Res
 
 	let is_md = req_path.extension().and_then(|v| v.to_str()) == Some("md");
 	let accepts = Accept::parse(&req).unwrap_or(Accept::html());
-	debug!("accept={accepts}");
-
-	if is_md && accepts.preference() == mime::TEXT_HTML_UTF_8 {
+	debug!("accept={accepts};preference={}", accepts.preference());
+	if is_md
+		&& (accepts.preference() == mime::TEXT_HTML
+			|| (accepts.preference() == mime::TEXT_HTML_UTF_8))
+	{
 		debug!("is md");
 
 		// Render Markdown to HTML and return.
