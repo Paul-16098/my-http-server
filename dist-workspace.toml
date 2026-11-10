@@ -28,3 +28,10 @@ host-jobs = ["./Generate-changelog"]
 # Publish jobs to run in CI
 publish-jobs = ["./cargo-push", "./push-docker-image"]
 github-custom-job-permissions = { "push-docker-image" = { contents = "read", packages = "write", attestations = "write", id-token = "write" } }
+
+[dist.github-action-commits]
+"actions/checkout" = "v6.1.0"
+"actions/upload-artifact" = "v7.0.2"
+"swatinem/rust-cache" = "v2.9.3"
+"actions/download-artifact" = "v8.0.2"
+"actions/attest" = "v4.2.2"

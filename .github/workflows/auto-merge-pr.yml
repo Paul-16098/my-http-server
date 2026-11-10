@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Get open PRs
         id: get-prs
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             // Use pagination to get all open PRs
@@ -39,7 +39,7 @@ jobs:
 
       - name: Merge PRs
         if: steps.get-prs.outputs.count != '0'
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         env:
           PRS_JSON: ${{ steps.get-prs.outputs.prs }}
         with:
