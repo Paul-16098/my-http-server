@@ -60,6 +60,8 @@
 
 - *tls*: Canonicalize certificate and key paths by @Paul-16098
 
+- *request*: Support both TEXT_HTML and TEXT_HTML_UTF_8 for md by @Paul-16098
+
 
 ### Bug Fixes
 
