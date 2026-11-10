@@ -62,8 +62,6 @@
 
 - *request*: Support both TEXT_HTML and TEXT_HTML_UTF_8 for md by @Paul-16098
 
-- *request*: Support both TEXT_HTML and TEXT_HTML_UTF_8 for md
-
 
 ### Bug Fixes
 
@@ -560,8 +558,6 @@
 
 - Update rust-lang/crates-io-auth-action action to v1.0.6 (#404) by @renovate\[bot] in [#404](https://github.com/Paul-16098/my-http-server/pull/404)
 
-- Update rust-lang/crates-io-auth-action action to v1.0.6 (#404)
-
 </details>
 
 ### Other
@@ -632,9 +628,7 @@
 
 - Merge d1ca4476d1365edfa2238673e3ff7bca1b098a65 into 94020b381a44faff564e3af3645511285ee037a7 by @Paul-16098
 
-- Merge branch 'main' into dev
-
-- Merge d1ca4476d1365edfa2238673e3ff7bca1b098a65 into 94020b381a44faff564e3af3645511285ee037a7
+- Merge branch 'main' into dev by @Paul-16098
 
 
 ### Refactor
@@ -764,8 +758,6 @@
 - *changelog*: Add workflow_call and update push branches by @Paul-16098
 
 - Pin GitHub Action versions by @Paul-16098
-
-- Pin GitHub Action versions
 
 
 
