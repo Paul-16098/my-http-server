@@ -765,6 +765,8 @@
 
 - Pin GitHub Action versions by @Paul-16098
 
+- *build*: Update rust-version to 1.89 by @Paul-16098
+
 
 
 - @github-actions[bot] made their first contribution## \[4.1.7\] - 2026-04-05
