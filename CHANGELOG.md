@@ -638,6 +638,8 @@
 
 - Merge branch 'main' into dev by @Paul-16098
 
+- Merge branch 'dev' of https://github.com/Paul-16098/my-http-server into dev by @Paul-16098
+
 
 ### Refactor
 
@@ -768,6 +770,10 @@
 - Pin GitHub Action versions by @Paul-16098
 
 - *build*: Update rust-version to 1.89 by @Paul-16098
+
+- *test*: Reformat workflow indentation and add pull_request by @Paul-16098
+
+- *changelog*: Comment out pull_request_target trigger by @Paul-16098
 
 
 
