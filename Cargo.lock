@@ -693,15 +693,6 @@ dependencies = [
 
 [[package]]
 name = "convert_case"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb402b8d4c85569410425650ce3eddc7d698ed96d39a73f941b08fb63082f1e7"
-dependencies = [
- "unicode-segmentation",
-]
-
-[[package]]
-name = "convert_case"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "633458d4ef8c78b72454de2d54fd6ab2e60f9e02be22f3c6104cdc8a4e0fceb9"
@@ -1846,14 +1837,14 @@ dependencies = [
 
 [[package]]
 name = "nest_struct"
-version = "0.5.5"
+version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "391fe23529bfafd2e872a35ebf019bf831344ec90e79a98595b6e99e78db50a4"
+checksum = "c3aded3183fe9ab71e859c21efc08de4051c9e3e5d1e4274db0c03050a11a86b"
 dependencies = [
- "convert_case 0.7.1",
+ "heck",
  "proc-macro2",
  "quote",
- "syn 2.0.118",
+ "syn 3.0.10",
 ]
 
 [[package]]
