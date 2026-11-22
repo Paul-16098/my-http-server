@@ -572,6 +572,8 @@
 
 - Update rust crate nest_struct to v0.5.6 (#412) by @renovate\[bot] in [#412](https://github.com/Paul-16098/my-http-server/pull/412)
 
+- Update actix-http to 3.22.0 by @Paul-16098
+
 </details>
 
 ### Other
